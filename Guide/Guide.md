@@ -1,8 +1,7 @@
-# QwMockData Root Guide
-May 13 2024\
-Version 0.3
+**QwMockData Root Guide**
+May 23, 2024\
+Version 0.4
 
-#### Contact
 If you have any questions or suggestions for the guide, please send an
 email to:\
 Ryan Conaway\
@@ -317,20 +316,45 @@ These leaves are not present in other trees.
 The mul ROOT tree will have a several branches that correspond to
 helicity-based quantities computed for corresponding evt tree branches.
 These helicity-based quantities include the `asym`, `diff`, and `yield`.
-How these values are calculated can vary depending on the device they
-are calculated for. Below is a figure that demonstrates how the various
-helicity quantitues are calculated.
+How these values are calculated can vary depending on the subsystem that
+they are calculated for.
 
-![image](Images/quartet_quantities.png)
+     Subsystem                 Quantity                Name          Unit
+  --------------- ----------------------------------- ------- -------------------
+   Beamline: BPM        $\frac{1}{2}(X_L-X_R)$         Diff           mm
+   Beamline: BPM        $\frac{1}{2}(X_L+X_R)$         Yield          mm
+   Beamline: BCM        $\frac{1}{2}(X_L+X_R)$         Yield        $\mu$A
+   Beamline: BCM       $\frac{X_L-X_R}{X_L+X_R}$       Asym         no unit
+   Main Detector      $\frac{1}{2}(Sig_L+Sig_R)$       Yield   $\frac{V}{\mu A}$
+   Main Detector   $\frac{Sig_L-Sig_R}{Sig_L+Sig_R}$   Asym         no unit
+
+The BPM Difference is the difference in beam position reported by the
+BPM during a given multiplicity window. The BPM Yield is the average
+position signal over a muliplicity window. The BCM Yield is the total
+charge reported by the BCM over a multiplicity window. The BCM
+Asym(metry) is the difference between the reported charge for
+left-helicity and right-helicity windows divided by the sum. For each
+detector subsystem, the Detector Yield is the average signal detected
+over a multiplicity window and the Detector Asym(metry) is the
+difference between the signal for left-helicity and right-helicity
+windows divided by the sum.
 
 The branches for the helicity-based quantities always start with the
 quantity keyword followed by the device name (device names correspond
 one-to-one to the branch names found in the evt tree):
 
-![image](Images/MUL_Quantity_Example.png)
+``` {.c}
+    root [7] mul->Print("asym_la14*")
+    ******************************************************************************
+    *Br    0 :asym_la14 : hw_sum/D:block0/D:block1/D:block2/D:block3/D:          *
+    *         | num_samples/D:Device_Error_Code/D                                *
+    *Entries :      281 : Total  Size=      16917 bytes  File Size  =      11473 *
+    *Baskets :        1 : Basket Size=      16000 bytes  Compression=   1.38     *
+    *............................................................................*
+```
 
-In the above output from `evt->Print("asym*")`, we see the branch name,
-`asym_la14`.
+We see the branch name, `asym_la14`.
+
  Keyword | Meaning
  --- | ---
   asym\_ |      Asymmetry calculation
@@ -475,7 +499,7 @@ MOLLER measurement will occur in ring 5 so that ring is further
 subdivided by three more segments, giving 84 channels. In total, there
 are 224 thin quartz detectors channels.
 
-![image](Images/Thin_Quartz_Rings.png)
+![image](Images/Quartz_Rings.png)
 
 The thin quarts detectors are labeled as `tq` in the ROOT tree. The
 segment that the thin quarts correspond to denoted explicitly by a
@@ -498,7 +522,8 @@ segments, ring 5 segments are denoted by `a,b,c (1,2,3)`.
     *............................................................................*    
 ```
 
-`tq24_r5a`
+We see the branch name, `tq24_r5a`
+
         Keyword | Meaning
   ------------------------| ---------------------
   tq | thin quartz
