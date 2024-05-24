@@ -1,4 +1,4 @@
-**QwMockData Root Guide**
+**QwMockData Root Guide**\
 May 23, 2024\
 Version 0.4
 
@@ -318,15 +318,14 @@ helicity-based quantities computed for corresponding evt tree branches.
 These helicity-based quantities include the `asym`, `diff`, and `yield`.
 How these values are calculated can vary depending on the subsystem that
 they are calculated for.
-
-     Subsystem                 Quantity                Name          Unit
-  --------------- ----------------------------------- ------- -------------------
-   Beamline: BPM        $\frac{1}{2}(X_L-X_R)$         Diff           mm
-   Beamline: BPM        $\frac{1}{2}(X_L+X_R)$         Yield          mm
-   Beamline: BCM        $\frac{1}{2}(X_L+X_R)$         Yield        $\mu$A
-   Beamline: BCM       $\frac{X_L-X_R}{X_L+X_R}$       Asym         no unit
-   Main Detector      $\frac{1}{2}(Sig_L+Sig_R)$       Yield   $\frac{V}{\mu A}$
-   Main Detector   $\frac{Sig_L-Sig_R}{Sig_L+Sig_R}$   Asym         no unit
+     Subsystem|                 Quantity|                Name|          Unit
+  ---------------| -----------------------------------| -------| -------------------
+   Beamline: BPM|        (1/2)(X_L-X_R)   |      Diff|           mm
+   Beamline: BPM|        (1/2)}(X_L+X_R)   |      Yield|          mm
+   Beamline: BCM|        (1/2)(X_L+X_R)   |      Yield|        uA
+   Beamline: BCM|       (X_L-X_R)/(X_L+X_R) |      Asym|         no unit
+   Main Detector|      (1/2)(Sig_L+Sig_R) |      Yield|   V/uA
+   Main Detector|   (Sig_L-Sig_R)/(Sig_L+Sig_R)|   Asym|         no unit
 
 The BPM Difference is the difference in beam position reported by the
 BPM during a given multiplicity window. The BPM Yield is the average
@@ -400,12 +399,11 @@ most likely be phased out as japan-MOLLER matures.
 ```
 
 We see the branch name, `qwk_bcm0l05`
-
-  ------------------------------ --------------------------------
-  qwk\_ $\;\rightarrow$          Holdover from Qweak
-  0l $\;\;\;\;\;\;\rightarrow$   Injector / Pre-Accelerator BCM
-  05 $\;\;\;\;\;\rightarrow$     Fifth BCM
-  ------------------------------ --------------------------------
+ Keyword| Description
+  ------------------------------| --------------------------------
+  qwk\_|        Holdover from Qweak
+  0l |   Injector / Pre-Accelerator BCM
+  05 |     Fifth BCM
 
 We can see that this branch corresponds to a BCM located at the
 injector.
@@ -523,7 +521,6 @@ segments, ring 5 segments are denoted by `a,b,c (1,2,3)`.
 ```
 
 We see the branch name, `tq24_r5a`
-
         Keyword | Meaning
   ------------------------| ---------------------
   tq | thin quartz
@@ -558,7 +555,6 @@ the pion detector corresponds to is given by a numeric following the
 ```
 
 We see the branch name, `pd11`
-
         Keyword | Meaning
   --------------------------| ---------------
   pd | Pion Detector
