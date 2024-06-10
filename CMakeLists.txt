@@ -171,7 +171,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    evio
+    eviowrapper
   PUBLIC
     ROOT::Libraries
     ${MYSQLPP_LIBRARIES}
