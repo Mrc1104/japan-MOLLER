@@ -1,19 +1,32 @@
 cmake_minimum_required(VERSION 3.5)
+cmake_policy(SET CMP0079 NEW)
 
+#----------------------------------------------------------------------------
+# Set name of lib being built
+#
+set(LIBNAME libevio)
 
 #----------------------------------------------------------------------------
 # Sources and headers
 #
 file(GLOB my_evio_headers
   include/THaCoda*.h
-  include/evio.h
+  include/CustomAlloc.h
+  include/Helper.h
   )
 file(GLOB my_evio_sources
   src/THaCoda*.C
-  src/evio.C
-  src/swap_util.C
   )
 
+#----------------------------------------------------------------------------
+# EVIO
+find_package(EVIO CONFIG QUIET)
+if(NOT EVIO_FOUND)
+  find_package(EVIO MODULE)
+  if(NOT EVIO_FOUND)
+    include(FetchBuildEVIO)
+  endif()
+endif()
 
 #----------------------------------------------------------------------------
 # CODA ET
@@ -48,7 +61,7 @@ foreach(file ${my_evio_headers})
     set(dict ${CMAKE_CURRENT_BINARY_DIR}/${file_name}Dict)
     set(linkdef ${file_path}/${file_name}LinkDef.h)
     build_root_dictionary(${file_name} ${file}
-      TARGETS evio
+      TARGETS libevio
       LINKDEF ${linkdef}
     )
     # Add dictionary to evio sources
@@ -60,16 +73,16 @@ endforeach()
 #----------------------------------------------------------------------------
 # evio library
 #
-add_library(evio SHARED ${my_evio_sources})
+add_library(libevio SHARED ${my_evio_sources})
 
-target_include_directories(evio
+target_include_directories(libevio
   PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   )
 
-target_compile_options(evio
+target_compile_options(libevio
   PUBLIC
     ${${PROJECT_NAME_UC}_CXX_FLAGS_LIST}
   PRIVATE
@@ -77,19 +90,19 @@ target_compile_options(evio
   )
 
 if(ET_FOUND)
-target_link_libraries(evio
+target_link_libraries(libevio
   PUBLIC
-    EVIO::ET
+    LIBEVIO::ET
     ROOT::Libraries
   )
 else()
-target_link_libraries(evio
+target_link_libraries(libevio
   PUBLIC
     ROOT::Libraries
   )
 endif()
 
-install(TARGETS evio
+install(TARGETS libevio
   EXPORT ${MAIN_PROJECT_NAME_LC}-exports
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
