@@ -627,35 +627,35 @@ Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
 Int_t QwEventBuffer::EncodePrestartEvent(int runnumber, int runtype)
 {
   int buffer[5];
-	int localtime  = (int)time(0);
-	decoder->EncodePrestartEventHeader(buffer,5, runnumber, runtype, localtime);
+  int localtime  = (int)time(0);
+  decoder->EncodePrestartEventHeader(buffer, runnumber, runtype, localtime);
   ProcessPrestart(localtime, runnumber, runtype);
   return WriteEvent(buffer);
 }
 Int_t QwEventBuffer::EncodeGoEvent()
 {
   int buffer[5];
-	int localtime  = (int)time(0);
-	int eventcount = 0;
-	decoder->EncodeGoEventHeader(buffer, 5, eventcount, localtime);
+  int localtime  = (int)time(0);
+  int eventcount = 0;
+  decoder->EncodeGoEventHeader(buffer, eventcount, localtime);
   ProcessGo(localtime, eventcount);
   return WriteEvent(buffer);
 }
 Int_t QwEventBuffer::EncodePauseEvent()
 {
   int buffer[5];
-	int localtime  = (int)time(0);
-	int eventcount = 0;
-	decoder->EncodePauseEventHeader(buffer, 5, eventcount, localtime);
+  int localtime  = (int)time(0);
+  int eventcount = 0;
+  decoder->EncodePauseEventHeader(buffer, eventcount, localtime);
   ProcessPause(localtime, eventcount);
   return WriteEvent(buffer);
 }
 Int_t QwEventBuffer::EncodeEndEvent()
 {
   int buffer[5];
-	int localtime  = (int)time(0);
-	int eventcount = 0;
-	decoder->EncodeEndEventHeader(buffer, 5, eventcount, localtime);
+  int localtime  = (int)time(0);
+  int eventcount = 0;
+  decoder->EncodeEndEventHeader(buffer, eventcount, localtime);
   ProcessEnd(localtime, eventcount);
   return WriteEvent(buffer);
 }

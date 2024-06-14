@@ -32,33 +32,46 @@
 class VEventDecoder : public MQwCodaControlEvent {
 public:
 	VEventDecoder() : 
-    fPhysicsEventFlag(kFALSE),
-	fEvtNumber(0) { }
-	virtual ~VEventDecoder() { };
+		fWordsSoFar(0),
+		fEvtLength(0),
+		fEvtNumber(0),
+		fFragLength(0),
+		fEvtType(0),
+		fEvtTag(0),
+		fBankDataType(0),
+		fSubbankTag(0),
+		fSubbankType(0),
+		fSubbankNum(0),
+		fROC(0),
+    	fPhysicsEventFlag(kFALSE),
+		fControlEventFlag(kFALSE),
+		fAllowLowSubbankIDs(kFALSE) { }
+
+	virtual ~VEventDecoder()  { }
 
 public:
-// Encoding Functions
-	virtual std::vector<UInt_t> EncodePHYSEventHeader()                = 0;
-	virtual void EncodePrestartEventHeader(int* buffer, int buffer_size, int runnumber, int runtype, int localtime) = 0;
-  virtual void EncodeGoEventHeader(int* buffer, int buffer_size, int eventcount, int localtime)     = 0;
-  virtual void EncodePauseEventHeader(int* buffer, int buffer_size, int eventcount, int localtime)  = 0;
-  virtual void EncodeEndEventHeader(int* buffer, int buffer_size, int eventcount, int localtime)    = 0;
+	// Encoding Functions
+	virtual std::vector<UInt_t> EncodePHYSEventHeader() = 0;
+	virtual void EncodePrestartEventHeader(int* buffer, int runnumber, int runtype, int localtime) = 0;
+  	virtual void EncodeGoEventHeader(int* buffer, int eventcount, int localtime)     = 0;
+	virtual void EncodePauseEventHeader(int* buffer, int eventcount, int localtime)  = 0;
+	virtual void EncodeEndEventHeader(int* buffer, int eventcount, int localtime)    = 0;
 
 public:
-// Decoding Functions
-  virtual Int_t DecodeEventIDBank(UInt_t *buffer) = 0;
-  virtual Bool_t DecodeSubbankHeader(UInt_t *buffer);
+	// Decoding Functions
+	virtual Int_t DecodeEventIDBank(UInt_t *buffer) = 0;
+	virtual Bool_t DecodeSubbankHeader(UInt_t *buffer);
 	virtual void PrintDecoderInfo(QwLog& out);
 
 public:
-// Boolean Functions
-  virtual Bool_t IsPhysicsEvent() = 0;
-  virtual Bool_t IsROCConfigurationEvent(){
-    return (fEvtType>=0x90 && fEvtType<=0x18f);
-  };
+	// Boolean Functions
+	virtual Bool_t IsPhysicsEvent() = 0;
+	virtual Bool_t IsROCConfigurationEvent(){
+		return (fEvtType>=0x90 && fEvtType<=0x18f);
+	};
 
-  virtual Bool_t IsEPICSEvent(){
-    return (fEvtType==EPICS_EVTYPE); // Defined in CodaDecoder.h
+	virtual Bool_t IsEPICSEvent(){
+		return (fEvtType==EPICS_EVTYPE); // Defined in CodaDecoder.h
 	}
 
 
@@ -70,21 +83,24 @@ public:
 	// Maybe make a seperate data class and give the pointer to the decoder? 
 	// Data_t* pdata
 	// Or should we just use getter's and setters?
+	// Generic Information
 	UInt_t fWordsSoFar;
 	UInt_t fEvtLength;	
+	UInt_t fEvtNumber;   ///< CODA event number; only defined for physics events
+	UInt_t fFragLength;
+
+	// Event Information
 	UInt_t fEvtType;
 	UInt_t fEvtTag;
 	UInt_t fBankDataType;
+	BankID_t fSubbankTag;
+	UInt_t fSubbankType;
+	UInt_t fSubbankNum;
+	ROCID_t fROC;
+
+	// Booleans
 	Bool_t fPhysicsEventFlag;
-  UInt_t fEvtNumber;   ///< CODA event number; only defined for physics events
-  UInt_t fEvtClass;
-  UInt_t fStatSum;
-  UInt_t fFragLength;
-  BankID_t fSubbankTag;
-  UInt_t fSubbankType;
-  UInt_t fSubbankNum;
-  ROCID_t fROC;
-	// Information needed for proper decoding
+	Bool_t fControlEventFlag;
 	Bool_t fAllowLowSubbankIDs;
 protected:
 	enum KEYWORDS {
