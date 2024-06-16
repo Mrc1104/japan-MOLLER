@@ -28,9 +28,8 @@ public:
 public:
 	// Boolean Functions
 	virtual Bool_t IsPhysicsEvent();
-private:
 
-public:
+private:
 	// Event Information (CODA 2 Specific)
 	UInt_t fEvtClass;
 	UInt_t fStatSum;  

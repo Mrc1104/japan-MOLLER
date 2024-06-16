@@ -129,7 +129,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   };
 
   Int_t GetPhysicsEventNumber() {return fNumPhysicsEvents;};
-  Int_t GetEventNumber() { return decoder->fEvtNumber; };
+  Int_t GetEventNumber() { return decoder->GetEvtNumber(); };
 
   Bool_t GetNextEventRange();
   Bool_t GetNextRunRange();
@@ -292,32 +292,32 @@ template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
   Bool_t okay = kFALSE;
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
 
-  if (decoder->fFragLength==1 && localbuff[decoder->fWordsSoFar]==kNullDataWord){
-    decoder->fWordsSoFar += decoder->fFragLength;
-  } else if (object.CanUseThisEventType(decoder->fEvtType)){
+  if (decoder->GetFragLength()==1 && localbuff[decoder->GetWordsSoFar()]==kNullDataWord){
+    decoder->AddWordsSoFarAndFragLength();
+  } else if (object.CanUseThisEventType(decoder->GetEvtType())){
     //  Clear the old event information from the object
-    object.ClearEventData(decoder->fEvtType);
+    object.ClearEventData(decoder->GetEvtType());
     //  Loop through the data buffer in this event.
-    if (decoder->fBankDataType == 0x10){
+    if (decoder->GetBankDataType() == 0x10){
       //  This bank is subbanked; loop through subbanks
-      while ((okay = decoder->DecodeSubbankHeader(&localbuff[decoder->fWordsSoFar]))){
+      while ((okay = decoder->DecodeSubbankHeader(&localbuff[decoder->GetWordsSoFar()]))){
 	//  If this bank has further subbanks, restart the loop.
-	if (decoder->fSubbankType == 0x10) continue;
+	if (decoder->GetSubbankType() == 0x10) continue;
 	//  If this bank only contains the word 'NULL' then skip
 	//  this bank.
-	if (decoder->fFragLength==1 && localbuff[decoder->fWordsSoFar]==kNullDataWord){
-	  decoder->fWordsSoFar += decoder->fFragLength;
+	if (decoder->GetFragLength()==1 && localbuff[decoder->GetWordsSoFar()]==kNullDataWord){
+	  decoder->AddWordsSoFarAndFragLength();
 	  continue;
 	}
-	object.ProcessBuffer(decoder->fEvtType, decoder->fROC, decoder->fSubbankTag, decoder->fSubbankType,
-			     &localbuff[decoder->fWordsSoFar],
-			     decoder->fFragLength);
-	decoder->fWordsSoFar += decoder->fFragLength;
+	object.ProcessBuffer(decoder->GetEvtType(), decoder->GetROC(), decoder->GetSubbankTag(), decoder->GetSubbankType(),
+			     &localbuff[decoder->GetWordsSoFar()],
+			     decoder->GetFragLength());
+	decoder->AddWordsSoFarAndFragLength();
       }
     } else {
       //  This is a single bank of some type
-      object.ProcessBuffer(decoder->fEvtType, 0, decoder->fBankDataType,
-			   &localbuff[decoder->fWordsSoFar],
+      object.ProcessBuffer(decoder->GetEvtType(), 0, decoder->GetBankDataType(),
+			   &localbuff[decoder->GetWordsSoFar()],
 			   decoder->fEvtLength);
     }
   }

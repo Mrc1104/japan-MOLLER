@@ -20,15 +20,6 @@
 #include "QwOptions.h"
 
 
-/* TODO:
- * Inheriting from MQwCodaControlEvent here solves our
- * problem of scope for the keywords and ProcessControl() calls;
- * however, this muddies the class because we no longer are just (en)decoding
- * the event header but also are now processing control events too.
- * Should we redesign?
- * 	-> Make a seperate KEYWORD header?
- * 	-> Make a "fControlEvent" flag then handle control events inside QwEventBuffer?
- */
 class VEventDecoder : public MQwCodaControlEvent {
 public:
 	VEventDecoder() : 
@@ -68,21 +59,31 @@ public:
 	virtual Bool_t IsPhysicsEvent() = 0;
 	virtual Bool_t IsROCConfigurationEvent(){
 		return (fEvtType>=0x90 && fEvtType<=0x18f);
-	};
+	}
 
 	virtual Bool_t IsEPICSEvent(){
 		return (fEvtType==EPICS_EVTYPE); // Defined in CodaDecoder.h
 	}
+// Accessor Functions
+	// Generic Information
+	UInt_t GetWordsSoFar()const  { return fWordsSoFar;  }
+	UInt_t GetEvtNumber()const   { return fEvtNumber;   }
+	UInt_t GetFragLength()const  { return fFragLength;  }
+	// Event Information
+	UInt_t GetEvtType()const     { return fEvtType;     }
+	UInt_t GetBankDataType()const{ return fBankDataType;}
+	UInt_t GetSubbankTag()const  { return fSubbankTag;  }
+	UInt_t GetSubbankType()const { return fSubbankType; }
+	ROCID_t GetROC()const        { return fROC;         }
 
+// Mutator Functions
+	void SetWordsSoFar(UInt_t val)                  { fWordsSoFar = val;         }
+	void AddWordsSoFarAndFragLength()               { fWordsSoFar += fFragLength;}
+	void SetFragLength(UInt_t val)					{ fFragLength = val;		 }
+	void SetAllowLowSubbankIDs(Bool_t val = kFALSE) { fAllowLowSubbankIDs = val; }
+	
 
-// TODO:
-// Make these data members protected!
-public:
-	// Information we need to extact from the decoding
-	// How to expose this info to QwEventBuffer..?
-	// Maybe make a seperate data class and give the pointer to the decoder? 
-	// Data_t* pdata
-	// Or should we just use getter's and setters?
+protected:
 	// Generic Information
 	UInt_t fWordsSoFar;
 	UInt_t fEvtLength;	
@@ -102,6 +103,7 @@ public:
 	Bool_t fPhysicsEventFlag;
 	Bool_t fControlEventFlag;
 	Bool_t fAllowLowSubbankIDs;
+
 protected:
 	enum KEYWORDS {
 		EPICS_EVTYPE = 131
