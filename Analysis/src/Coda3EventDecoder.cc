@@ -17,7 +17,7 @@ std::vector<UInt_t> Coda3EventDecoder::EncodePHYSEventHeader()
 	// Could we make this more dynamic by reversing the TBOBJ::Fill mechanism?
 	header.push_back(0xFF501001);
 	header.push_back(0x0000000b); // word count for Trigger Bank
-	header.push_back(0xFF212001); // 0x001 = # of ROCs (TODO: support multi-ROC Headers)
+	header.push_back(0xFF212001); // 0x001 = # of ROCs (TODO: support multi-ROC Mock Headers)
 	
 	header.push_back(0x010a0004); 
 	// evtnum is held by a 64 bit ... for now we set the upper 32 bits to 0
@@ -157,27 +157,15 @@ UInt_t Coda3EventDecoder::InterpretBankTag( UInt_t tag )
 	if( tag >= 0xff00 ) { // CODA Reserved bank type
 		switch( tag ) {
 			case 0xffd1:
-				evtyp = kPRESTART_EVENT; // MQwControlEvent (protected -> needs to be made public 
-				// and function needs to be a QwEventBuffer Member)
-				// TODO:
-				// Should I call ProcessControlEvent here?
-				// (See discussion in VEventDecoder's inheritance)
+				evtyp = kPRESTART_EVENT;
 				fControlEventFlag = kTRUE;
 				break;
 			case 0xffd2:
-				evtyp = kGO_EVENT; // MQwControlEvent (protected -> needs to be made public 
-				// and function needs to be a QwEventBuffer Member)
-				// TODO:
-				// Should I call ProcessControlEvent here?
-				// (See discussion in VEventDecoder's inheritance)
+				evtyp = kGO_EVENT;
 				fControlEventFlag = kTRUE;
 				break;
 			case 0xffd4:
-				evtyp = kEND_EVENT; // MQwControlEvent (protected -> needs to be made public 
-				// and function needs to be a QwEventBuffer Member)
-				// TODO:
-				// Should I call ProcessControlEvent here?
-				// (See discussion in VEventDecoder's inheritance)
+				evtyp = kEND_EVENT;
 				fControlEventFlag = kTRUE;
 				break;
 			case 0xff50:
@@ -195,9 +183,8 @@ UInt_t Coda3EventDecoder::InterpretBankTag( UInt_t tag )
 				// maybe throw an exception here?
 		}
 	} else {              // User event type
-		evtyp = tag;        // EPICS, ROC CONFIG, ET-insertions, etc. 
+		evtyp = tag;      // EPICS, ROC CONFIG, ET-insertions, etc.
 	}
-
 	return evtyp;
 }
 
@@ -259,8 +246,8 @@ void Coda3EventDecoder::printUserEvent(const UInt_t *buffer)
 void Coda3EventDecoder::PrintDecoderInfo(QwLog& out)
 {
 
-	out << Form("Length: %d; Tag: 0x%x; Bank data type: 0x%x ",
-			fEvtLength, fEvtTag, fBankDataType)
+	out << Form("Event Number: %d; Length: %d; Tag: 0x%x; Bank data type: 0x%x ",
+			fEvtNumber, fEvtLength, fEvtTag, fBankDataType)
 		<< Form("Evt type: 0x%x; Evt number %d; fWordsSoFar %d",
 				fEvtType, fEvtNumber, fWordsSoFar )
 		<< QwLog::endl;
@@ -276,8 +263,6 @@ Int_t Coda3EventDecoder::trigBankDecode( UInt_t* buffer)
 	}
 	// Set up exception handling for the PHYS Bank
 	try {
-		// TODO:
-		// How does JAPAN want to handle a TS?
 		tbank.Fill(&buffer[fWordsSoFar], block_size, TSROCNumber);
 	} 
 	catch( const coda_format_error& e ) {
@@ -347,7 +332,7 @@ uint32_t Coda3EventDecoder::TBOBJ::Fill( const uint32_t* evbuffer,
 		// TODO:
 		// tsroc is the crate # of the TS
 		// This is filled with the THaCrateMap class which we are not using
-		// can we just remove the if block below?
+		// tsroc is currently always 0
 		if( rocnum == tsroc ) {
 			TSROC = p + 1;
 			tsrocLen = slen;
@@ -376,10 +361,10 @@ Int_t Coda3EventDecoder::LoadTrigBankInfo( UInt_t i )
 		// Only the lower 48 bits seem to contain the time
 		evt_time &= 0x0000FFFFFFFFFFFF;
 	}
-	if( tbank.withTriggerBits() )
+	if( tbank.withTriggerBits() ){
 		// Trigger bits. Only the lower 6 bits seem to contain the actual bits
 		trigger_bits = tbank.TSROC[2 + 3 * i] & 0x3F;
-
+	}
 	return 0;
 }
 
