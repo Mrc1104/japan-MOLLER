@@ -109,6 +109,7 @@ public:
 protected:
 	// TODO:
 	// How does JAPAN want to handle a TS?
+	// Currently implemented as 0
 	uint32_t TSROCNumber;
 };
 #endif

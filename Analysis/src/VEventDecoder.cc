@@ -63,19 +63,19 @@ Bool_t VEventDecoder::DecodeSubbankHeader(UInt_t *buffer){
 void VEventDecoder::PrintDecoderInfo(QwLog& out)
 {
 	out << "\n-------\n" << std::hex <<
-		"fWordsSoFar " << fWordsSoFar << 
-		" fEvtLength; " << fEvtLength << 
-		" fEvtType " << fEvtType << 
-		" fEvtTag " << fEvtTag << 
-		" fBankDataType " << fBankDataType << 
-		" fPhysicsEventFlag " << fPhysicsEventFlag << 
-		" fEvtNumber;   " << fEvtNumber << 
-		" fFragLength " << fFragLength << 
-		" fSubbankTag " << fSubbankTag << 
-		" fSubbankType " << fSubbankType << 
-		" fSubbankNum " << fSubbankNum << 
-		" fROC " << fROC << 
-		" fAllowLowSubbankIDs " << fAllowLowSubbankIDs << 
-		"\n-------\n" << std::dec << 
+		"fWordsSoFar " << fWordsSoFar <<
+		"\n fEvtLength; " << fEvtLength <<
+		"\n fEvtType " << fEvtType <<
+		"\n fEvtTag " << fEvtTag <<
+		"\n fBankDataType " << fBankDataType <<
+		"\n fPhysicsEventFlag " << fPhysicsEventFlag <<
+		"\n fEvtNumber;   " << fEvtNumber <<
+		"\n fFragLength " << fFragLength <<
+		"\n fSubbankTag " << fSubbankTag <<
+		"\n fSubbankType " << fSubbankType <<
+		"\n fSubbankNum " << fSubbankNum <<
+		"\n fROC " << fROC <<
+		"\n fAllowLowSubbankIDs " << fAllowLowSubbankIDs <<
+		"\n-------\n" << std::dec <<
 		QwLog::endl;
 }
