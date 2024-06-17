@@ -373,9 +373,26 @@ void Coda3EventDecoder::trigBankErrorHandler( Int_t flag )
 {
 	// TODO:
 	// How should we handle bad events?
-	// We should most likely display a warning and then skip event, but how?
-	QwError << "trigBankErrorHandling is not yet support!" << QwLog::endl;
+	//QwError << "trigBankErrorHandling is not yet fully supported!" << QwLog::endl;
+	switch(flag){
+		case HED_OK:
+			QwWarning << "TrigBankDecode() returned HED_OK... why are we here?" << QwLog::endl;
+			break;
+		case HED_WARN:
+			QwError << "TrigBankDecode() returned HED_WARN" << QwLog::endl;
+			break;
+		case HED_ERR:
+			QwError << "TrigBankDecode() returned HED_ERR" << QwLog::endl;
+			break;
+		case HED_FATAL:
+			QwError << "TrigBankDecoder() returned HED_FATAL" << QwLog::endl;
+			break;
+		default:
+			QwError << "TrigBankDecoder() returned an Unknown Error" << QwLog::endl;
+			break;
+	}
 	// Act as if we are at the end of the event and set everything to false (0)
+	QwWarning << "Skipping to the end of the event and setting everything to false (0)!" << QwLog::endl;
 	fPhysicsEventFlag = kFALSE;
 	fControlEventFlag = kFALSE;
 

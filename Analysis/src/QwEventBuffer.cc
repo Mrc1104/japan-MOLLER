@@ -498,35 +498,19 @@ Int_t QwEventBuffer::GetEvent()
     status = GetEtEvent();
   }
   if (status == CODA_OK){
-		// TODO:
     // Coda Data was loaded correctly
-    // Pass the whole buffer and check for an empty buffer inside VerifyCodaVersion()
     UInt_t* evBuffer = (UInt_t*)fEvStream->getEvBuffer();
-		if(fDataVersionVerify == 0){
-			// Issue, what if evbuffer is empty?
-  		VerifyCodaVersion(evBuffer);
-		}
-		
-		if( (fDataVersion != fDataVersionVerify) && (fDataVersionVerify != 0 )){
-    			QwError << "QwEventBuffer::GetEvent:  Coda Version is not recognized" << QwLog::endl;
-			QwError << "fDataVersion == " << fDataVersion 
-		   	 	<< ", but it looks like the data is from Coda Version "
-				<< fDataVersionVerify
-				<< "\nTry running with --coda-version " << fDataVersionVerify
-				<< "\nExiting ... " << QwLog::endl;
-    			globalEXIT = 1;
-		} else { 
-	 		decoder->DecodeEventIDBank(evBuffer);
-		} 
-  } else {
-    QwError << "QwEventBuffer::GetEvent:  CODA event is not recognized" << QwLog::endl;
+	if(fDataVersionVerify == 0){ // Default = 0 => Undetermined
+		VerifyCodaVersion(evBuffer);
+	}
+	decoder->DecodeEventIDBank(evBuffer);
   }
   return status;
 }
 
-// tries to figure out what Coda Version the Data is
+// Tries to figure out what Coda Version the Data is
 // fDataVersionVerify = 
-//  		      2 -- Coda Version 2
+//  	      2 -- Coda Version 2
 //		      3 -- Coda Version 3
 // 	   	      0 -- Default (Unknown, Could be a EPICs Event or a ROCConfiguration)
 void QwEventBuffer::VerifyCodaVersion( const UInt_t *buffer )
@@ -535,12 +519,23 @@ void QwEventBuffer::VerifyCodaVersion( const UInt_t *buffer )
 	UInt_t header = buffer[1];
 	int top = (header & 0xff000000) >> 24;
 	int bot = (header & 0xff      );
-	fDataVersionVerify = 0; // Default
+	fDataVersionVerify = 0;     // Default
 	if( (top == 0xff) && (bot != 0xcc) ){
 		fDataVersionVerify = 3; // Coda 3	
 	} else if( (top != 0xff) && (bot == 0xcc) ){
 		fDataVersionVerify = 2; // Coda 2
 	} 
+	// Validate
+	if( (fDataVersion != fDataVersionVerify) && (fDataVersionVerify != 0 ) ){
+    	QwError << "QwEventBuffer::GetEvent:  Coda Version is not recognized" << QwLog::endl;
+		QwError << "fDataVersion == " << fDataVersion 
+	   	 	    << ", but it looks like the data is from Coda Version "
+			    << fDataVersionVerify
+			    << "\nTry running with --coda-version " << fDataVersionVerify
+			    << "\nExiting ... " << QwLog::endl;
+    	globalEXIT = 1;
+	}
+	return;
 }
 
 Int_t QwEventBuffer::GetFileEvent(){
