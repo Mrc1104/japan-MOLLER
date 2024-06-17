@@ -145,11 +145,6 @@ Int_t Coda3EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 	return CODA_OK;
 }
 
-Bool_t Coda3EventDecoder::IsPhysicsEvent()
-{
-	return (fEvtType <= MAX_PHYS_EVTYPE);
-}
-
 //_____________________________________________________________________________
 UInt_t Coda3EventDecoder::InterpretBankTag( UInt_t tag )
 {

@@ -173,15 +173,9 @@ Int_t Coda2EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 }
 
 
-Bool_t Coda2EventDecoder::IsPhysicsEvent()
-{
-	// TODO:
-	// Replace this with a simple (return kPhysicsEventFlag)
-	// return ((fIDBankNum == 0xCC) && ( /* fEvtType >= 0 && */ fEvtType <= 15));
-	return fPhysicsEventFlag;
-}
-
-
+/*
+	Prints out key decoder info
+*/
 void Coda2EventDecoder::PrintDecoderInfo(QwLog& out)
 {
 

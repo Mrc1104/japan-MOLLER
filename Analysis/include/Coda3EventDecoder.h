@@ -27,32 +27,31 @@ public:
 public:
 	// Decoding Functions
 	virtual Int_t DecodeEventIDBank(UInt_t *buffer);
-public:
-	// Boolean Functions
-	virtual Bool_t IsPhysicsEvent();
 private:
 	// Debugging Functions
 	void printUserEvent(const UInt_t *buffer);
 	virtual void PrintDecoderInfo(QwLog& out);
 protected:
+	// TI Decoding Functions
 	UInt_t InterpretBankTag(UInt_t tag);
 	Int_t trigBankDecode(UInt_t* buffer);
 	void trigBankErrorHandler( Int_t flag );
 
-protected:
 	ULong64_t GetEvTime() const { return evt_time; }
 	void SetEvTime(ULong64_t evtime) { evt_time = evtime; }
 	UInt_t tsEvType, block_size;
 	ULong64_t evt_time; // Event time (for CODA 3.* this is a 250 Mhz clock)
 	UInt_t trigger_bits; //  (Not completely sure) The TS# trigger for the TS
 public:
+	// Ti Specific Functions
 	enum { HED_OK = 0, HED_WARN = -63, HED_ERR = -127, HED_FATAL = -255 };
 	class coda_format_error : public std::runtime_error {
 	public:
 		explicit coda_format_error( const std::string& what_arg ) : std::runtime_error(what_arg) {}
 		explicit coda_format_error( const char* what_arg )        : std::runtime_error(what_arg) {}
 	};
-
+	
+	// Trigger Bank OBJect
 	class TBOBJ {
 	public:
     	TBOBJ() : blksize(0), tag(0), nrocs(0), len(0), tsrocLen(0), evtNum(0),
@@ -85,15 +84,7 @@ public:
 	// Hall A analyzer keywords (analyzer/Decoder.h)
 	// Keywords that collide with JAPAN have been removed (deferring to JAPAN's definitions)
   	static const UInt_t MAX_PHYS_EVTYPE  = 14;  // Types up to this are physics
-	/*
-	static const UInt_t SYNC_EVTYPE      = 16;  // Equivalent keyword defined in MQwControlEvent.h
-	static const UInt_t PRESTART_EVTYPE  = 17;  // Equivalent keyword defined in MQwControlEvent.h
-	static const UInt_t GO_EVTYPE        = 18;  // Equivalent keyword defined in MQwControlEvent.h
-	static const UInt_t PAUSE_EVTYPE     = 19;  // Equivalent keyword defined in MQwControlEvent.h
-	static const UInt_t END_EVTYPE       = 20;  // Equivalent keyword defined in MQwControlEvent.h 
-	*/
 	static const UInt_t TS_PRESCALE_EVTYPE  = 120;
-	// should be able to load special event types from crate map
 	static const UInt_t EPICS_EVTYPE     = 131; // default in Hall A
 	// TODO:
 	// Do we need any of these keywords?

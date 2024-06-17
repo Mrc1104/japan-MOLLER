@@ -56,7 +56,10 @@ public:
 
 public:
 	// Boolean Functions
-	virtual Bool_t IsPhysicsEvent() = 0;
+	virtual Bool_t IsPhysicsEvent(){
+		return fPhysicsEventFlag;
+	}
+
 	virtual Bool_t IsROCConfigurationEvent(){
 		return (fEvtType>=0x90 && fEvtType<=0x18f);
 	}
