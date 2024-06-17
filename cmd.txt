@@ -1,0 +1,1 @@
+test_build/qwparity -r 43 --config er_simple.conf  --data ~/Data --rootfiles ~/Rootfiles
