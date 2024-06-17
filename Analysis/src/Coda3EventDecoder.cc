@@ -9,6 +9,9 @@
 
 // Encoding Functions
 
+/*
+	Creates a PHYS Header Buffer
+*/
 std::vector<UInt_t> Coda3EventDecoder::EncodePHYSEventHeader()
 {
 	int localtime = (int) time(0);
@@ -38,6 +41,10 @@ std::vector<UInt_t> Coda3EventDecoder::EncodePHYSEventHeader()
 }
 
 
+/*
+	Creates an Event Header Buffer
+	Note: It expects a buffer size of 5. Giving a buffer size other than 5 results in UB
+*/
 void Coda3EventDecoder::EncodePrestartEventHeader(int* buffer, int runnumber, int runtype, int localtime)
 {
 	buffer[0] = 4; // Prestart event length
@@ -47,6 +54,10 @@ void Coda3EventDecoder::EncodePrestartEventHeader(int* buffer, int runnumber, in
 	buffer[4] = runtype;
 }
 
+/*
+	Creates an Event Header Buffer
+	Note: It expects a buffer size of 5. Giving a buffer size other than 5 results in UB
+*/
 void Coda3EventDecoder::EncodeGoEventHeader(int* buffer, int eventcount, int localtime)
 {
 	buffer[0] = 4; // Go event length
@@ -56,6 +67,10 @@ void Coda3EventDecoder::EncodeGoEventHeader(int* buffer, int eventcount, int loc
 	buffer[4] = eventcount;
 }
 
+/*
+	Creates an Event Header Buffer
+	Note: It expects a buffer size of 5. Giving a buffer size other than 5 results in UB
+*/
 void Coda3EventDecoder::EncodePauseEventHeader(int* buffer, int eventcount, int localtime)
 {
 	buffer[0] = 4; // Pause event length
@@ -65,6 +80,10 @@ void Coda3EventDecoder::EncodePauseEventHeader(int* buffer, int eventcount, int 
 	buffer[4] = eventcount;
 }
 
+/*
+	Creates an Event Header Buffer
+	Note: It expects a buffer size of 5. Giving a buffer size other than 5 results in UB
+*/
 void Coda3EventDecoder::EncodeEndEventHeader(int* buffer, int eventcount, int localtime)
 {
 	buffer[0] = 4; // End event length
@@ -74,7 +93,11 @@ void Coda3EventDecoder::EncodeEndEventHeader(int* buffer, int eventcount, int lo
 	buffer[4] = eventcount; 
 }
 
+// Decoding Functions
 
+/*
+	Main Decoding Function
+*/
 Int_t Coda3EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 {
 	// TODO:
@@ -105,8 +128,11 @@ Int_t Coda3EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 	fBankDataType = (buffer[1] & 0xff00) >> 8;
 	block_size  =	(buffer[1] & 0xff); 
 
-	if(block_size > 1) { QwWarning << "MultiBlock is not properly supported! block_size = " 
-		<< block_size << QwLog::endl; }
+	if(block_size > 1) {
+		QwWarning << "MultiBlock is not properly supported! block_size = "
+		<< block_size << QwLog::endl;
+	}
+
 	// Determine the event type by the call
 	fEvtType = InterpretBankTag(fEvtTag);		
 	fWordsSoFar = (2);
@@ -134,7 +160,6 @@ Int_t Coda3EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 			if(index % 4 == 0){ QwMessage << QwLog::endl; }
 		}	
 		QwMessage << "\n------------\n" << QwLog::endl;
-
 		fEvtType = fEvtTag;	fEvtNumber = 0;
 	}
 
@@ -252,7 +277,7 @@ Int_t Coda3EventDecoder::trigBankDecode( UInt_t* buffer)
 {
 	const char* const HERE = "Coda3EventDecoder::trigBankDecode";
 	if(block_size == 0) {
-		QwError << HERE << ": CODA 3 Format Error: Physics event #" << fEvtNumber 
+		QwError << HERE << ": CODA 3 Format Error: Physics event #" << fEvtNumber
 			<< " with block size 0" << QwLog::endl;
 		return HED_ERR;
 	}

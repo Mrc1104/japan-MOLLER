@@ -7,6 +7,9 @@
 
 // Encoding Functions
 
+/*
+	Creates a PHYS Event Header
+*/
 std::vector<UInt_t> Coda2EventDecoder::EncodePHYSEventHeader()
 {
 	std::vector<UInt_t> header;
@@ -22,7 +25,7 @@ std::vector<UInt_t> Coda2EventDecoder::EncodePHYSEventHeader()
 }
 
 /*
-	Takes in a Event Header buffer
+	Creates an Event Header Buffer
 	Note: It expects a buffer size of 5. Giving a buffer size other than 5 results in UB
 */
 void Coda2EventDecoder::EncodePrestartEventHeader(int* buffer, int runnumber, int runtype, int localtime)
@@ -36,7 +39,7 @@ void Coda2EventDecoder::EncodePrestartEventHeader(int* buffer, int runnumber, in
 }
 
 /*
-	Takes in a Event Header buffer
+	Creates an Event Header Buffer
 	Note: It expects a buffer size of 5. Giving a buffer size other than 5 results in UB
 */
 void Coda2EventDecoder::EncodeGoEventHeader(int* buffer, int eventcount, int localtime)
@@ -49,7 +52,7 @@ void Coda2EventDecoder::EncodeGoEventHeader(int* buffer, int eventcount, int loc
 }
 
 /*
-	Takes in a Event Header buffer
+	Creates an Event Header Buffer
 	Note: It expects a buffer size of 5. Giving a buffer size other than 5 results in UB
 */
 void Coda2EventDecoder::EncodePauseEventHeader(int* buffer, int eventcount, int localtime)
@@ -62,7 +65,7 @@ void Coda2EventDecoder::EncodePauseEventHeader(int* buffer, int eventcount, int 
 }
  
 /*
-	Takes in a Event Header buffer
+	Creates an Event Header Buffer
 	Note: It expects a buffer size of 5. Giving a buffer size other than 5 results in UB
 */
 void Coda2EventDecoder::EncodeEndEventHeader(int* buffer, int eventcount, int localtime)
@@ -74,7 +77,11 @@ void Coda2EventDecoder::EncodeEndEventHeader(int* buffer, int eventcount, int lo
 	buffer[4] = eventcount; 
 }
 
+// Decoding Functions
 
+/* 
+	Main Decoding Function
+*/
 Int_t Coda2EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 {
 
@@ -172,6 +179,7 @@ Int_t Coda2EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 	return CODA_OK;
 }
 
+// Debugging Functions
 
 /*
 	Prints out key decoder info

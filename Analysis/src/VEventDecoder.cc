@@ -59,7 +59,8 @@ Bool_t VEventDecoder::DecodeSubbankHeader(UInt_t *buffer){
 	return okay;
 }
 
-
+// Prints out all the internal member variables
+// Args: QwLog (QwMessage, QwWarning, or QwError)
 void VEventDecoder::PrintDecoderInfo(QwLog& out)
 {
 	out << "\n-------\n" << std::hex <<
