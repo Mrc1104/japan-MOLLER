@@ -1,6 +1,6 @@
-**QwMockData Root Guide**\
-May 23, 2024\
-Version 0.4
+# QwMockData Root Guide
+June 6, 2024\
+Version 1.0
 
 If you have any questions or suggestions for the guide, please send an
 email to:\
@@ -13,11 +13,9 @@ Running QwMockDataGenerator
 Using the JAPAN-MOLLER repository, run the following commands in a
 terminal:
 
-        $  build/qwmockdatagenerator -r 4 -e 1:20000 --config qwparity_simple.conf \
-           --detectors mock_newdets.map --data <Data>
-        $  build/qwparity -r 4 --config qwparity_simple.conf \
-           --detectors mock_newdets.map --datahandlers mock_datahandlers.map \
-           --data <Data> --rootfiles <Rootfiles>
+        $  build/qwmockdatagenerator -r 4 -e 1:20000 --config qwparity_simple.conf --detectors mock_newdets.map --data <Data>
+        
+        $  build/qwparity -r 4 --config qwparity_simple.conf --detectors mock_newdets.map --datahandlers mock_datahandlers.map --data <Data> --rootfiles <Rootfiles>
 
 General ROOT TTree Format
 =========================
@@ -530,7 +528,7 @@ We see the branch name, `tq24_r5a`
   \_r5a |    ring 5 subsection a
 
 We can see that this branch corresponds to a ring 5 thin quartz
-detector, in segment 24, and in the additional ring 5 sub-segment a.
+detector, in segment 24, and in the additional ring 5 sub-segment a (left).
 
 ### Pion Detector
 
@@ -785,7 +783,6 @@ tracks which 64-multiplet helicity an event corresponds to.
 
 Navigation Tips
 ---------------
-
 If you are using the terminal to access the rootfile, and only want to
 view specific branches, you can specify the output of the
 `(TTree)->Print()` command by inserting a string between the
@@ -858,9 +855,7 @@ Info in <TCanvas::MakeDefCanvas>:  created default TCanvas with name c1
 we should see a default canvas called `c1` appear with the branch,
 `la41`, drawn.
 
-![image](Images/la41_drawn.png){width="0.80\linewidth"}
-[\[fig:view\]]{#fig:view label="fig:view"}
-
+![image](Images/la41_drawn.png)
 ### Plotting Branches Against Each other
 
 Suppose we have two branches that we want to compare their correlations
@@ -876,10 +871,8 @@ Info in <TCanvas::MakeDefCanvas>:  created default TCanvas with name c1
 We should see branches `la41` and `la42` drawn against each other,
 resulting in a mostly linear correlation:
 
-![image](Images/la41_la42_drawn.png){width="0.80\linewidth"}
-[\[fig:view\]]{#fig:view label="fig:view"}
-
-You can also do mathematical operations between the branches when you
+![image](Images/la41_la42_drawn.png)
+You can also do binary operations between the branches when you
 draw them:
 
 ``` {.c}
@@ -918,7 +911,7 @@ root [3] TTree* t5 = (TTree*)f5->Get("evt")
 (TTree *) 0x5560dacf97a0
 ```
 
-No we have to friend the two trees:
+Now we have to friend the two trees:
 
 ``` {.c}
 root [4] t4->AddFriend(t5, "other")
@@ -933,12 +926,13 @@ root [5] t4->Draw("la41:other.la41")
 Info in <TCanvas::MakeDefCanvas>:  created default TCanvas with name c1
 ```
 
-![image](Images/friendship_trees.png){width="0.80\linewidth"}
-[\[fig:view\]]{#fig:view label="fig:view"}
+![image](Images/friendship_trees.png)
+
 
 And voila! We can now draw two trees from two different files against
-each other. Just like in section 5.8.2, we can do mathematical
-operations on the two trees when we invoke `Draw("...")`. Note: You can
-only draw two branches against each other if they have the same number
+each other. Just like in section 5.8.2, we can do binary
+operations on the two trees when we invoke `Draw("...")`. 
+
+Note: You can only draw two branches against each other if they have the same number
 of entries.
 
