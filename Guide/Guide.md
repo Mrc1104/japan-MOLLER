@@ -2,6 +2,7 @@
 June 6, 2024\
 Version 1.0
 
+
 If you have any questions or suggestions for the guide, please send an
 email to:\
 Ryan Conaway\
@@ -495,8 +496,8 @@ MOLLER measurement will occur in ring 5 so that ring is further
 subdivided by three more segments, giving 84 channels. In total, there
 are 224 thin quartz detectors channels.
 
-![image](Images/Quartz_Rings.png){width="0.80\linewidth"}
-[\[fig:view\]]{#fig:view label="fig:view"}
+
+![image](Images/Quartz_Rings.png)
 
 The thin quarts detectors are labeled as `tq` in the ROOT tree. The
 segment that the thin quarts correspond to denoted explicitly by a
@@ -782,7 +783,7 @@ of 64-mulitplet helicity pattern respectively. The branch `pat_phase`
 tracks which 64-multiplet helicity an event corresponds to.
 
 Navigation Tips
----------------
+
 If you are using the terminal to access the rootfile, and only want to
 view specific branches, you can specify the output of the
 `(TTree)->Print()` command by inserting a string between the
