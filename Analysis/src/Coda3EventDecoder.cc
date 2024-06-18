@@ -217,8 +217,8 @@ void Coda3EventDecoder::printUserEvent(const UInt_t *buffer)
 	switch( fEvtType ) {
 
 		case EPICS_EVTYPE:
-			QwMessage << "EPICS data "<<QwLog::endl;
-			print_it=1;
+			// QwMessage << "EPICS data "<<QwLog::endl;
+			// print_it=1;
 			break;
 			// Do we need this event?
 		case PRESCALE_EVTYPE:
