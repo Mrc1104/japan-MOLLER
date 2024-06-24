@@ -336,7 +336,6 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
     file.TrimWhitespace();
     string varname, varvalue;
     if (file.HasVariablePair(" \t\n", varname, varvalue)) {
-			QwMessage << "In ExtractEPICSValues:\n" << varname << " " << varvalue << QwLog::endl;
       Int_t tagindex = FindIndex(varname);
       if (tagindex != kEPICS_Error) {
         SetDataValue(tagindex, varvalue, event);
