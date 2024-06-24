@@ -1273,7 +1273,7 @@ std::vector<Int_t> QwEPICSEvent::EncodeEventData()
   for (size_t tagindex = 0; tagindex < fEPICSVariableList.size(); tagindex++) {
 		str += ( fEPICSVariableList[tagindex]+'\t' );
 		if (fEPICSVariableType[tagindex] == kEPICSString)
-			str += ( fEPICSDataEvent[tagindex].Value +'\n' );
+			str += ( fEPICSDataEvent[tagindex].StringValue +'\n' );
 		else
 			str += ( std::to_string(fEPICSDataEvent[tagindex].Value) +'\n' );
 	}
