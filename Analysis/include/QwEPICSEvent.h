@@ -84,9 +84,10 @@ class QwEPICSEvent
   void FillSlowControlsStrigs(QwParityDB *db);
   void FillSlowControlsSettings(QwParityDB *db);
 
-
+	// Mock EPICS Data
+	void RandomizeEventData(int helicity, Int_t event);
+	std::vector<Int_t> EncodeEventData();
  private:
-
   // Tree array indices
   size_t fTreeArrayIndex;
   size_t fTreeArrayNumEntries;

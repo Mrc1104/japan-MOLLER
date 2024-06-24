@@ -160,6 +160,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
 
   Int_t EncodeSubsystemData(QwSubsystemArray &subsystems);
+  Int_t EncodeEPICSData( QwEPICSEvent &epics );
   Int_t EncodePrestartEvent(int runnumber, int runtype = 0);
   Int_t EncodeGoEvent();
   Int_t EncodePauseEvent();

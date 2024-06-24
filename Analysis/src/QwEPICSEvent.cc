@@ -336,6 +336,7 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
     file.TrimWhitespace();
     string varname, varvalue;
     if (file.HasVariablePair(" \t\n", varname, varvalue)) {
+			QwMessage << "In ExtractEPICSValues:\n" << varname << " " << varvalue << QwLog::endl;
       Int_t tagindex = FindIndex(varname);
       if (tagindex != kEPICS_Error) {
         SetDataValue(tagindex, varvalue, event);
@@ -1240,6 +1241,58 @@ void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
   QwDebug << "Leaving QwEPICSEvent::FillSlowControlsStrings()" << QwLog::endl;
 }
 #endif //__USE_DATABASE__
+
+// Mock Data Creation
+void QwEPICSEvent::RandomizeEventData(int helicity, Int_t event)
+{
+	// Prime the EPICS Data Event Buffer
+  for (size_t tagindex = 0; tagindex < fEPICSVariableList.size(); tagindex++) {
+    fEPICSDataEvent[tagindex].Filled = kFALSE;
+    fEPICSDataEvent[tagindex].EventNumber = event;
+		switch (fEPICSVariableType[tagindex]){
+		case kEPICSString:
+    	fEPICSDataEvent[tagindex].StringValue = "MOCK";
+    	fEPICSDataEvent[tagindex].Filled = kTRUE;
+			break;
+		case kEPICSFloat:
+    	fEPICSDataEvent[tagindex].Value = 10.0;
+    	fEPICSDataEvent[tagindex].Filled = kTRUE;
+			break;
+		case kEPICSInt:
+    	fEPICSDataEvent[tagindex].Value = 5;
+    	fEPICSDataEvent[tagindex].Filled = kTRUE;
+			break;
+		}
+  }
+	return;
+}
+
+std::vector<Int_t> QwEPICSEvent::EncodeEventData()
+{
+	// make everything a string
+	std::string	str = "";
+  for (size_t tagindex = 0; tagindex < fEPICSVariableList.size(); tagindex++) {
+		str += ( fEPICSVariableList[tagindex]+'\t' );
+		if (fEPICSVariableType[tagindex] == kEPICSString)
+			str += ( fEPICSDataEvent[tagindex].Value +'\n' );
+		else
+			str += ( std::to_string(fEPICSDataEvent[tagindex].Value) +'\n' );
+	}
+	// convert to ascii
+	int strsize = str.size();
+	std::vector<Int_t> ret( (strsize/4), 0);
+	auto it = ret.begin();
+	for(int i = 0; i < strsize; i+=4){
+		for(int j = 0; j < 4; j++){
+			if( (i+j) > strsize ) break;
+			*it |= (str[i+j] << (8*j)); // Little Endian
+		}
+		it++;
+	}
+
+	return ret;
+}
+// End of Mock Data Creation
 
 TList *QwEPICSEvent::GetEPICSStringValues()
 {

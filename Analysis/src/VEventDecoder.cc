@@ -1,6 +1,20 @@
 #include "VEventDecoder.h"
 #include "QwOptions.h"
 
+
+/*
+	Encodes the EPICS Event Header
+*/
+std::vector<UInt_t> VEventDecoder::EncodeEPICSEventHeader( int data_size ){
+	std::vector<UInt_t> ret;
+	ret.push_back(0x831000);
+	ret.push_back(data_size+1);
+	ret.push_back(0x300);
+	return ret;
+}
+
+
+
 Bool_t VEventDecoder::DecodeSubbankHeader(UInt_t *buffer){
 	//  This function will decode the header information from
 	//  either a ROC bank or a subbank.  It will also bump

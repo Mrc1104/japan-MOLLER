@@ -618,6 +618,32 @@ Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
   return status;
 }
 
+Int_t QwEventBuffer::EncodeEPICSData( QwEPICSEvent &epics)
+{
+	string tmp;
+	std::vector<Int_t> buffer = epics.EncodeEventData();
+ 	std::vector<UInt_t> header = decoder->EncodeEPICSEventHeader(buffer.size());
+  // Copy the encoded event buffer into an array of integers,
+  // as expected by the CODA routines.
+  // Size of the event buffer in long words
+	
+  int* codabuffer = new int[header.size() + buffer.size() + 1];
+  // First entry contains the buffer size
+  int k = 0;
+  codabuffer[k++] = header.size() + buffer.size();
+  for (size_t i = 0; i < header.size(); i++)
+    codabuffer[k++] = header.at(i);
+  for (size_t i = 0; i < buffer.size(); i++)
+    codabuffer[k++] = buffer.at(i);
+	
+
+  // Now write the buffer to the stream
+  Int_t status = WriteEvent(codabuffer);
+  // delete the buffer
+  delete[] codabuffer;
+  // and report success or fail
+  return status;
+}
 
 Int_t QwEventBuffer::EncodePrestartEvent(int runnumber, int runtype)
 {

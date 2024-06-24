@@ -23,6 +23,7 @@
 //#include "QwScanner.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwDetectorArray.h"
+#include "QwEPICSEvent.h"
 
 
 // Number of variables to correlate
@@ -76,6 +77,11 @@ int main(int argc, char* argv[])
   // Detector array
   QwSubsystemArrayParity detectors(gQwOptions);
   detectors.ProcessOptions(gQwOptions);
+
+	// EPICS Event
+  QwEPICSEvent epicsevent;
+  epicsevent.ProcessOptions(gQwOptions);
+  epicsevent.LoadChannelMap("EpicsTable.map");
 
   // Get the helicity
   QwHelicity* helicity = dynamic_cast<QwHelicity*>(detectors.GetSubsystemByName("Helicity Info"));
@@ -289,9 +295,19 @@ if(1==2){
 
       // Randomize data for this event
       detectors.RandomizeEventData(myhelicity, time);
+			// Randomize data for this EPIC event every x ms
+			// Time and Events are correlated
+			if( event % 4 ) { // Generate a EPICS Data every 4ms
+				epicsevent.RandomizeEventData(myhelicity, event);
+      	// Write this EPICS event to file
+      	eventbuffer.EncodeEPICSData(epicsevent);
+			}
+
+
 //      detectors.ProcessEvent();
 //      beamline-> ProcessEvent(); //Do we need to keep this line now?  Check the maindetector correlation with beamline devices with and without it.
-      
+		// detchannels is a collection of main dets
+		// The for loop correlates them
      for (std::size_t i = 0; i < detchannels.size(); i++){
       detchannels[i]->ExchangeProcessedData();
       detchannels[i]->RandomizeMollerEvent(myhelicity);
@@ -299,6 +315,7 @@ if(1==2){
 
       // Write this event to file
       eventbuffer.EncodeSubsystemData(detectors);
+
 
       // Periodically print event number
       if ((kDebug && event % 1000 == 0)
