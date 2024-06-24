@@ -18,12 +18,13 @@ using std::string;
 
 // Qweak headers
 #include "QwOptions.h"
+#include "MQwMockable.h"
 
 // Forward declarations
 class QwParityDB;
 
 
-class QwEPICSEvent
+class QwEPICSEvent : public MQwMockable
 {
  public:
 
@@ -85,8 +86,10 @@ class QwEPICSEvent
   void FillSlowControlsSettings(QwParityDB *db);
 
 	// Mock EPICS Data
-	void RandomizeEventData(int helicity, Int_t event);
-	std::vector<Int_t> EncodeEventData();
+	void RandomizeEventData(int helicity = 0, double time = 0);
+	void EncodeEventData(std::vector<UInt_t> &buffer);
+	void SmearByResolution(double resolution);  // NEED TO IMPLEMENT
+  void  SetRawEventData(); // NEED TO IMPLEMENT
  private:
   // Tree array indices
   size_t fTreeArrayIndex;

@@ -621,7 +621,8 @@ Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
 Int_t QwEventBuffer::EncodeEPICSData( QwEPICSEvent &epics)
 {
 	string tmp;
-	std::vector<Int_t> buffer = epics.EncodeEventData();
+	std::vector<UInt_t> buffer;
+	epics.EncodeEventData(buffer);
  	std::vector<UInt_t> header = decoder->EncodeEPICSEventHeader(buffer.size());
   // Copy the encoded event buffer into an array of integers,
   // as expected by the CODA routines.

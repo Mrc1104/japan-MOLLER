@@ -1242,12 +1242,12 @@ void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
 #endif //__USE_DATABASE__
 
 // Mock Data Creation
-void QwEPICSEvent::RandomizeEventData(int helicity, Int_t event)
+void QwEPICSEvent::RandomizeEventData(int helicity, double time)
 {
 	// Prime the EPICS Data Event Buffer
   for (size_t tagindex = 0; tagindex < fEPICSVariableList.size(); tagindex++) {
     fEPICSDataEvent[tagindex].Filled = kFALSE;
-    fEPICSDataEvent[tagindex].EventNumber = event;
+    fEPICSDataEvent[tagindex].EventNumber = time;
 		switch (fEPICSVariableType[tagindex]){
 		case kEPICSString:
     	fEPICSDataEvent[tagindex].StringValue = "MOCK";
@@ -1266,7 +1266,7 @@ void QwEPICSEvent::RandomizeEventData(int helicity, Int_t event)
 	return;
 }
 
-std::vector<Int_t> QwEPICSEvent::EncodeEventData()
+void QwEPICSEvent::EncodeEventData(std::vector<UInt_t> &buffer)
 {
 	// make everything a string
 	std::string	str = "";
@@ -1279,8 +1279,8 @@ std::vector<Int_t> QwEPICSEvent::EncodeEventData()
 	}
 	// convert to ascii
 	int strsize = str.size();
-	std::vector<Int_t> ret( (strsize/4), 0);
-	auto it = ret.begin();
+	buffer.resize( (strsize/4), 0);
+	auto it = buffer.begin();
 	for(int i = 0; i < strsize; i+=4){
 		for(int j = 0; j < 4; j++){
 			if( (i+j) > strsize ) break;
@@ -1289,7 +1289,20 @@ std::vector<Int_t> QwEPICSEvent::EncodeEventData()
 		it++;
 	}
 
-	return ret;
+	return;
+}
+
+
+void  QwEPICSEvent::SetRawEventData()
+{
+	QwWarning << "SetRawEventData is not yet implemented!" << QwLog::endl;
+	return;
+}
+
+void QwEPICSEvent::SmearByResolution(double resolution)
+{
+	QwWarning << "SmearByResolution is not yet implemented!" << QwLog::endl;
+	return;
 }
 // End of Mock Data Creation
 
