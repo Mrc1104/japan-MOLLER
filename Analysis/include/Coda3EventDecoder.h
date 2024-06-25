@@ -83,9 +83,8 @@ protected:
 public:
 	// Hall A analyzer keywords (analyzer/Decoder.h)
 	// Keywords that collide with JAPAN have been removed (deferring to JAPAN's definitions)
-  	static const UInt_t MAX_PHYS_EVTYPE  = 14;  // Types up to this are physics
+	static const UInt_t MAX_PHYS_EVTYPE  = 14;  // Types up to this are physics
 	static const UInt_t TS_PRESCALE_EVTYPE  = 120;
-	static const UInt_t EPICS_EVTYPE     = 131; // default in Hall A
 	// TODO:
 	// Do we need any of these keywords?
 	static const UInt_t PRESCALE_EVTYPE  = 133;
