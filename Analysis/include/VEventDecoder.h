@@ -42,7 +42,7 @@ public:
 
 public:
 	// Encoding Functions
-	virtual std::vector<UInt_t> EncodePHYSEventHeader() = 0;
+	virtual std::vector<UInt_t> EncodePHYSEventHeader(std::vector<ROCID_t> &ROCList) = 0;
 	virtual void EncodePrestartEventHeader(int* buffer, int runnumber, int runtype, int localtime) = 0;
   	virtual void EncodeGoEventHeader(int* buffer, int eventcount, int localtime)     = 0;
 	virtual void EncodePauseEventHeader(int* buffer, int eventcount, int localtime)  = 0;

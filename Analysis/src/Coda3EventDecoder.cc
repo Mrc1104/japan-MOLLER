@@ -12,15 +12,17 @@
 /*
 	Creates a PHYS Header Buffer
 */
-std::vector<UInt_t> Coda3EventDecoder::EncodePHYSEventHeader()
+std::vector<UInt_t> Coda3EventDecoder::EncodePHYSEventHeader(std::vector<ROCID_t> &ROCList)
 {
 	int localtime = (int) time(0);
+	int ROCCount = ROCList.size();
+	int wordcount = (8 + ROCCount*3);
 	std::vector<UInt_t> header;
 	// TODO:
 	// Could we make this more dynamic by reversing the TBOBJ::Fill mechanism?
 	header.push_back(0xFF501001);
-	header.push_back(0x0000000b); // word count for Trigger Bank
-	header.push_back(0xFF212001); // 0x001 = # of ROCs (TODO: support multi-ROC Mock Headers)
+	header.push_back(wordcount); 						 // word count for Trigger Bank
+	header.push_back(0xFF212000 | ROCCount); // # of ROCs 
 	
 	header.push_back(0x010a0004); 
 	// evtnum is held by a 64 bit ... for now we set the upper 32 bits to 0
@@ -33,9 +35,13 @@ std::vector<UInt_t> Coda3EventDecoder::EncodePHYSEventHeader()
 
 	header.push_back(0x1850001);
 	header.push_back(0xc0da); // TS# Trigger
-	header.push_back(0x2010002);
-	header.push_back(0x4D6F636B); // ASCII for 'MOCK'
-	header.push_back(0x4D6F636B); // ASCII for 'MOCK'
+	for(auto it = ROCList.begin(); it != ROCList.end(); it++){
+		int base = 0x010002;
+		int roc  = (*it << 24);
+		header.push_back(roc | base);
+		header.push_back(0x4D6F636B); // ASCII for 'MOCK'
+		header.push_back(0x4D6F636B); // ASCII for 'MOCK'
+	}
 
 	return header;
 }

@@ -594,9 +594,11 @@ Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
 {
   // Encode the data in the elements of the subsystem array
   std::vector<UInt_t> buffer;
+  std::vector<ROCID_t> ROCList;
   subsystems.EncodeEventData(buffer);
+  subsystems.GetROCIDList(ROCList);
   // Add CODA event header
- 	std::vector<UInt_t> header = decoder->EncodePHYSEventHeader();
+ 	std::vector<UInt_t> header = decoder->EncodePHYSEventHeader(ROCList);
 
   // Copy the encoded event buffer into an array of integers,
   // as expected by the CODA routines.

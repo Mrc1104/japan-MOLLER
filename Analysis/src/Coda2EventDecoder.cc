@@ -10,7 +10,7 @@
 /*
 	Creates a PHYS Event Header
 */
-std::vector<UInt_t> Coda2EventDecoder::EncodePHYSEventHeader()
+std::vector<UInt_t> Coda2EventDecoder::EncodePHYSEventHeader(std::vector<ROCID_t> &ROCList)
 {
 	std::vector<UInt_t> header;
 	header.push_back((0x0001 << 16) | (0x10 << 8) | 0xCC);

@@ -16,7 +16,7 @@ public:
 		~Coda2EventDecoder() { }
 public:
 	// Encoding Functions
-	virtual std::vector<UInt_t> EncodePHYSEventHeader();
+	virtual std::vector<UInt_t> EncodePHYSEventHeader(std::vector<ROCID_t> &ROCList);
 	virtual void EncodePrestartEventHeader(int* buffer, int runnumber, int runtype, int localtime);
 	virtual void EncodeGoEventHeader(int* buffer, int eventcount, int localtime);
 	virtual void EncodePauseEventHeader(int* buffer, int eventcount, int localtime);
