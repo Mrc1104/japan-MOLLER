@@ -29,7 +29,8 @@
 
 // Boost headers
 #include "boost/lexical_cast.hpp"
-#include "boost/filesystem/directory.hpp"
+#include "boost/filesystem/convenience.hpp"
+//#include "boost/filesystem/directory.hpp"
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/path.hpp"
 namespace bfs = boost::filesystem;
