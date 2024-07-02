@@ -9,13 +9,13 @@ void evio_comparison()
 	clock_t start = clock();
 	
 	// Open up the Rootfiles we care about
-	TFile* fprex = new TFile("/home/mrc/Rootfiles/PREX/prexPrompt_pass2_5408.000.root");
-	TFile* ffork = new TFile("/home/mrc/Rootfiles/Coda2/prexPrompt_pass1_evio_5408.000.root");
-	TFile* fjapan= new TFile("/home/mrc/Rootfiles/Japan_MOLLER/prexPrompt_pass1_evio_5408.000.root");
+	TFile* fprex = new TFile("/cache/halla/parity/rootfiles/pass1/crex_respin2/prexPrompt_pass2_5408.000.root");
+	TFile* ffork = new TFile("/volatile/halla/moller12gev/mrconaway/rootfiles/CODA2/prexPrompt_pass1_evio_5408.000.root");
+	TFile* fjapan= new TFile("/volatile/halla/moller12gev/mrconaway/rootfiles/JAPAN-MOLLER/prexPrompt_pass1_evio_5408.000.root");
 	
 	// Branch that we want to access
-	//const char* cbname = "bpm4ecXP";
-	const char* cbname = "bcm_dg_ds";
+	const char* cbname = "bpm4ecXP";
+	//const char* cbname = "bcm_dg_ds";
 	// Each branch has 13 leaves
 	double dvalPrex[13], dvalFork[13], dvalJapa[13];
 
@@ -41,6 +41,8 @@ void evio_comparison()
 	// Create Graphs to plot Differences
 	TGraph *gpf = new TGraph();
 	TGraph *gpj = new TGraph();
+	gpf->SetTitle("Prex & Fork;Event Num; Difference");
+	gpj->SetTitle("Prex & japan-MOLLER;Event Num; Difference");
 	gpf->SetMarkerStyle(kFullCircle);
 	gpj->SetMarkerStyle(kFullCircle);
 
