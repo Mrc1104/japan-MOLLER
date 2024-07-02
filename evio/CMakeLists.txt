@@ -29,21 +29,23 @@ if(NOT EVIO_FOUND)
 endif()
 
 #----------------------------------------------------------------------------
-# CODA ET
+# CODA ET Library
 #
-find_package(ET)
-IF(ET_FOUND)
-  add_definitions(-D__CODA_ET)
-  include_directories(${ET_INCLUDE_DIR})
-  list(APPEND my_evio_headers
-    ${PROJECT_SOURCE_DIR}/evio/include/THaEtClient.h
-    )
-  list(APPEND my_evio_sources
-    ${PROJECT_SOURCE_DIR}/evio/src/THaEtClient.C
-    )
-else(ET_FOUND)
-  set(ET_LIBRARY "")
-endif(ET_FOUND)
+find_package(ET CONFIG QUIET)
+if(NOT ET_FOUND)
+  find_package(ET MODULE)
+endif()
+if(ET_FOUND)
+	# Sources and headers
+	file(GLOB my_et_headers
+		include/THaEtClient.h
+  )
+	file(GLOB my_et_sources
+		src/THaEtClient.C
+  )
+	set(my_evio_sources ${my_evio_sources} ${my_et_sources})
+	set(my_evio_headers ${my_evio_headers} ${my_et_headers})
+endif()
 
 
 #----------------------------------------------------------------------------
@@ -69,7 +71,6 @@ foreach(file ${my_evio_headers})
   endif()
 endforeach()
 
-
 #----------------------------------------------------------------------------
 # evio library
 #
@@ -92,7 +93,7 @@ target_compile_options(eviowrapper
 if(ET_FOUND)
 target_link_libraries(eviowrapper
   PUBLIC
-    EVIOWRAPPER::ET
+    EVIO::ET
     ROOT::Libraries
   PRIVATE
     EVIO::EVIO
