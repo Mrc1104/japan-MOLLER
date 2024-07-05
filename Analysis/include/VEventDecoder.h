@@ -51,6 +51,7 @@ public:
 public:
 	// Decoding Functions
 	virtual Int_t DecodeEventIDBank(UInt_t *buffer) = 0;
+	virtual Int_t DecodeETStream(UInt_t *buffer);
 	virtual Bool_t DecodeSubbankHeader(UInt_t *buffer);
 	virtual void PrintDecoderInfo(QwLog& out);
 
