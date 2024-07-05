@@ -1,0 +1,5 @@
+# This is the detectors map used for VQWK checks
+
+[QwBeamLine]
+ name = EPICS_teststand
+ map = EPICS_channels.map

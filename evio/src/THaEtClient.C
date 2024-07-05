@@ -307,4 +307,4 @@ bool THaEtClient::isOpen() const {
 }
 
 
-ClassImp(THaEtClient)
+// ClassImp(THaEtClient)

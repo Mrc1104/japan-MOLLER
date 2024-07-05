@@ -1169,11 +1169,11 @@ Int_t QwEventBuffer::OpenETStream(TString computer, TString session, int mode,
   Int_t status = CODA_OK;
   if (fEvStreamMode==fEvStreamNull){
 #ifdef __CODA_ET
-    if (stationname != ""){
+    /*if (stationname != ""){
       fEvStream = new THaEtClient(computer, session, mode, stationname);
-    } else {
+    } else { */
       fEvStream = new THaEtClient(computer, session, mode);
-    }
+    /*}*/
     fEvStreamMode = fEvStreamET;
 #endif
   }

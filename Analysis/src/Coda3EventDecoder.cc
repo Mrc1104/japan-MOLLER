@@ -160,12 +160,12 @@ Int_t Coda3EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 		QwWarning << "!!! Cannot determine the event type !!!" << QwLog::endl;
 		QwMessage << "Printing Event Buffer:";
 		QwMessage << "\n------------\n" << QwLog::endl;
-		for(size_t index = 0; fEvtLength; index++){
+		for(size_t index = 0; index < fEvtLength; index++){
 			// TODO: // what if fEvtLength is gibberish because the event is gibberish?
-			QwMessage << "\t" << buffer[index];
+			QwMessage << "\t" << std::hex << buffer[index];
 			if(index % 4 == 0){ QwMessage << QwLog::endl; }
 		}	
-		QwMessage << "\n------------\n" << QwLog::endl;
+		QwMessage << std::dec << "\n------------\n" << QwLog::endl;
 		fEvtType = fEvtTag;	fEvtNumber = 0;
 	}
 
@@ -265,7 +265,10 @@ void Coda3EventDecoder::printUserEvent(const UInt_t *buffer)
 		size_t elen = sizeof(int)*(buffer[0]+1);
 		QwMessage << "Dump of event buffer .  Len = "<<elen<<QwLog::endl;
 		// This dump will look exactly like the text file that was inserted.
-		for (size_t ii=0; ii<elen; ii++) QwMessage << cbuf[ii];
+		for (size_t ii=0; ii<elen; ii++) {
+			if(ii % 4 == 0) QwMessage <<"\n";
+			QwMessage << ii << std::hex << " " << cbuf[ii] << std::dec << " ";
+		}
 	}
 }
 
