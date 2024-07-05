@@ -204,7 +204,12 @@ Int_t THaEtClient::codaRead()
       if (swapflg == ET_SWAP) {
 // The function et_event_CODAswap was removed with CODA 3.05/ET_VERSION 16
 #if ET_VERSION > 15
-        evioswap(data, 1, nullptr);
+				/* The below EVIO function expects a file-like evio block *
+				 * The ET evio block is different. This does not work as  *
+				 * expected												 -- mrc 								*/
+        // evioswap(data, 1, nullptr);
+    		uint32_t *p=data;
+				p = swap_int32_t(data, ET_SWAP32(data[0]), NULL);
 #else
         et_event_CODAswap(evs[j]);
 #endif
