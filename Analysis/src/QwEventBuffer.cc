@@ -503,7 +503,8 @@ Int_t QwEventBuffer::GetEvent()
 	if(fDataVersionVerify == 0){ // Default = 0 => Undetermined
 		VerifyCodaVersion(evBuffer);
 	}
-	decoder->DecodeEventIDBank(evBuffer);
+	decoder->VEventDecoder::DecodeETStream(evBuffer);
+	// decoder->DecodeEventIDBank(evBuffer);
   }
   return status;
 }
