@@ -80,3 +80,18 @@ void VEventDecoder::PrintDecoderInfo(QwLog& out)
 		"\n-------\n" << std::dec <<
 		QwLog::endl;
 }
+
+
+Int_t VEventDecoder::DecodeETStream(UInt_t *buffer)
+{
+	assert(buffer);
+	QwMessage << "Now this is podracing!" << QwLog::endl;
+	for(int i = 0; i < buffer[0]; i++)
+	{
+		if( i % 4 == 0) QwMessage << "\n" << std::dec << i << std::hex << "\t";
+		QwMessage << std::hex <<  buffer[i] << " ";
+	}
+	QwMessage << std::dec << QwLog::endl;
+
+	return 0;
+}
