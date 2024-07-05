@@ -39,6 +39,9 @@ if(ET_FOUND)
 	# Sources and headers
 	file(GLOB my_et_headers
 		include/THaEtClient.h
+		include/et_include/et.h
+		include/et_include/et_private.h
+		include/et_include/etCommonNetwork.h
   )
 	file(GLOB my_et_sources
 		src/THaEtClient.C

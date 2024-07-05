@@ -144,7 +144,7 @@ Int_t Coda3EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 	fWordsSoFar = (2);
 	if(fEvtTag < 0xff00) { /* user event */ printUserEvent(buffer); }
 	else if(fControlEventFlag) {
-		fEvtNumber = 0;	ProcessControlEvent(fEvtType, &buffer[fWordsSoFar]);
+		fEvtNumber = 0; 
 	}
 	else if(fPhysicsEventFlag) { 
 		ret = trigBankDecode( buffer );

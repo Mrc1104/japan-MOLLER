@@ -289,7 +289,10 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  treerootfile->FillTree("slow");
 	}
       }
-
+			/// Third, process possible Control Events
+			if(eventbuffer.IsControlEvent()){
+				eventbuffer.FillControlData();
+			}
 
       //  Now, if this is not a physics event, go back and get a new event.
       if (! eventbuffer.IsPhysicsEvent()) continue;

@@ -148,7 +148,7 @@ Int_t Coda2EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 				fWordsSoFar = (2);
 				//  Run this event through the Control event processing.
 				//  If it is not a control event, nothing will happen.
-				ProcessControlEvent(fEvtType, &buffer[fWordsSoFar]);
+				fControlEventFlag = kTRUE;
 			}
 		} else {
 			//  This is not an event in the CODA event bank format,

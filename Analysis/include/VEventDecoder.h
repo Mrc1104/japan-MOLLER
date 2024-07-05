@@ -64,6 +64,10 @@ public:
 	virtual Bool_t IsROCConfigurationEvent(){
 		return (fEvtType>=0x90 && fEvtType<=0x18f);
 	}
+	
+	virtual Bool_t IsControlEvent(){
+		return fControlEventFlag;
+	}
 
 	virtual Bool_t IsEPICSEvent(){
 		return (fEvtType==EPICS_EVTYPE); // Defined in CodaDecoder.h

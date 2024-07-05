@@ -19,7 +19,8 @@
 #include "THaCodaData.h"
 #include <ctime>
 
-#define ET_CHUNK_SIZE 50
+//#define ET_CHUNK_SIZE 50
+#define ET_CHUNK_SIZE 1
 #ifndef __CINT__
 #include "et.h"
 #endif

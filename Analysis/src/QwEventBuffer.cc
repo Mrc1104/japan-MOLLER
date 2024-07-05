@@ -457,6 +457,7 @@ Int_t QwEventBuffer::GetNextEvent()
       QwMessage << "Caught End Event (end time=="<< fEndTime 
 		<< ").  Exit event loop." << QwLog::endl;
       status = EOF;
+			globalEXIT=1;
     }
     if (fOnline && onlineRestart){
       onlineRestart=0;
@@ -487,24 +488,56 @@ Int_t QwEventBuffer::GetNextEvent()
   return status;
 }
 
+/*
+	ET transfers send a chunk of events at once to parse
+	rather than one event at a time.
+		* codaRead is how we obtain the buffer from EVIO
+		* getEvBuffer is how we get it from THaData
+	We are assuming codaRead has already been called and there is data to read
+*/
+UInt_t* QwEventBuffer::getBuffer()
+{
+	if(!fOnline) return ( (UInt_t*)fEvStream->getEvBuffer() );
+	return et.currPayload;
+}
+
+Int_t QwEventBuffer::extractEtInfo()
+{
+	UInt_t* evBuffer = (UInt_t*)fEvStream->getEvBuffer();
+	assert(evBuffer);
+	et.blkLength    = evBuffer[0];
+	et.blkNumber    = evBuffer[1];
+	et.hdrLength    = evBuffer[2];
+	et.payloadCnt   = evBuffer[3];
+	et.bitInfo      = evBuffer[5] & 0x3c00;
+	et.version      = evBuffer[5] & 0xff;
+	et.magic        = evBuffer[7];
+	et.data         = evBuffer + 8;
+	et.currPayload  = evBuffer + 8;
+	et.currLength   = evBuffer[8]+1;
+	et.nextPayload  = evBuffer + et.currLength + 8;
+	et.payloadRem   = et.payloadCnt;
+	return CODA_OK;
+}
+
 
 Int_t QwEventBuffer::GetEvent()
 {
   Int_t status = kFileHandleNotConfigured;
   ResetFlags();
-  if (fEvStreamMode==fEvStreamFile){
+  if (fEvStreamMode==fEvStreamFile){ // only call this once all data is parsed!
     status = GetFileEvent();
   } else if (fEvStreamMode==fEvStreamET){
-    status = GetEtEvent();
+    status = GetEtEvent(); // this is where the currPayload -> nextPayload
   }
   if (status == CODA_OK){
     // Coda Data was loaded correctly
-    UInt_t* evBuffer = (UInt_t*)fEvStream->getEvBuffer();
+    UInt_t* evBuffer = getBuffer();
 	if(fDataVersionVerify == 0){ // Default = 0 => Undetermined
 		VerifyCodaVersion(evBuffer);
 	}
-	decoder->VEventDecoder::DecodeETStream(evBuffer);
-	// decoder->DecodeEventIDBank(evBuffer);
+	//QwMessage << "et payloads remaining: " << et.payloadRem << " / " << et.payloadCnt << QwLog::endl;
+	decoder->DecodeEventIDBank(evBuffer);
   }
   return status;
 }
@@ -561,7 +594,16 @@ Int_t QwEventBuffer::GetEtEvent(){
   Int_t status = CODA_OK;
   //  Do we want to have any loop here to wait for a bad
   //  read to be cleared?
-  status = fEvStream->codaRead();
+	if( (et.data == NULL) || (et.payloadRem <= 1) ){
+  	status = fEvStream->codaRead();
+		extractEtInfo();
+	}
+	else{
+		et.currPayload = et.nextPayload;
+		et.currLength  = *et.currPayload + 1;
+		et.nextPayload = et.currPayload  + et.currLength;
+		et.payloadRem--;
+	}
   if (status == CODA_EXIT)
     globalEXIT = 1;
   return status;
@@ -678,7 +720,7 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
 	    << QwLog::endl;
 	decoder->PrintDecoderInfo(QwMessage);
   //  Loop through the data buffer in this event.
-  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+  UInt_t *localbuff = getBuffer();
 	decoder->DecodeEventIDBank(localbuff);
   while ((okay = decoder->DecodeSubbankHeader(&localbuff[decoder->GetWordsSoFar()]))){
     //  If this bank has further subbanks, restart the loop.
@@ -721,7 +763,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 
   //  Reload the data buffer and decode the header again, this allows
   //  multiple calls to this function for different subsystem arrays.
-  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+  UInt_t *localbuff = getBuffer();
   
 	decoder->DecodeEventIDBank(localbuff);
 
@@ -842,7 +884,7 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
   QwVerbose << "QwEventBuffer::FillEPICSData:  "
 	    << QwLog::endl;
   //  Loop through the data buffer in this event.
-  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+  UInt_t *localbuff = getBuffer();
   if (decoder->GetBankDataType()==0x10){
     while ((okay = decoder->DecodeSubbankHeader(&localbuff[decoder->GetWordsSoFar()]))){
       //  If this bank has further subbanks, restart the loop.
@@ -894,6 +936,15 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
 	    << QwLog::endl;
   return okay;
 }
+
+Bool_t QwEventBuffer::FillControlData()
+{
+  UInt_t *localbuff = getBuffer();
+	ProcessControlEvent(decoder->GetEvtType(), &localbuff[decoder->GetWordsSoFar()]);
+	return kTRUE;
+}
+
+
 
 const TString&  QwEventBuffer::DataFile(const UInt_t run, const Short_t seg = -1)
 {
