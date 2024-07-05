@@ -120,7 +120,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Int_t OpenDataFile(UInt_t current_run, const TString rw = "R");
   Int_t OpenDataFile(const TString filename, const TString rw = "R");
   Int_t CloseDataFile();
-
+	
+	// mrc... stationname has been depreciated
   Int_t OpenETStream(TString computer, TString session, int mode, const TString stationname="");
   Int_t CloseETStream();
 
