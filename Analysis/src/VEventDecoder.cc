@@ -85,6 +85,7 @@ void VEventDecoder::PrintDecoderInfo(QwLog& out)
 Int_t VEventDecoder::DecodeETStream(UInt_t *buffer)
 {
 	assert(buffer);
+	/*
 	QwMessage << "Now this is podracing!" << QwLog::endl;
 	for(int i = 0; i < buffer[0]; i++)
 	{
@@ -92,6 +93,122 @@ Int_t VEventDecoder::DecodeETStream(UInt_t *buffer)
 		QwMessage << std::hex <<  buffer[i] << " ";
 	}
 	QwMessage << std::dec << QwLog::endl;
+	*/
 
 	return 0;
+}
+
+
+/*
+	Decodes the bit info from the Network Transfor (ET) Format.
+  Comment: Given an ET Evio Block Header, this expects bit 8-14 from
+					 the 5th word (counting from 0).
+*/
+void VEventDecoder::DecodeETBitInfo(UInt_t bitInfo)
+{
+	ETBitInfo.hasDictionary =  (bitInfo & 0x1);
+	ETBitInfo.isLastBlock   = ((bitInfo & 0x2)  >> 1 );
+	ETBitInfo.isFirstEvent  = ((bitInfo & 0x40) >> 6 );
+	ETBitInfo.payloadType   = ((bitInfo & 0x3C) >> 2 );
+	ETBitInfo.ETPrint(QwMessage);
+}
+
+/*
+	Resets the ET Bit Info Values to their init state
+*/
+void VEventDecoder::ETBitInfo_t::ETReset()
+{
+	payloadType   = 0;
+	hasDictionary = kFALSE;
+	isLastBlock   = kFALSE;
+	isFirstEvent  = kFALSE;
+}
+/*
+	Prints out the ET Bit Info Verbosely
+*/
+void VEventDecoder::ETBitInfo_t::ETPrint(QwLog& out)const
+{
+	out << std::boolalpha << "Et has Dictionary: " << hasDictionary
+			<< "\n ET has Last Block: " << isLastBlock << "\nEt has First Event: " << isFirstEvent
+			<< "\n ET Payload Type: " << sETType() << std::noboolalpha << QwLog::endl;
+}
+/*
+	Converts the ET Payload type from hex to string
+*/
+string VEventDecoder::ETBitInfo_t::sETType()const
+{
+	string ret;
+	switch(payloadType){
+	case ROCRaw:
+		ret = "ROC";
+		break;
+	case PHYS:
+		ret = "PHYS";
+		break;
+	case PartialPHYS:
+		ret = "Partial Phys";
+		break;
+	case Disentangled:
+		ret = "Disentangled";
+		break;
+	case User:
+		ret = "USER";
+		break;
+	case Control:
+		ret = "CONTROL";
+		break;
+	case Other:
+		ret = "OTHER";
+		break;
+	default:
+		ret = "DEFAULT";
+		break;
+	}
+	return ret;
+}
+
+
+
+
+Int_t VEventDecoder::DecodeROCRawPayload(UInt_t *buffer)
+{
+	Int_t okay = kTRUE;
+	QwWarning << "Decoding ROC Raw Payloads is not implemented!" << QwLog::endl;
+	return okay;
+}
+Int_t VEventDecoder::DecodePHYSPayload(UInt_t *buffer)
+{
+	Int_t okay = kTRUE;
+	QwWarning << "Decoding PHYS Payloads is not implemented!" << QwLog::endl;
+	return okay;
+}
+Int_t VEventDecoder::DecodePartialPHYSPayload(UInt_t *buffer)
+{
+	Int_t okay = kTRUE;
+	QwWarning << "Decoding Partial PHYS Payloads is not implemented!" << QwLog::endl;
+	return okay;
+}
+Int_t VEventDecoder::DecodeDisentangledPayload(UInt_t *buffer)
+{
+	Int_t okay = kTRUE;
+	QwWarning << "Decoding Disentangled Payloads is not implemented!" << QwLog::endl;
+	return okay;
+}
+Int_t VEventDecoder::DecodeUserPayload(UInt_t *buffer)
+{
+	Int_t okay = kTRUE;
+	QwWarning << "Decoding USER Payloads is not implemented!" << QwLog::endl;
+	return okay;
+}
+Int_t VEventDecoder::DecodeControlPayload(UInt_t *buffer)
+{
+	Int_t okay = kTRUE;
+	QwWarning << "Decoding Control Payloads is not implemented!" << QwLog::endl;
+	return okay;
+}
+Int_t VEventDecoder::DecodeOtherPayload(UInt_t *buffer)
+{
+	Int_t okay = kTRUE;
+	QwWarning << "Decoding Other Payloads is not implemented!" << QwLog::endl;
+	return okay;
 }

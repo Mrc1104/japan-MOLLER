@@ -509,7 +509,7 @@ Int_t QwEventBuffer::extractEtInfo()
 	et.blkNumber    = evBuffer[1];
 	et.hdrLength    = evBuffer[2];
 	et.payloadCnt   = evBuffer[3];
-	et.bitInfo      = evBuffer[5] & 0x3c00;
+	et.bitInfo      = ((evBuffer[5] & 0x7f00) >> 8);
 	et.version      = evBuffer[5] & 0xff;
 	et.magic        = evBuffer[7];
 	et.data         = evBuffer + 8;
@@ -517,6 +517,7 @@ Int_t QwEventBuffer::extractEtInfo()
 	et.currLength   = evBuffer[8]+1;
 	et.nextPayload  = evBuffer + et.currLength + 8;
 	et.payloadRem   = et.payloadCnt;
+	decoder->DecodeETBitInfo(et.bitInfo);
 	return CODA_OK;
 }
 

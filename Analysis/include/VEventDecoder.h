@@ -34,7 +34,7 @@ public:
 		fSubbankType(0),
 		fSubbankNum(0),
 		fROC(0),
-    	fPhysicsEventFlag(kFALSE),
+   	fPhysicsEventFlag(kFALSE),
 		fControlEventFlag(kFALSE),
 		fAllowLowSubbankIDs(kFALSE) { }
 
@@ -44,14 +44,22 @@ public:
 	// Encoding Functions
 	virtual std::vector<UInt_t> EncodePHYSEventHeader(std::vector<ROCID_t> &ROCList) = 0;
 	virtual void EncodePrestartEventHeader(int* buffer, int runnumber, int runtype, int localtime) = 0;
-  	virtual void EncodeGoEventHeader(int* buffer, int eventcount, int localtime)     = 0;
+  virtual void EncodeGoEventHeader(int* buffer, int eventcount, int localtime)     = 0;
 	virtual void EncodePauseEventHeader(int* buffer, int eventcount, int localtime)  = 0;
 	virtual void EncodeEndEventHeader(int* buffer, int eventcount, int localtime)    = 0;
 
 public:
 	// Decoding Functions
 	virtual Int_t DecodeEventIDBank(UInt_t *buffer) = 0;
+	virtual Int_t DecodeROCRawPayload(UInt_t *buffer);
+	virtual Int_t DecodePHYSPayload(UInt_t *buffer);
+	virtual Int_t DecodePartialPHYSPayload(UInt_t *buffer);
+	virtual Int_t DecodeDisentangledPayload(UInt_t *buffer);
+	virtual Int_t DecodeUserPayload(UInt_t *buffer);
+	virtual Int_t DecodeControlPayload(UInt_t *buffer);
+	virtual Int_t DecodeOtherPayload(UInt_t *buffer);
 	virtual Int_t DecodeETStream(UInt_t *buffer);
+	virtual void DecodeETBitInfo(UInt_t bitInfo);
 	virtual Bool_t DecodeSubbankHeader(UInt_t *buffer);
 	virtual void PrintDecoderInfo(QwLog& out);
 
@@ -87,9 +95,22 @@ public:
 // Mutator Functions
 	void SetWordsSoFar(UInt_t val)                  { fWordsSoFar = val;         }
 	void AddWordsSoFarAndFragLength()               { fWordsSoFar += fFragLength;}
-	void SetFragLength(UInt_t val)					{ fFragLength = val;		 }
+	void SetFragLength(UInt_t val)									{ fFragLength = val;		  	 }
 	void SetAllowLowSubbankIDs(Bool_t val = kFALSE) { fAllowLowSubbankIDs = val; }
 	
+public:
+	struct ETBitInfo_t
+	{
+		unsigned char payloadType;
+		Bool_t hasDictionary;
+		Bool_t isLastBlock;
+		Bool_t isFirstEvent;
+		void ETReset();
+		void ETPrint(QwLog& out)const;
+		string sETType()const;
+		ETBitInfo_t() : payloadType(0), hasDictionary(kFALSE),
+										isLastBlock(kFALSE), isFirstEvent(kFALSE) { }
+	};
 
 protected:
 	// Generic Information
@@ -112,9 +133,21 @@ protected:
 	Bool_t fControlEventFlag;
 	Bool_t fAllowLowSubbankIDs;
 
+	// ET info
+	ETBitInfo_t ETBitInfo;
+
 protected:
 	enum KEYWORDS {
-		EPICS_EVTYPE = 131
+		// General Event Types
+		EPICS_EVTYPE = 131,
+		// ET Payload Types
+		ROCRaw = 0,
+		PHYS = 1,
+		PartialPHYS = 2,
+		Disentangled = 3,
+		User = 4,
+		Control = 5,
+		Other = 15
 	};
 
 };
