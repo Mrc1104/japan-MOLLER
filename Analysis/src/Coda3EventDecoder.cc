@@ -100,6 +100,33 @@ void Coda3EventDecoder::EncodeEndEventHeader(int* buffer, int eventcount, int lo
 
 // Decoding Functions
 
+Int_t Coda3EventDecoder::DecodeEventIDBank(UInt_t *buffer)
+{
+	Int_t status = CODA_OK;
+	switch(ETBitInfo.payloadType){
+	case ROCRaw:
+		status = DecodeROCRawPayload(buffer);
+		break;
+	case PartialPHYS:
+		status = DecodePartialPHYSPayload(buffer);
+		break;
+	case Disentangled:
+		status = DecodeDisentangledPayload(buffer);
+		break;
+	case User:
+		status = DecodeUserPayload(buffer);
+		break;
+	case Other:
+		status = DecodeOtherPayload(buffer);
+		break;
+	case Control:
+	case PHYS:
+	default:
+		status = DecodePHYSPayload(buffer);
+		break;
+	}
+	return status;
+}
 // Decodes PHYS Events
 Int_t Coda3EventDecoder::DecodePHYSPayload(UInt_t *buffer)
 {
@@ -109,7 +136,6 @@ Int_t Coda3EventDecoder::DecodePHYSPayload(UInt_t *buffer)
 	fControlEventFlag = kFALSE;
 	Int_t ret = HED_OK;
 
-	// Main engine for decoding, called by public LoadEvent() methods
 	// this assert checks to see if buffer points to NULL
 	assert(buffer);
 
@@ -172,7 +198,54 @@ Int_t Coda3EventDecoder::DecodePHYSPayload(UInt_t *buffer)
 
 	return CODA_OK;
 }
+/* This is essentially a copy of DecodePHYSPayload() but we assume its a PHYS Event.
+ * The data structure is missing the initial 0xffXX (PHYS Tag)
+ * word; otherwise, it is the same as a PHYS Payload
+ * Data pathway: ROC->DC->ET->Elsewhere
+ */
+Int_t Coda3EventDecoder::DecodePartialPHYSPayload(UInt_t *buffer)
+{
+	Int_t status = CODA_OK;
+	Int_t ret = HED_OK;
+	assert(buffer);
 
+	// General Event information
+	fEvtLength = buffer[0]+1;  // in longwords (4 bytes)
+	// Prep TBOBJ variables
+	tbank.Clear();
+	tsEvType = 0;
+	evt_time = 0;
+	trigger_bits = 0;
+	block_size = 0;
+
+	// Start Filling Data
+
+	// Abritrarily set to a PHYS event
+	fEvtType = 1;
+	fPhysicsEventFlag = kTRUE;
+
+	fBankDataType = (buffer[1] & 0xff00) >> 8;
+	block_size  =	(buffer[1] & 0xff);
+
+	if(block_size > 1) {
+	QwWarning << "MultiBlock is not properly supported! block_size = "
+		<< block_size << QwLog::endl;
+	}
+
+	fWordsSoFar = (2);
+	ret = trigBankDecode( buffer );
+	if(ret != HED_OK) { trigBankErrorHandler( ret ); }
+	else {
+		fEvtNumber = tbank.evtNum;
+		fWordsSoFar = 2 + tbank.len;
+	}
+
+	fFragLength = fEvtLength - fWordsSoFar;
+	QwDebug << Form("buffer[0-1] 0x%x 0x%x ; ", buffer[0], buffer[1]);
+	PrintDecoderInfo(QwDebug);
+
+	return CODA_OK;
+}
 
 //_____________________________________________________________________________
 UInt_t Coda3EventDecoder::InterpretBankTag( UInt_t tag )

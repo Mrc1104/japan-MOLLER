@@ -85,7 +85,6 @@ void VEventDecoder::PrintDecoderInfo(QwLog& out)
 Int_t VEventDecoder::DecodeETStream(UInt_t *buffer)
 {
 	assert(buffer);
-	/*
 	QwMessage << "Now this is podracing!" << QwLog::endl;
 	for(int i = 0; i < buffer[0]; i++)
 	{
@@ -93,7 +92,6 @@ Int_t VEventDecoder::DecodeETStream(UInt_t *buffer)
 		QwMessage << std::hex <<  buffer[i] << " ";
 	}
 	QwMessage << std::dec << QwLog::endl;
-	*/
 
 	return 0;
 }
@@ -229,6 +227,7 @@ Int_t VEventDecoder::DecodeControlPayload(UInt_t *buffer)
 	QwWarning << "Decoding Control Payloads is not implemented!" << QwLog::endl;
 	return kFALSE;
 }
+
 Int_t VEventDecoder::DecodeOtherPayload(UInt_t *buffer)
 {
 	QwWarning << "Decoding Other Payloads is not implemented!" << QwLog::endl;

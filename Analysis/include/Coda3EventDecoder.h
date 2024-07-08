@@ -27,6 +27,7 @@ public:
 public:
 	// Decoding Functions
 	virtual Int_t DecodePHYSPayload(UInt_t *buffer);
+	virtual Int_t DecodePartialPHYSPayload(UInt_t *buffer);
 
 private:
 	// Debugging Functions
