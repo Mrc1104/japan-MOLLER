@@ -26,7 +26,8 @@ public:
 
 public:
 	// Decoding Functions
-	virtual Int_t DecodeEventIDBank(UInt_t *buffer);
+	virtual Int_t DecodePHYSPayload(UInt_t *buffer);
+
 private:
 	// Debugging Functions
 	void printUserEvent(const UInt_t *buffer);

@@ -46,7 +46,6 @@ std::vector<UInt_t> Coda3EventDecoder::EncodePHYSEventHeader(std::vector<ROCID_t
 	return header;
 }
 
-
 /*
 	Creates an Event Header Buffer
 	Note: It expects a buffer size of 5. Giving a buffer size other than 5 results in UB
@@ -101,10 +100,8 @@ void Coda3EventDecoder::EncodeEndEventHeader(int* buffer, int eventcount, int lo
 
 // Decoding Functions
 
-/*
-	Main Decoding Function
-*/
-Int_t Coda3EventDecoder::DecodeEventIDBank(UInt_t *buffer)
+// Decodes PHYS Events
+Int_t Coda3EventDecoder::DecodePHYSPayload(UInt_t *buffer)
 {
 	// TODO:
 	// How should we handle bad events??
@@ -175,6 +172,7 @@ Int_t Coda3EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 
 	return CODA_OK;
 }
+
 
 //_____________________________________________________________________________
 UInt_t Coda3EventDecoder::InterpretBankTag( UInt_t tag )

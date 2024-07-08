@@ -118,7 +118,7 @@ void VEventDecoder::DecodeETBitInfo(UInt_t bitInfo)
 */
 void VEventDecoder::ETBitInfo_t::ETReset()
 {
-	payloadType   = 0;
+	payloadType   = -1;
 	hasDictionary = kFALSE;
 	isLastBlock   = kFALSE;
 	isFirstEvent  = kFALSE;
@@ -167,48 +167,70 @@ string VEventDecoder::ETBitInfo_t::sETType()const
 	return ret;
 }
 
-
-
+// Calls the Appropriate Decoding Scheme
+// Comment: DecodePHYSPayload is the default for File Decoding
+Int_t VEventDecoder::DecodeEventIDBank(UInt_t *buffer)
+{
+	Int_t status = CODA_OK;
+	switch(ETBitInfo.payloadType){
+	case ROCRaw:
+		status = DecodeROCRawPayload(buffer);
+		break;
+	case PartialPHYS:
+		status = DecodePartialPHYSPayload(buffer);
+		break;
+	case Disentangled:
+		status = DecodeDisentangledPayload(buffer);
+		break;
+	case User:
+		status = DecodeUserPayload(buffer);
+		break;
+	case Control:
+		status = DecodeControlPayload(buffer);
+		break;
+	case Other:
+		status = DecodeOtherPayload(buffer);
+		break;
+	case PHYS:
+	default:
+		status = DecodePHYSPayload(buffer);
+		break;
+	}
+	return status;
+}
 
 Int_t VEventDecoder::DecodeROCRawPayload(UInt_t *buffer)
 {
-	Int_t okay = kTRUE;
 	QwWarning << "Decoding ROC Raw Payloads is not implemented!" << QwLog::endl;
-	return okay;
+	return kFALSE;
 }
 Int_t VEventDecoder::DecodePHYSPayload(UInt_t *buffer)
 {
-	Int_t okay = kTRUE;
 	QwWarning << "Decoding PHYS Payloads is not implemented!" << QwLog::endl;
-	return okay;
+	return kFALSE;
 }
 Int_t VEventDecoder::DecodePartialPHYSPayload(UInt_t *buffer)
 {
-	Int_t okay = kTRUE;
 	QwWarning << "Decoding Partial PHYS Payloads is not implemented!" << QwLog::endl;
-	return okay;
+	return kFALSE;
 }
 Int_t VEventDecoder::DecodeDisentangledPayload(UInt_t *buffer)
 {
-	Int_t okay = kTRUE;
 	QwWarning << "Decoding Disentangled Payloads is not implemented!" << QwLog::endl;
-	return okay;
+	return kFALSE;
 }
 Int_t VEventDecoder::DecodeUserPayload(UInt_t *buffer)
 {
-	Int_t okay = kTRUE;
 	QwWarning << "Decoding USER Payloads is not implemented!" << QwLog::endl;
-	return okay;
+	return kFALSE;
 }
 Int_t VEventDecoder::DecodeControlPayload(UInt_t *buffer)
 {
-	Int_t okay = kTRUE;
 	QwWarning << "Decoding Control Payloads is not implemented!" << QwLog::endl;
-	return okay;
+	return kFALSE;
 }
 Int_t VEventDecoder::DecodeOtherPayload(UInt_t *buffer)
 {
-	Int_t okay = kTRUE;
 	QwWarning << "Decoding Other Payloads is not implemented!" << QwLog::endl;
-	return okay;
+	return kFALSE;
 }

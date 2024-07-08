@@ -17,6 +17,7 @@
 #include "Rtypes.h"
 #include "QwTypes.h"
 #include "MQwCodaControlEvent.h"
+#include "THaCodaFile.h"
 #include "QwOptions.h"
 
 
@@ -50,7 +51,8 @@ public:
 
 public:
 	// Decoding Functions
-	virtual Int_t DecodeEventIDBank(UInt_t *buffer) = 0;
+	virtual Int_t DecodeEventIDBank(UInt_t *buffer);
+	// ET and File Decoding
 	virtual Int_t DecodeROCRawPayload(UInt_t *buffer);
 	virtual Int_t DecodePHYSPayload(UInt_t *buffer);
 	virtual Int_t DecodePartialPHYSPayload(UInt_t *buffer);
@@ -58,9 +60,11 @@ public:
 	virtual Int_t DecodeUserPayload(UInt_t *buffer);
 	virtual Int_t DecodeControlPayload(UInt_t *buffer);
 	virtual Int_t DecodeOtherPayload(UInt_t *buffer);
-	virtual Int_t DecodeETStream(UInt_t *buffer);
+	virtual Int_t DecodeETStream(UInt_t *buffer); // Can Delete
 	virtual void DecodeETBitInfo(UInt_t bitInfo);
+	// Subbank
 	virtual Bool_t DecodeSubbankHeader(UInt_t *buffer);
+	// Debug
 	virtual void PrintDecoderInfo(QwLog& out);
 
 public:
@@ -108,7 +112,7 @@ public:
 		void ETReset();
 		void ETPrint(QwLog& out)const;
 		string sETType()const;
-		ETBitInfo_t() : payloadType(0), hasDictionary(kFALSE),
+		ETBitInfo_t() : payloadType(-1), hasDictionary(kFALSE),
 										isLastBlock(kFALSE), isFirstEvent(kFALSE) { }
 	};
 
