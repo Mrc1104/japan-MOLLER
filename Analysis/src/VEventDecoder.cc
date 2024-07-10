@@ -109,6 +109,7 @@ void VEventDecoder::DecodeETBitInfo(UInt_t bitInfo)
 	ETBitInfo.isFirstEvent  = ((bitInfo & 0x40) >> 6 );
 	ETBitInfo.payloadType   = ((bitInfo & 0x3C) >> 2 );
 	ETBitInfo.ETPrint(QwMessage);
+	if(ETBitInfo.hasDictionary){ QwWarning << "ET Dictionaries are not supported!" << QwLog::endl; }
 }
 
 /*
