@@ -200,7 +200,7 @@ Int_t Coda3EventDecoder::DecodePHYSPayload(UInt_t *buffer)
 		QwMessage << "Printing Event Buffer Header:";
 		QwMessage << "\n------------" << QwLog::endl;
 		for(size_t index = 0; index < 8; index++){
-			if(index % 4 == 0){ QwMessage << std::hex "\n0x" << &buffer[index] << "\t"; }
+			if(index % 4 == 0){ QwMessage << std::hex << "\n0x" << &buffer[index] << "\t"; }
 			QwMessage << buffer[index];
 		}	
 		QwMessage << std::dec << "\n------------\n" << QwLog::endl;
