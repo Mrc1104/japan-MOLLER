@@ -121,7 +121,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Int_t OpenDataFile(const TString filename, const TString rw = "R");
   Int_t CloseDataFile();
 	
-  Int_t OpenETStream(TString computer, TString session, int mode);
+	// mrc... stationname has been depreciated
+  Int_t OpenETStream(TString computer, TString session, int mode, const TString stationname="");
   Int_t CloseETStream();
 
   Bool_t IsPhysicsEvent() {

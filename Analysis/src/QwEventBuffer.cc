@@ -340,7 +340,7 @@ Int_t QwEventBuffer::ReOpenStream()
 
   if (fOnline) {
     // Online stream
-    status = OpenETStream(fETHostname, fETSession, fETWaitMode);
+    status = OpenETStream(fETHostname, fETSession, fETWaitMode, fETStationName);
   } else {
     // Offline data file
     if (fRunIsSegmented)
@@ -369,7 +369,7 @@ Int_t QwEventBuffer::OpenNextStream()
 	      << fETHostname
 	      << ", SESSION==" << fETSession << "."
 	      << QwLog::endl;
-    status = OpenETStream(fETHostname, fETSession, fETWaitMode);
+    status = OpenETStream(fETHostname, fETSession, fETWaitMode, fETStationName);
 
   } else {
     //  Try to open the next data file for the current run,
@@ -534,12 +534,11 @@ Int_t QwEventBuffer::GetEvent()
   if (status == CODA_OK){
     // Coda Data was loaded correctly
     UInt_t* evBuffer = getBuffer();
-		if(fDataVersionVerify == 0){ // Default = 0 => Undetermined
-			VerifyCodaVersion(evBuffer);
-		}
-		// QwMessage << "et payloads remaining: " << et.payloadRem << " / " << et.payloadCnt << QwLog::endl;
-		// decoder->DecodeETStream(evBuffer);
-		decoder->DecodeEventIDBank(evBuffer);
+	if(fDataVersionVerify == 0){ // Default = 0 => Undetermined
+		VerifyCodaVersion(evBuffer);
+	}
+	//QwMessage << "et payloads remaining: " << et.payloadRem << " / " << et.payloadCnt << QwLog::endl;
+	decoder->DecodeEventIDBank(evBuffer);
   }
   return status;
 }
@@ -1217,12 +1216,17 @@ Int_t QwEventBuffer::CloseDataFile()
 }
 
 //------------------------------------------------------------
-Int_t QwEventBuffer::OpenETStream(TString computer, TString session, int mode)
+Int_t QwEventBuffer::OpenETStream(TString computer, TString session, int mode,
+				  const TString stationname)
 {
   Int_t status = CODA_OK;
   if (fEvStreamMode==fEvStreamNull){
 #ifdef __CODA_ET
-    fEvStream = new THaEtClient(computer, session, mode);
+    /*if (stationname != ""){
+      fEvStream = new THaEtClient(computer, session, mode, stationname);
+    } else { */
+      fEvStream = new THaEtClient(computer, session, mode);
+    /*}*/
     fEvStreamMode = fEvStreamET;
 #endif
   }
