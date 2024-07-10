@@ -52,10 +52,19 @@ THaEtClient::THaEtClient(const char* computer,Int_t smode)
   THaEtClient::codaOpen(computer,smode);
 }
 
-THaEtClient::THaEtClient(const char* computer, const char* mysession, Int_t smode)
-  : initflags
+THaEtClient::THaEtClient(const char* computer, const char* mysession, Int_t smode, const char* stationname)
+	: initflags
 {
-  THaEtClient::codaOpen(computer, mysession, smode);
+
+  if(!stationname||strlen(stationname)>=ET_STATNAME_LENGTH){
+    cout << "THaEtClient: bad station name\n";
+		cout << "Using default station name: " << defaultStationName << endl;
+  	strcpy(stationName,defaultStationName);
+  }
+	else{
+  	strcpy(stationName,stationname);
+	}
+	THaEtClient::codaOpen(computer, mysession, smode);
 }
 
 THaEtClient::~THaEtClient() {
@@ -163,7 +172,7 @@ Int_t THaEtClient::codaRead()
 
   if (firstread) {
     firstread = 0;
-    Int_t status = init();
+    Int_t status = init(stationName);
     if (status == CODA_ERROR) {
       cout << "THaEtClient: ERROR: codaRead, cannot connect to CODA"<<endl;
       return CODA_ERROR;

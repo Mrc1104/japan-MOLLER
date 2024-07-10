@@ -48,7 +48,7 @@ public:
     explicit THaEtClient(Int_t mode=1);   // By default, gets data from ADAQS2
 // find data on 'computer'.  e.g. computer="129.57.164.44"
     explicit THaEtClient(const char* computer, Int_t mode=1);
-    THaEtClient(const char* computer, const char* session, Int_t mode=1);
+    THaEtClient(const char* computer, const char* session, Int_t mode=1, const char* stationname="japan_sta");
     ~THaEtClient();
 
     Int_t codaOpen(const char* computer, Int_t mode=1);
@@ -68,7 +68,7 @@ private:
 #endif
     char *daqhost,*session,*etfile;
     Int_t waitflag,didclose,notopened,firstread;
-    Int_t init(const char* computer="hana_sta");
+    Int_t init(const char* computer="japan_sta");
 
 // rate calculation
     Int_t firstRateCalc;
@@ -76,8 +76,11 @@ private:
     time_t daqt1;
     double ratesum;
 
-    // ClassDef(THaEtClient,0)   // ET client connection for online data
+	// dynamic station name support
+	const char* defaultStationName = "japan_sta";
+	char stationName[ET_STATNAME_LENGTH] = "japan_sta";
 
+  // ClassDef(THaEtClient,0)   // ET client connection for online data
 };
 
 
