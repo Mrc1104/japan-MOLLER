@@ -385,14 +385,17 @@ UInt_t Coda3EventDecoder::InterpretBankTag( UInt_t tag )
 			case 0xffd1:
 				evtyp = kPRESTART_EVENT;
 				fControlEventFlag = kTRUE;
+				QwMessage << "Found a PRESTART event" << QwLog::endl;
 				break;
 			case 0xffd2:
 				evtyp = kGO_EVENT;
 				fControlEventFlag = kTRUE;
+				QwMessage << "Found a GO event" << QwLog::endl;
 				break;
 			case 0xffd4:
 				evtyp = kEND_EVENT;
 				fControlEventFlag = kTRUE;
+				QwMessage << "Found a END event" << QwLog::endl;
 				break;
 			case 0xff50:
 			case 0xff58:      // Physics event with sync bit
@@ -423,7 +426,7 @@ void Coda3EventDecoder::printUserEvent(const UInt_t *buffer)
 	switch( fEvtType ) {
 
 		case EPICS_EVTYPE:
-			// QwMessage << "EPICS data "<<QwLog::endl;
+			QwMessage << "EPICS data "<<QwLog::endl;
 			// print_it=1;
 			break;
 			// Do we need this event?
