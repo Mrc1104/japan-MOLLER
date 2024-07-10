@@ -200,36 +200,36 @@ Int_t VEventDecoder::DecodeEventIDBank(UInt_t *buffer)
 Int_t VEventDecoder::DecodeROCRawPayload(UInt_t *buffer)
 {
 	QwWarning << "Decoding ROC Raw Payloads is not implemented!" << QwLog::endl;
-	return kFALSE;
+	return kTRUE;
 }
 Int_t VEventDecoder::DecodePHYSPayload(UInt_t *buffer)
 {
 	QwWarning << "Decoding PHYS Payloads is not implemented!" << QwLog::endl;
-	return kFALSE;
+	return kTRUE;
 }
 Int_t VEventDecoder::DecodePartialPHYSPayload(UInt_t *buffer)
 {
 	QwWarning << "Decoding Partial PHYS Payloads is not implemented!" << QwLog::endl;
-	return kFALSE;
+	return kTRUE;
 }
 Int_t VEventDecoder::DecodeDisentangledPayload(UInt_t *buffer)
 {
 	QwWarning << "Decoding Disentangled Payloads is not implemented!" << QwLog::endl;
-	return kFALSE;
+	return kTRUE;
 }
 Int_t VEventDecoder::DecodeUserPayload(UInt_t *buffer)
 {
 	QwWarning << "Decoding USER Payloads is not implemented!" << QwLog::endl;
-	return kFALSE;
+	return kTRUE;
 }
 Int_t VEventDecoder::DecodeControlPayload(UInt_t *buffer)
 {
 	QwWarning << "Decoding Control Payloads is not implemented!" << QwLog::endl;
-	return kFALSE;
+	return kTRUE;
 }
 
 Int_t VEventDecoder::DecodeOtherPayload(UInt_t *buffer)
 {
 	QwWarning << "Decoding Other Payloads is not implemented!" << QwLog::endl;
-	return kFALSE;
+	return kTRUE;
 }

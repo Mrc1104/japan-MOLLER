@@ -121,12 +121,10 @@ Int_t Coda3EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 	case Disentangled:
 		status = DecodeDisentangledPayload(buffer);
 		break;
-	case User:
-		status = DecodeUserPayload(buffer);
-		break;
 	case Other:
 		status = DecodeOtherPayload(buffer);
 		break;
+	case User:
 	case Control:
 	case PHYS:
 	default:
@@ -198,14 +196,12 @@ Int_t Coda3EventDecoder::DecodePHYSPayload(UInt_t *buffer)
 	else { // Not a control event, user event, nor physics event. Not sure what it is
 		//  Arbitrarily set the event type to "fEvtTag".
 		//  The first two words have been examined.
-		QwWarning << "!!! Cannot determine the event type !!!" << QwLog::endl;
-		QwMessage << "Printing Event Buffer:";
-		QwMessage << "\n------------\n" << QwLog::endl;
-		for(size_t index = 0; index < fEvtLength; index++){
-			// TODO: What if fEvtLength is gibberish because the event is gibberish?
-			// This could result in a segfault
-			QwMessage << "\t" << std::hex << buffer[index];
-			if(index % 4 == 0){ QwMessage << QwLog::endl; }
+		QwWarning << "! Cannot determine the event type !" << QwLog::endl;
+		QwMessage << "Printing Event Buffer Header:";
+		QwMessage << "\n------------" << QwLog::endl;
+		for(size_t index = 0; index < 8; index++){
+			if(index % 4 == 0){ QwMessage << std::hex "\n0x" << &buffer[index] << "\t"; }
+			QwMessage << buffer[index];
 		}	
 		QwMessage << std::dec << "\n------------\n" << QwLog::endl;
 		fEvtType = fEvtTag;	fEvtNumber = 0;
