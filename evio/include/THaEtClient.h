@@ -80,7 +80,6 @@ private:
 	const char* defaultStationName = "japan_sta";
 	char stationName[ET_STATNAME_LENGTH] = "japan_sta";
 
-  // ClassDef(THaEtClient,0)   // ET client connection for online data
 };
 
 
