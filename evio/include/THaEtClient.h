@@ -18,6 +18,8 @@
 
 #include "THaCodaData.h"
 #include <ctime>
+#include <cstring>
+#include <stdlib.h>
 
 //#define ET_CHUNK_SIZE 50
 #define ET_CHUNK_SIZE 1
@@ -30,7 +32,6 @@ class TString;
 // The ET memory file will have this prefix.  The suffix is $SESSION.
 #define ETMEM_PREFIX "/tmp/et_sys_"
 
-// Hall A computers that run CODA/ET
 //FIXME: un-hardcode these ... sigh
 #define ADAQL1 "129.57.164.53"
 #define ADAQL2 "129.57.164.59"
@@ -39,6 +40,51 @@ class TString;
 #define ADAQS2 "129.57.164.44"
 #define ADAQS3 "129.57.164.45"
 
+// Bryan Moffit's Command Line Options
+struct ETClientOptions_t
+{
+  int              flowMode=ET_STATION_SERIAL, position=ET_END, pposition=ET_END;
+  int              chunk=1, qSize=0;
+	bool						 remote=0, blocking=1, dump=0;
+  bool             multicast=0, broadcast=0, broadAndMulticast=0, noDelay=0;
+  int              sendBufSize=0, recvBufSize=0;
+  unsigned short   port=0;
+  char             stationName[ET_STATNAME_LENGTH], et_name[ET_FILENAME_LENGTH], host[256], interface[16];
+
+  char             mcastAddr[16]; 
+	ETClientOptions_t(){
+		memset(host, 0, 256);
+		memset(interface, 0, 16);
+		memset(mcastAddr, 0, 16);
+		memset(et_name, 0, ET_FILENAME_LENGTH);
+		memset(stationName, 0, ET_STATNAME_LENGTH);
+	}
+	int setStationName(const char* string, size_t stringSize){
+		if( stringSize >= ET_STATNAME_LENGTH ) return 1;
+		strcpy(stationName, string);
+		return 0;
+	}
+	int setETName(const char* string, size_t stringSize){
+		if( stringSize >= ET_FILENAME_LENGTH ) return 1;
+		strcpy(et_name, string);
+		return 0;
+	}
+	int setHostName(const char* string, size_t stringSize){
+		if( stringSize >= 255) return 1;
+		strcpy(host, string);
+		return 0;
+	}
+	int setInterfaceAddr(const char* string, size_t stringSize){
+		if( stringSize > 15 || stringSize < 7 ) return 1;
+		strcpy(interface, string);
+		return 0;
+	}
+	int setMcastAddr(const char* string, size_t stringSize){
+		if( stringSize > 15 ) return 1;
+		strcpy(mcastAddr, string);
+		return 0;
+	}
+};
 
 class THaEtClient : public THaCodaData
 {
@@ -79,6 +125,10 @@ private:
 	// dynamic station name support
 	const char* defaultStationName = "japan_sta";
 	char stationName[ET_STATNAME_LENGTH] = "japan_sta";
+
+	// Bryan Moffit's Option Parameters
+  char localAddr[16];
+	int errflg=0;
 
 };
 

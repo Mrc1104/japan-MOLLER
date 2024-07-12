@@ -115,10 +115,14 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
   options.AddDefaultOptions()
     ("allow-low-subbank-ids", po::value<bool>()->default_bool_value(false),
      "allow the sub-bank ids to be 31 or less, when using this flag, all ROCs must be sub-banked");
+#ifdef __CODA_ET
   //  Options specific to the ET clients
   options.AddOptions("ET system options")
     ("ET.hostname", po::value<string>(),
      "Name of the ET session's host machine --- Only used in online mode\nDefaults to the environment variable $HOSTNAME"); 
+  options.AddOptions("ET system options")
+    ("ET.et_name", po::value<string>(),
+     "ET system's (memory-mapped file) name. Will default to /tmp/et_sys_${SESSION}"); 
   options.AddOptions("ET system options")
     ("ET.session", po::value<string>(),
      "ET session name --- Only used in online mode\nDefaults to the environment variable $SESSION"); 
@@ -131,9 +135,59 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
   options.AddOptions("ET system options")
     ("ET.exit-on-end", po::value<bool>()->default_value(false),
      "Exit the event loop if the end event is found.  --- Only used in online mode");
+	options.AddOptions("ET system options")
+		("ET.position", po::value<int>()->default_value(-1),
+		 "Position of station (1,2,...).\nDefault is at the end");
+	options.AddOptions("ET system options")
+		("ET.pposition", po::value<int>(),
+		 "Position of station within a group of parallel stations (-1=end, -2=head)\nIf set, will change ET flowMode from serial to parallel");
+	options.AddOptions("ET system options")
+		("ET.chunk", po::value<int>()->default_value(1),
+		 "Number of events in one get/put array");
+	options.AddOptions("ET system options")
+		("ET.blocking", po::value<bool>()->default_value(true),
+		 "Set station to blocking or non-blocking");
+	options.AddOptions("ET system options")
+		("ET.qSize", po::value<int>()->default_value(0),
+		 "Queue size if in non-blocking mode");
+	options.AddOptions("ET system options")
+		("ET.remote", po::value<bool>()->default_value(false),
+		 "Act as remote (TCP) client even if ET system is local");
+	options.AddOptions("ET system options")
+		("ET.port", po::value<int>(),
+		 "port, TCP if direct, else UDP");
+	options.AddOptions("ET system options")
+		("ET.dump", po::value<bool>()->default_value(false),
+		 "Dump events back into ET (go directly to GC) isntead of put");
+	options.AddOptions("ET system options")
+		("ET.multicast", po::value<bool>()->default_value(false),
+		 "Multicast to find ET (use default address if multicast address is not given)");
+	options.AddOptions("ET system options")
+		("ET.broadcast", po::value<bool>()->default_value(false),
+		 "Broadcast to find ET");
+	options.AddOptions("ET system options")
+		("ET.broadAndMulticast", po::value<bool>()->default_value(false),
+		 "Use both, broadcast and multicast, to find ET");
+	options.AddOptions("ET system options")
+		("ET.multicastAddr", po::value<string>(),
+		 "multicast address(es) (dot-decimal)");
+	options.AddOptions("ET system options")
+		("ET.interface", po::value<string>(),
+		 "outgoing network interface address (dot-decimal)");
+	options.AddOptions("ET system options")
+		("ET.sendBufSize", po::value<int>()->default_value(0),
+		 "TCP send buffer size (bytes)");
+	options.AddOptions("ET system options")
+		("ET.recvBufSize", po::value<int>()->default_value(0),
+		 "TCP receives buffer size (bytes)");
+	options.AddOptions("ET system options")
+		("ET.TCP_NODELAY", po::value<int>()->default_value(0),
+		 "use TCP_NODELAY option");
+#endif
   options.AddOptions("CodaVersion")
     ("coda-version", po::value<int>()->default_value(3),
      "Sets the Coda Version. Allowed values = {2,3}. \nThis is needed for writing and reading mock data. Mock data needs to be written and read with the same Coda Version.");
+
 }
 
 void QwEventBuffer::ProcessOptions(QwOptions &options)
@@ -150,11 +204,6 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
     if (options.HasValue("online.RunNumber")) {
       fCurrentRun = options.GetValue<int>("online.RunNumber");
     }
-    if (options.HasValue("ET.station")) {
-      fETStationName = options.GetValue<string>("ET.station");
-    } else {
-      fETStationName = "";
-    }
     if (options.HasValue("ET.hostname")) {
       fETHostname = options.GetValue<string>("ET.hostname");
     } else {
@@ -165,21 +214,136 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
     } else {
       fETSession = getenv("SESSION");
     }
-    if (fETHostname.Length() == 0 || fETSession.Length() == 0) {
-      TString tmp = "";
-      if (fETHostname == NULL || fETHostname.Length() == 0)
-	tmp += " \"HOSTNAME\"";
-      if (fETSession == NULL ||  fETSession.Length() == 0){
-	if (tmp.Length() > 0)
-	  tmp += " and";
-	tmp += " ET \"SESSION\"";
-      }
-      QwError << "The" << tmp
-	      << " variable(s) is(are) not defined in your environment.\n"
-	      << "        This is needed to run the online analysis."
-	      << QwLog::endl;
-      exit(EXIT_FAILURE);
+		if (fETHostname.Length() == 0 || fETSession.Length() == 0) {
+			TString tmp = "";
+			if (fETHostname == NULL || fETHostname.Length() == 0)
+				tmp += " \"HOSTNAME\"";
+			if (fETSession == NULL ||  fETSession.Length() == 0){
+				if (tmp.Length() > 0)
+					tmp += " and";
+				tmp += " ET \"SESSION\"";
+			}
+			QwError << "The" << tmp
+				<< " variable(s) is(are) not defined in your environment.\n"
+				<< "        This is needed to run the online analysis."
+				<< QwLog::endl;
+			exit(EXIT_FAILURE);
+		} else {
+			string tmp = fETHostname.Data();
+			int status = etClientOptions.setHostName(tmp.c_str(), tmp.size());
+			if(status) { QwError << "Host Name is too long!" << QwLog::endl; exit(EXIT_FAILURE); }
+		}
+
+    if (options.HasValue("ET.session")) {
+      fETSession = options.GetValue<string>("ET.session");
+    } else {
+      fETSession = getenv("SESSION");
     }
+		if (options.HasValue("ET.et_name")) {
+			string tmp = options.GetValue<string>("ET.et_name");
+			int status = etClientOptions.setETName(tmp.c_str(), tmp.size());
+			if(status){ QwError << "Bad et_name!" << QwLog::endl; exit(EXIT_FAILURE); }	
+		} else if( fETSession != "" ) {
+			string tmp(fETSession.Data());
+			tmp = "/tmp/et_sys_" + tmp;
+			int status = etClientOptions.setETName(tmp.c_str(), tmp.size());
+			if(status){ QwError << "Bad et_name!" << QwLog::endl; exit(EXIT_FAILURE); }	
+		}
+		QwMessage << "ET NAME HAS BE SET TO: " << etClientOptions.et_name << QwLog::endl;
+		if (options.HasValue("ET.station")) {
+			string tmp = options.GetValue<string>("ET.station");
+			int status = etClientOptions.setStationName(tmp.c_str(), tmp.size());
+			if(status){ QwError << "Bad Station Name!" << QwLog::endl; exit(EXIT_FAILURE); }	
+		}
+		QwMessage << "STATION NAME HAS BE SET TO: " << etClientOptions.stationName << QwLog::endl;
+		int etpos = options.GetValue<int>("ET.position");
+		if(etpos > 0){ etClientOptions.position = etpos; }
+		else {
+			QwWarning << "Invalid station position. Placing station at end" << QwLog::endl;
+			etClientOptions.position = -1; 
+		}
+		QwMessage << "STATION POSITION HAS BE SET TO: " << etClientOptions.position << QwLog::endl;
+		if( options.HasValue("ET.pposition") ){
+			int tmp = options.GetValue<int>("ET.pposition");
+			if(tmp > -3 && tmp != 0){
+				etClientOptions.pposition = tmp;
+				etClientOptions.flowMode = ET_STATION_PARALLEL;
+			}
+			else{
+				QwWarning << "Invalid station parallel position. Setting to end and remaing in serial mode" << QwLog::endl;
+				etClientOptions.pposition = -1;
+			}
+		} else { etClientOptions.pposition = -1; }
+		QwMessage << "STATION PPOSITION HAS BE SET TO: " << etClientOptions.pposition << QwLog::endl;
+		QwMessage << "STATION FLOW HAS BE SET TO: " << etClientOptions.flowMode << QwLog::endl;
+		if( options.GetValue<int>("ET.chunk") > 0 && options.GetValue<int>("ET.chunk") < 1001 ){
+			etClientOptions.chunk = options.GetValue<int>("ET.chunk");
+		} else {
+			QwWarning << "Bad ET Chunk Value. Setting to 1" << QwLog::endl;
+			etClientOptions.chunk = 1;
+		}
+		QwMessage << "ET Chunk  HAS BE SET TO: " << etClientOptions.chunk << QwLog::endl;
+		if( options.GetValue<bool>("ET.blocking") ){ etClientOptions.blocking = 1; }
+		else { 
+			etClientOptions.blocking = 0; 
+			int qsize = options.GetValue<int>("ET.qSize");
+			if(qsize > 0) { etClientOptions.qSize = qsize; }
+		}
+		QwMessage << "ET Blocking  HAS BE SET TO: " << etClientOptions.blocking << QwLog::endl;
+		QwMessage << "ET qSize  HAS BE SET TO: " << etClientOptions.qSize << QwLog::endl;
+
+		etClientOptions.remote = options.GetValue<bool>("ET.remote");
+		QwMessage << "ET REMOTE HAS BEEN SET TO: " << etClientOptions.remote << QwLog::endl;
+		
+		if( options.HasValue("ET.port") ){
+			int tmp = options.GetValue<int>("ET.port");
+			if( tmp > 1023 && tmp < 65535 ) { etClientOptions.port = (unsigned short)tmp; }
+			else { QwError << "Invalid port. Must be (1023 < port < 65535)" << QwLog::endl; exit(EXIT_FAILURE); }
+		} else { etClientOptions.port = 0; }
+		QwMessage << "ET PORT HAS BEEN SET TO: " << etClientOptions.port << QwLog::endl;
+		
+		etClientOptions.dump = options.GetValue<bool>("ET.dump");
+		QwMessage << "ET DUMP HAS BEEN SET TO: " << etClientOptions.dump << QwLog::endl;
+		
+		etClientOptions.multicast = options.GetValue<bool>("ET.multicast");
+		QwMessage << "ET MULTICAST HAS BEEN SET TO: " << etClientOptions.multicast << QwLog::endl;
+
+		etClientOptions.broadcast = options.GetValue<bool>("ET.broadcast");
+		QwMessage << "ET BROADCAST HAS BEEN SET TO: " << etClientOptions.broadcast << QwLog::endl;
+		
+		if( options.GetValue<bool>("ET.broadAndMulticast") 
+		    || ( etClientOptions.broadcast && etClientOptions.multicast) ){
+			etClientOptions.broadAndMulticast = true;
+		} else { etClientOptions.broadAndMulticast = false; }
+		QwMessage << "ET BROADANDMULTICAST HAS BEEN SET TO: " << etClientOptions.broadAndMulticast << QwLog::endl;
+		
+		if( options.HasValue("ET.multicastAddr") ){
+			string tmp = options.GetValue<string>("ET.multicastAddr");
+			int status = etClientOptions.setMcastAddr(tmp.c_str(), tmp.size());
+			if(status){ QwError << "Multicast address is too long" << QwLog::endl; exit(EXIT_FAILURE); }
+		}
+		QwMessage << "ET MultiCastAddr HAS BEEN SET TO: " << etClientOptions.mcastAddr << QwLog::endl;
+			
+		if( options.HasValue("ET.interface") ) {
+			string tmp = options.GetValue<string>("ET.interface");
+			int status = etClientOptions.setInterfaceAddr(tmp.c_str(), tmp.size());
+			if(status){	QwError << "Bad interface addr." << QwLog::endl; exit(EXIT_FAILURE); }
+		}
+		QwMessage << "ET INTERFACE HAS BEEN SET TO: " << etClientOptions.interface << QwLog::endl;
+
+		int sb = options.GetValue<int>("ET.sendBufSize");
+		if(sb < 0) { QwError << "ET sendBufSize cannot be negative" << QwLog::endl; exit(EXIT_FAILURE); }
+		etClientOptions.sendBufSize = sb;
+		QwMessage << "ET SENDBUFSIZE HAS BEEN SET TO: " << etClientOptions.sendBufSize << QwLog::endl;
+
+		int rb = options.GetValue<int>("ET.recvBufSize");
+		if(rb < 0) { QwError << "ET recvBufSize cannot be negative" << QwLog::endl; exit(EXIT_FAILURE); }
+		etClientOptions.recvBufSize = rb;
+		QwMessage << "ET RECVBUFSIZE HAS BEEN SET TO: " << etClientOptions.recvBufSize << QwLog::endl;
+		
+		etClientOptions.noDelay = options.GetValue<int>("ET.TCP_NODELAY");
+		QwMessage << "ET TCP_NODELAY HAS BEEN SET TO: " << etClientOptions.noDelay << QwLog::endl;
+			
 #endif
   }
   if(options.HasValue("directfile")){
