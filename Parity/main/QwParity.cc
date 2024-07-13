@@ -279,7 +279,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Secondly, process EPICS events, but not for online running,
       //  because the EPICS events get messed up by our 32-bit to 64-bit
       //  double ET system.
-      if (! eventbuffer.IsOnline() && eventbuffer.IsEPICSEvent()) {
+      //if (! eventbuffer.IsOnline() && eventbuffer.IsEPICSEvent()) {
+      if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
 	if (epicsevent.HasDataLoaded()){
 	  epicsevent.CalculateRunningValues();

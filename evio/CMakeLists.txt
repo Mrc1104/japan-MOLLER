@@ -39,9 +39,11 @@ if(ET_FOUND)
 	# Sources and headers
 	file(GLOB my_et_headers
 		include/THaEtClient.h
+		#include/evetLib.h
   )
 	file(GLOB my_et_sources
 		src/THaEtClient.C
+		#src/evetLib.c
   )
 	set(my_evio_sources ${my_evio_sources} ${my_et_sources})
 	set(my_evio_headers ${my_evio_headers} ${my_et_headers})
@@ -76,11 +78,12 @@ endforeach()
 #
 add_library(eviowrapper SHARED ${my_evio_sources})
 
-target_include_directories(eviowrapper
+target_include_directories(${LIBNAME}
   PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+		$<BUILD_INTERFACE:${ET_INCLUDE_DIR}>
   )
 
 target_compile_options(eviowrapper

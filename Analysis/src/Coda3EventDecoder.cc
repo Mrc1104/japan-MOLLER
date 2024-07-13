@@ -403,6 +403,7 @@ UInt_t Coda3EventDecoder::InterpretBankTag( UInt_t tag )
 			case 0xff70:
 				evtyp = 1;      // for CODA 3.* physics events are type 1.
 				fPhysicsEventFlag=kTRUE;
+				//QwMessage << "Found a PHYS event" << QwLog::endl;
 				break;
 			default:          // Undefined CODA 3 event type
 				QwWarning << "CodaDecoder:: WARNING:  Undefined CODA 3 event type, tag = "

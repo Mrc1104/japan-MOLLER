@@ -125,6 +125,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Int_t CloseDataFile();
 	
   Int_t OpenETStream(TString computer, TString session, int mode, const TString stationname="");
+	// void pointer because __CODA_ET Might not be defined leaving ETClientOptions_t undefined
+  Int_t OpenETStream(void *etConfig);
   Int_t CloseETStream();
 #ifdef __CODA_ET
 // THaETClient Information Payload
@@ -284,32 +286,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
   Bool_t fSingleFile;
 
- public:
-	struct EtTransfer_t
-	{
-		UInt_t blkLength;
-		UInt_t blkNumber;
-		UInt_t hdrLength;
-		UInt_t payloadCnt;
-		UInt_t bitInfo;
-		UInt_t version;
-		UInt_t magic;
-		UInt_t payloadRem;
-		UInt_t currLength;
-		UInt_t *currPayload;
-		UInt_t *nextPayload;
-		UInt_t *data;
-		EtTransfer_t() : blkLength(0),  blkNumber(0),  hdrLength(0),
-										 payloadCnt(0), bitInfo(0),    version(0),
-										 magic(0),      payloadRem(0), currLength(0),
-										 currPayload(NULL), nextPayload(NULL), data(NULL) { };
-	};
- protected:
-	Int_t extractEtInfo();
  protected:
 	VEventDecoder* decoder;
-	EtTransfer_t et;
-
 };
 
 template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){

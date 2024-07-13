@@ -205,6 +205,7 @@ foreach(file ${exefiles})
   target_link_libraries(${filelower}
     PRIVATE
       ${PROJECT_NAME}
+			eviowrapper
   )
   target_compile_options(${filelower}
     PUBLIC

@@ -183,6 +183,9 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
 	options.AddOptions("ET system options")
 		("ET.TCP_NODELAY", po::value<int>()->default_value(0),
 		 "use TCP_NODELAY option");
+	options.AddOptions("ET system options")
+		("ET.debugLevel",po::value<int>()->default_value(2),
+		 "Sets the debug level for ET internals.\n ET_DEBUG_NONE = 0\nET_DEBUG_SEVERE = 1\nET_DEBUG_ERROR = 2\nET_DEBUG_WARN = 3\nET_DEBUG_INFO = 4");
 #endif
   options.AddOptions("CodaVersion")
     ("coda-version", po::value<int>()->default_value(3),
@@ -194,13 +197,14 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
 {
   fOnline     = options.GetValue<bool>("online");
   if (fOnline){
-    fETWaitMode  = options.GetValue<int>("ET.waitmode");
     fExitOnEnd  = options.GetValue<bool>("ET.exit-on-end");
 #ifndef __CODA_ET
     QwError << "Online mode will not work without the CODA libraries!"
 	    << QwLog::endl;
     exit(EXIT_FAILURE);
 #else
+    etClientOptions.wait = options.GetValue<int>("ET.waitmode");
+		QwMessage << "ET wait  HAS BE SET TO: " << etClientOptions.wait << QwLog::endl;
     if (options.HasValue("online.RunNumber")) {
       fCurrentRun = options.GetValue<int>("online.RunNumber");
     }
@@ -343,7 +347,15 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
 		
 		etClientOptions.noDelay = options.GetValue<int>("ET.TCP_NODELAY");
 		QwMessage << "ET TCP_NODELAY HAS BEEN SET TO: " << etClientOptions.noDelay << QwLog::endl;
-			
+		
+		int debugLevel = options.GetValue<int>("ET.debugLevel");
+		if( debugLevel > -1 || debugLevel < 5 ) {
+			etClientOptions.debugLevel = debugLevel; 
+		} else {
+			QwWarning << "Invalid ET debug level. Setting to max debug level" << QwLog::endl;
+			etClientOptions.debugLevel = 4;
+		}
+		QwMessage << "ET DEBUG LEVEL HAS BEEN SET TO: " << etClientOptions.debugLevel << QwLog::endl;
 #endif
   }
   if(options.HasValue("directfile")){
@@ -504,7 +516,8 @@ Int_t QwEventBuffer::ReOpenStream()
 
   if (fOnline) {
     // Online stream
-    status = OpenETStream(fETHostname, fETSession, fETWaitMode, fETStationName);
+    // status = OpenETStream(fETHostname, fETSession, fETWaitMode, fETStationName);
+    status = OpenETStream(&etClientOptions);
   } else {
     // Offline data file
     if (fRunIsSegmented)
@@ -533,7 +546,8 @@ Int_t QwEventBuffer::OpenNextStream()
 	      << fETHostname
 	      << ", SESSION==" << fETSession << "."
 	      << QwLog::endl;
-    status = OpenETStream(fETHostname, fETSession, fETWaitMode, fETStationName);
+    // status = OpenETStream(fETHostname, fETSession, fETWaitMode, fETStationName);
+    status = OpenETStream(&etClientOptions);
 
   } else {
     //  Try to open the next data file for the current run,
@@ -652,40 +666,6 @@ Int_t QwEventBuffer::GetNextEvent()
   return status;
 }
 
-/*
-	ET transfers send a chunk of events at once to parse
-	rather than one event at a time.
-		* codaRead is how we obtain the buffer from EVIO
-		* getEvBuffer is how we get it from THaData
-	We are assuming codaRead has already been called and there is data to read
-*/
-UInt_t* QwEventBuffer::getBuffer()
-{
-	if(!fOnline) return ( (UInt_t*)fEvStream->getEvBuffer() );
-	return et.currPayload;
-}
-
-Int_t QwEventBuffer::extractEtInfo()
-{
-	UInt_t* evBuffer = (UInt_t*)fEvStream->getEvBuffer();
-	assert(evBuffer);
-	et.blkLength    = evBuffer[0];
-	et.blkNumber    = evBuffer[1];
-	et.hdrLength    = evBuffer[2];
-	et.payloadCnt   = evBuffer[3];
-	et.bitInfo      = ((evBuffer[5] & 0x7f00) >> 8);
-	et.version      = evBuffer[5] & 0xff;
-	et.magic        = evBuffer[7];
-	et.data         = evBuffer + 8;
-	et.currPayload  = evBuffer + 8;
-	et.currLength   = evBuffer[8]+1;
-	et.nextPayload  = evBuffer + et.currLength + 8;
-	et.payloadRem   = et.payloadCnt;
-	decoder->DecodeETBitInfo(et.bitInfo);
-	return CODA_OK;
-}
-
-
 Int_t QwEventBuffer::GetEvent()
 {
   Int_t status = kFileHandleNotConfigured;
@@ -697,8 +677,8 @@ Int_t QwEventBuffer::GetEvent()
   }
   if (status == CODA_OK){
     // Coda Data was loaded correctly
-    UInt_t* evBuffer = getBuffer();
-	if(fDataVersionVerify == 0){ // Default = 0 => Undetermined
+    UInt_t* evBuffer = (UInt_t*)fEvStream->getEvBuffer();
+		if(fDataVersionVerify == 0){ // Default = 0 => Undetermined
 		VerifyCodaVersion(evBuffer);
 	}
 	//QwMessage << "et payloads remaining: " << et.payloadRem << " / " << et.payloadCnt << QwLog::endl;
@@ -759,16 +739,7 @@ Int_t QwEventBuffer::GetEtEvent(){
   Int_t status = CODA_OK;
   //  Do we want to have any loop here to wait for a bad
   //  read to be cleared?
-	if( (et.data == NULL) || (et.payloadRem <= 1) ){
-  	status = fEvStream->codaRead();
-		extractEtInfo();
-	}
-	else{
-		et.currPayload = et.nextPayload;
-		et.currLength  = *et.currPayload + 1;
-		et.nextPayload = et.currPayload  + et.currLength;
-		et.payloadRem--;
-	}
+	status = fEvStream->codaRead();
   if (status == CODA_EXIT)
     globalEXIT = 1;
   return status;
@@ -885,7 +856,7 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
 	    << QwLog::endl;
 	decoder->PrintDecoderInfo(QwMessage);
   //  Loop through the data buffer in this event.
-  UInt_t *localbuff = getBuffer();
+  UInt_t *localbuff = (UInt_t*)fEvStream->getEvBuffer();
 	decoder->DecodeEventIDBank(localbuff);
   while ((okay = decoder->DecodeSubbankHeader(&localbuff[decoder->GetWordsSoFar()]))){
     //  If this bank has further subbanks, restart the loop.
@@ -928,7 +899,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 
   //  Reload the data buffer and decode the header again, this allows
   //  multiple calls to this function for different subsystem arrays.
-  UInt_t *localbuff = getBuffer();
+  UInt_t *localbuff = (UInt_t*)fEvStream->getEvBuffer();
   
 	decoder->DecodeEventIDBank(localbuff);
 
@@ -1049,8 +1020,8 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
   QwVerbose << "QwEventBuffer::FillEPICSData:  "
 	    << QwLog::endl;
   //  Loop through the data buffer in this event.
-  UInt_t *localbuff = getBuffer();
-  if (decoder->GetBankDataType()==0x10){
+  UInt_t *localbuff = (UInt_t*)fEvStream->getEvBuffer();
+	if (decoder->GetBankDataType()==0x10){
     while ((okay = decoder->DecodeSubbankHeader(&localbuff[decoder->GetWordsSoFar()]))){
       //  If this bank has further subbanks, restart the loop.
       if (decoder->GetSubbankType() == 0x10) continue;
@@ -1104,7 +1075,7 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
 
 Bool_t QwEventBuffer::FillControlData()
 {
-  UInt_t *localbuff = getBuffer();
+  UInt_t *localbuff = (UInt_t*)fEvStream->getEvBuffer();
 	ProcessControlEvent(decoder->GetEvtType(), &localbuff[decoder->GetWordsSoFar()]);
 	return kTRUE;
 }
@@ -1380,17 +1351,13 @@ Int_t QwEventBuffer::CloseDataFile()
 }
 
 //------------------------------------------------------------
-Int_t QwEventBuffer::OpenETStream(TString computer, TString session, int mode,
-				  const TString stationname)
+Int_t QwEventBuffer::OpenETStream(void *etConfig)
 {
   Int_t status = CODA_OK;
+	QwMessage << "Hello" << QwLog::endl;
   if (fEvStreamMode==fEvStreamNull){
 #ifdef __CODA_ET
-    if (stationname != ""){
-      fEvStream = new THaEtClient(computer, session, mode, stationname);
-    } else {
-      fEvStream = new THaEtClient(computer, session, mode);
-    }
+    fEvStream = new THaEtClient( (ETClientOptions_t*) etConfig);
     fEvStreamMode = fEvStreamET;
 #endif
   }
