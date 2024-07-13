@@ -22,7 +22,7 @@
 #include <stdexcept>
 #include "evio.h"       // for evioswap
 #include "et_private.h" // for ET_VERSION
-// #include "evetLib.h"
+#include <byteswap.h>
 
 using namespace std;
 
@@ -30,25 +30,47 @@ static const int FAST          = 25;
 static const int SMALL_TIMEOUT = 10;
 static const int BIG_TIMEOUT   = 20;
 
+
+// Common member initialization for our constructors
+#define initflags                                       \
+nread(0), nused(0), timeout(BIG_TIMEOUT),               \
+id(0), my_att(0),                                       \
+daqhost(nullptr), session(nullptr), etfile(nullptr),    \
+waitflag(0), didclose(0), notopened(0), firstread(1),   \
+firstRateCalc(1), evsum(0), xcnt(0), daqt1(-1), ratesum(0)
+
 #define EVETCHECKINIT(x)					\
   if(x.etSysId == 0) {						\
     printf("%s: ERROR: evet not initiallized\n", __func__);	\
     return -1;}
 
-// Common member initialization for our constructors
-#define initflags                                       \
-timeout(BIG_TIMEOUT),               \
-didclose(0), notopened(0), firstread(1),   \
-firstRateCalc(1), evsum(0), xcnt(0), daqt1(-1), ratesum(0)
+THaEtClient::THaEtClient(Int_t smode)
+  : initflags
+{
+  // uses default server (where CODA runs)
+  const char* defaultcomputer = ADAQS2;
+  THaEtClient::codaOpen(defaultcomputer,smode);
+}
 
-THaEtClient::THaEtClient(const ETClientOptions_t* config)
+THaEtClient::THaEtClient(const char* computer,Int_t smode)
+  : initflags
+{
+  THaEtClient::codaOpen(computer,smode);
+}
+
+THaEtClient::THaEtClient(const char* computer, const char* mysession, Int_t smode, const char* stationname)
 	: initflags
 {
-	cout << "Hello";
-	cin.get();
-	userConfig = config;
-	memset(host, 0, 256);
-	init();
+
+  if(!stationname||strlen(stationname)>=ET_STATNAME_LENGTH){
+    cout << "THaEtClient: bad station name\n";
+		cout << "Using default station name: " << defaultStationName << endl;
+  	strcpy(stationName,defaultStationName);
+  }
+	else{
+  	strcpy(stationName,stationname);
+	}
+	THaEtClient::codaOpen(computer, mysession, smode);
 }
 
 THaEtClient::~THaEtClient() {
@@ -58,170 +80,92 @@ THaEtClient::~THaEtClient() {
   Int_t status = THaEtClient::codaClose();
   if (status == CODA_ERROR) cout << "ERROR: closing THaEtClient"<<endl;
 }
-Int_t THaEtClient::init( )
+
+Int_t THaEtClient::init(const char* mystation)
 {
-	int status;
-	et_open_config_init(&openconfig);
-  /* if multicasting to find ET */
-	if(userConfig->multicast) {
-		if( userConfig->mcastAddrCount < 1) {
-			/* Use default mcast address if not given */
-			status = et_open_config_addmulticast(openconfig, ET_MULTICAST_ADDR);
-		}
-		else {
-			/* add multicast addresses to use */
-			/* Original code supported up to 10 mcastAddr */
-			if(strlen(userConfig->mcastAddr)>7){
-				status = et_open_config_addmulticast(openconfig, userConfig->mcastAddr);
-				if(status != ET_OK) {
-					printf("bad multicast address argument\n");
-					exit(1);
-				}
-				printf("Adding multicast address %s\n",  userConfig->mcastAddr);
-			}
-		}
-	}
+  static char station[ET_STATNAME_LENGTH];
+  if(!mystation||strlen(mystation)>=ET_STATNAME_LENGTH){
+    cout << "THaEtClient: bad station name\n";
+    return CODA_ERROR;
+  }
+  strcpy(station,mystation);
 
-	if(userConfig->broadAndMulticast){
-		port = userConfig->port;
-		printf("Broad and Multicasting\n");
-		if (port == 0){
-			port = ET_UDP_PORT;
-		}
-		et_open_config_setport(openconfig, port);
-		et_open_config_setcast(openconfig, ET_BROADANDMULTICAST);
-		et_open_config_sethost(openconfig, ET_HOST_ANYWHERE);
-	}
-	else if (userConfig->multicast) {
-		port = userConfig->port;
-		printf("Multicasting\n");	
-		if (port == 0){
-			port = ET_UDP_PORT;
-		}
-		et_open_config_setport(openconfig, port);
-		et_open_config_setcast(openconfig, ET_MULTICAST);
-		et_open_config_sethost(openconfig, ET_HOST_ANYWHERE);
-	}
-	else if (userConfig->broadcast) {
-		port = userConfig->port;
-		printf("Broadcasting\n");
-		if (port == 0) {
-			port = ET_UDP_PORT;
-		}
-		et_open_config_setport(openconfig, port);
-		et_open_config_setcast(openconfig, ET_BROADCAST);
-		et_open_config_sethost(openconfig, ET_HOST_ANYWHERE);
-	}
-	else {
-		port = userConfig->port;
-		if (port == 0) {
-			port = ET_SERVER_PORT;
-		}
-		et_open_config_setserverport(openconfig, port);
-		et_open_config_setcast(openconfig, ET_DIRECT);
-		if (strlen(userConfig->host) > 0) {
-			et_open_config_sethost(openconfig, userConfig->host);
-		}
-		et_open_config_gethost(openconfig, host);
-    printf("Direct connection to %s\n", host);
-	}
+  et_openconfig openconfig{};
+  et_open_config_init(&openconfig);
 
-  /* Defaults are to use operating system default buffer sizes and turn off TCP_NODELAY */
-	et_open_config_settcp(openconfig, userConfig->recvBufSize, userConfig->sendBufSize, userConfig->noDelay);	
-	if (strlen(userConfig->interface) > 6) {
-		et_open_config_setinterface(openconfig, userConfig->interface);
-	}
-
-	if (userConfig->remote) {
-		printf("(Set as remote\n");
-		et_open_config_setmode(openconfig, ET_HOST_AS_REMOTE);
-	}
-
-	/* If reponses from different ET systems, return error */
-	et_open_config_setpolicy(openconfig, ET_POLICY_ERROR);
-
-	/* debug level */
-	et_open_config_setdebugdefault(openconfig, userConfig->debugLevel);
-	et_open_config_setwait(openconfig, ET_OPEN_WAIT);
-	et_station_config_setprescale(openconfig, 1);
-	et_station_config_setselect(openconfig, ET_STATION_SELECT_ALL);
-
+  et_open_config_sethost(openconfig, daqhost);
+  et_open_config_setcast(openconfig, ET_DIRECT);
 	et_sys_id id = 0;
-	if (et_open(&id, userConfig->et_name, openconfig) != ET_OK) {
-		printf("%s: et_open problems\n",__func__);
-		return -1;
-	}
+  if (et_open(&id, etfile, openconfig) != ET_OK) {
+    notopened = 1;
+    cout << "THaEtClient: cannot open ET system"<<endl;
+    cout << "Likely causes:  "<<endl;
+    cout << "  1. Incorrect SESSION environment variable (it can also be passed to codaOpen)"<<endl;
+    cout << "  2. ET not running (CODA not running) on specified computer"<<endl;
+    return CODA_ERROR;
+  }
 
-	if (userConfig->debugLevel == ET_DEBUG_INFO) {
-		evh.verbose = 1;	
-	}
-	else {
-		evh.verbose = 0;
-	}
-	evetOpen(id, userConfig->chunk, evh);
+	evetOpen(id, ET_CHUNK_SIZE, evh);
+  et_open_config_destroy(openconfig);
 
-	et_open_config_destroy(openconfig);
-
-  /*-------------------------------------------------------*/
-	
-	/* Find out if we have a remote connection to the ET system */
-	et_system_getlocality(evh.etSysId, &locality);
-	if (locality == ET_REMOTE) {
-		printf("ET is remote\n\n");
-		et_system_gethost(evh.etSysId, host);
-		et_system_getlocaladdress(evh.etSysId, localAddr);
-    printf("Connect to ET, from ip = %s to %s\n", localAddr, host);
-	}
-	else {
-		printf("ET is local\n\n");
-	}
 
 	/* set level of debug output (everything) */
-	et_system_setdebug(evh.etSysId, userConfig->debugLevel);
+	et_system_setdebug(evh.etSysId, ET_DEBUG_ERROR);
+
 
 	/* define station to create */
-	et_station_config_init(&sconfig);
-  et_station_config_setrestore(sconfig, ET_STATION_RESTORE_OUT); // Do we want to give access to USER?
-  et_station_config_setuser(sconfig, ET_STATION_USER_MULTI); // Do we want to give access to USER?
-	et_station_config_setflow(sconfig, userConfig->flowMode);
-	if (!userConfig->blocking) {
-		et_station_config_setblock(sconfig, ET_STATION_NONBLOCKING);
-		if (userConfig->qSize > 0) {
-			et_station_config_setcue(sconfig,userConfig->qSize);
-		}
-	}
-	
-	if (( status = 
-				 et_station_create_at(evh.etSysId, &my_stat, userConfig->stationName, sconfig, userConfig->position, userConfig->pposition) ) != ET_OK) {
-
-		if ( status == ET_ERROR_EXISTS) {
-			/* my_stat contains pointer exisiting station */
-			printf("%s: station already exists\n", userConfig->stationName);
-		}
-		else if (status == ET_ERROR_TOOMANY) {
-			printf("too many stations created\n");
-		}
-		else {
-			printf("error in station creation\n");
-		}
-	}
-	et_station_config_destroy(sconfig);
-	if ((status = et_station_attach(evh.etSysId, my_stat, &evh.etAttId)) != ET_OK) {
-		printf("error in station attach\n");
-	}
-
-	return status;
+  et_statconfig sconfig{};
+  et_station_config_init(&sconfig);
+  et_station_config_setrestore(sconfig, ET_STATION_RESTORE_OUT);
+  et_station_config_setuser(sconfig, ET_STATION_USER_MULTI);
+  et_station_config_setblock(sconfig, ET_STATION_NONBLOCKING);
+  et_station_config_setcue(sconfig, 100);
+  et_station_config_setprescale(sconfig, 1);
+  et_station_config_setselect(sconfig, ET_STATION_SELECT_ALL);
+  et_stat_id my_stat{};
+  Int_t status = et_station_create(evh.etSysId, &my_stat, station, sconfig);
+  if (status < ET_OK) {
+    if (status == ET_ERROR_EXISTS) {
+      // ok
+    }
+    else if (status == ET_ERROR_TOOMANY) {
+      cout << "THaEtClient: too many stations created"<<endl;
+      return CODA_ERROR;
+    }
+    else if (status == ET_ERROR_REMOTE) {
+      cout << "THaEtClient: memory or improper arg problems"<<endl;
+      return CODA_ERROR;
+    }
+    else if (status == ET_ERROR_READ) {
+      cout << "THaEtClient: network reading problem"<<endl;
+      return CODA_ERROR;
+    }
+    else if (status == ET_ERROR_WRITE) {
+      cout << "THaEtClient: network writing problem"<<endl;
+      return CODA_ERROR;
+    }
+    else {
+      cout << "THaEtClient: error in station creation"<<endl;
+      return CODA_ERROR;
+    }
+  }
+  et_station_config_destroy(sconfig);
+  if (et_station_attach(evh.etSysId, my_stat, &evh.etAttId) < 0) {
+    cout << "THaEtClient: error in station attach"<<endl;
+    return CODA_ERROR;
+  }
+  return CODA_OK;
 }
 
 Int_t THaEtClient::codaClose() {
   if (didclose || firstread) return CODA_OK;
   didclose = 1;
   if (notopened) return CODA_ERROR;
-  if (et_station_detach(evh.etSysId, evh.etAttId) != ET_OK) {
+  if (et_station_detach(id, my_att) != ET_OK) {
     cout << "ERROR: codaClose: detaching from ET"<<endl;
     return CODA_ERROR;
   }
-  if (et_close(evh.etSysId) != ET_OK) {
+  if (et_close(id) != ET_OK) {
     cout << "ERROR: codaClose: error closing ET"<<endl;
     return CODA_ERROR;
   }
@@ -230,40 +174,26 @@ Int_t THaEtClient::codaClose() {
 
 Int_t THaEtClient::codaRead()
 {
-  const size_t bpi = sizeof(uint32_t);
-
-  if (firstRateCalc) {
-     firstRateCalc = 0;
-     daqt1 = time(nullptr);
-  }
-  else {
-  	time_t daqt2 = time(nullptr);
-    double tdiff = difftime(daqt2, daqt1);
-		evsum += evh.etChunkNumRead;
-    if ((tdiff > 4) && (evsum > 30)) {
-	 		double daqrate  = static_cast<double>(evsum)/tdiff;
-      evsum  = 0;
-      ratesum += daqrate;
-      double avgrate  = ratesum/++xcnt;
-
-      if (verbose > 0) {
-      	printf("ET rate %4.1f Hz in %2.0f sec, avg %4.1f Hz\n", daqrate, tdiff, avgrate);
-      }
-      	if (userConfig->wait != 0) {
-      		timeout = (avgrate > FAST) ? SMALL_TIMEOUT : BIG_TIMEOUT;
-        }
-        daqt1 = time(nullptr);
+  if (firstread) {
+    Int_t status = init();
+    if (status != CODA_OK) {
+      cout << "THaEtClient: ERROR: codaRead, cannot connect to CODA"<<endl;
+      return CODA_ERROR;
     }
+    firstread = 0;
   }
 
+  //  Read a chunk of data, return read status (0 = ok, else not).
+  //  To try to use network efficiently, it actually gets
+  //  the events in chunks, and passes them to the user.
+
+  const size_t bpi = sizeof(uint32_t);
 	int status;
 	const uint32_t *readBuffer;
 	uint32_t len;
 	status = evetReadNoCopy(evh, &readBuffer, &len);
-	evCount++;
 	totalBytes += len;
 	if(status == 0){
-		/*
 	  printf("evetRead(%2d): \n", ++evCount);
 	  uint32_t i;
 	  for (i=0; i< (len); i++) {
@@ -272,21 +202,76 @@ Int_t THaEtClient::codaRead()
 	      printf("\n");
 	  }
 	  printf("\n");
-		*/
-
-		if( !evbuffer.grow(len/bpi+1) )
-			throw runtime_error("THaEtClient: Maximum event buffer size reached");
-		assert(bpi * evbuffer.size() >= (size_t)len);
-		// printf("NUMBER OF BYTES TO COPY: %i\n", len);
-		memcpy(evbuffer.get(), readBuffer, sizeof(uint32_t)*len);
+	if( !evbuffer.grow(len/bpi+1) )
+		throw runtime_error("THaEtClient: Maximum event buffer size reached");
+	assert(bpi * evbuffer.size() >= (size_t)len);
+	// printf("NUMBER OF BYTES TO COPY: %i\n", len);
+	memcpy(evbuffer.get(), readBuffer, sizeof(uint32_t)*len);
 	}
+  if (firstRateCalc) {
+  	firstRateCalc = 0;
+  	daqt1 = time(nullptr);
+  }
+  else {
+  	time_t daqt2 = time(nullptr);
+  	double tdiff = difftime(daqt2, daqt1);
+    evsum += evCount;
+    if ((tdiff > 4) && (evsum > 30)) 
+	 	{
+			double daqrate  = static_cast<double>(evsum)/tdiff;
+      evsum    = 0;
+      ratesum += daqrate;
+      double avgrate  = ratesum/++xcnt;
+				
+      if (verbose > 0) {
+      	printf("ET rate %4.1f Hz in %2.0f sec, avg %4.1f Hz\n", daqrate, tdiff, avgrate);
+      }
+      if (waitflag != 0) {
+      	timeout = (avgrate > FAST) ? SMALL_TIMEOUT : BIG_TIMEOUT;
+      }
+      daqt1 = time(nullptr);
+    }
+  }
+ 	
+	return CODA_OK;
+}
 
-  return status;
+Int_t THaEtClient::codaOpen(const char* computer,
+			    const char* mysession,
+			    Int_t smode)
+{
+  // To run codaOpen, you need to know:
+  // 1) What computer is ET running on ? (e.g. computer='adaql2')
+  // 2) What session ? (usually env. variable $SESSION, e.g. 'onla')
+  // 3) mode (0 = wait forever for data,  1 = time-out in a few seconds)
+  delete [] daqhost;
+  delete [] session;
+  delete [] etfile;
+  daqhost = new char[strlen(computer)+1];
+  strcpy(daqhost,computer);
+  etfile = new char[strlen(ETMEM_PREFIX)+strlen(mysession)+1];
+  strcpy(etfile,ETMEM_PREFIX);
+  strcat(etfile,mysession);
+  session = new char[strlen(mysession)+1];
+  strcpy(session,mysession);
+  waitflag = smode;
+  return CODA_OK;
+}
+
+Int_t THaEtClient::codaOpen(const char* computer, Int_t smode)
+{
+  // See comment in the above version of codaOpen()
+  char* s = getenv("SESSION");
+  if (s == nullptr)
+    return CODA_ERROR;
+  TString mysession(s);
+  return codaOpen( computer, mysession, smode );
 }
 
 bool THaEtClient::isOpen() const {
   return (notopened==1&&didclose==0);
 }
+
 
 int32_t
 THaEtClient::evetOpen(et_sys_id etSysId, int32_t chunk, evetHandle_t &evh)
@@ -360,7 +345,7 @@ THaEtClient::evetGetEtChunks(evetHandle_t &evh)
 	EVETCHECKINIT(evh);
 
 	int32_t status;
-	if (userConfig->wait == 0) {
+	if (waitflag == 0) {
 		status = et_events_get(evh.etSysId, evh.etAttId, evh.etChunk, ET_SLEEP, NULL, evh.etChunkSize, &evh.etChunkNumRead);
 	}
 	else {
@@ -440,6 +425,7 @@ THaEtClient::evetGetChunk(evetHandle_t &evh)
 	et_event_getendian(currentChunk, &evh.currentChunkStat.endian);
 	et_event_needtoswap(currentChunk, &evh.currentChunkStat.swap);
 
+	printf("evh.currentChunkStat.length: %li\n",evh.currentChunkStat.length);
 	if(evh.verbose == 1)
 	{
 		uint32_t *data = evh.currentChunkStat.data;
@@ -502,3 +488,4 @@ THaEtClient::evetReadNoCopy(evetHandle_t &evh, const uint32_t **outputBuffer, ui
 
 	return status;
 }
+// ClassImp(THaEtClient)

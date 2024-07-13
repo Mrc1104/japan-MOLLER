@@ -25,9 +25,6 @@
 #include "VEventDecoder.h"
 #include "Coda3EventDecoder.h"
 #include "Coda2EventDecoder.h"
-#ifdef __CODA_ET
-#include "THaEtClient.h"
-#endif
 
 class QwOptions;
 class QwEPICSEvent;
@@ -125,13 +122,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Int_t CloseDataFile();
 	
   Int_t OpenETStream(TString computer, TString session, int mode, const TString stationname="");
-	// void pointer because __CODA_ET Might not be defined leaving ETClientOptions_t undefined
-  Int_t OpenETStream(void *etConfig);
   Int_t CloseETStream();
-#ifdef __CODA_ET
-// THaETClient Information Payload
-	ETClientOptions_t etClientOptions;
-#endif
 
   Bool_t IsPhysicsEvent() {
 		return ( decoder->IsPhysicsEvent() );
@@ -288,6 +279,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
 
  protected:
 	VEventDecoder* decoder;
+
 };
 
 template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
