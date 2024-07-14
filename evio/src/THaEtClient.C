@@ -161,11 +161,11 @@ Int_t THaEtClient::codaClose() {
   if (didclose || firstread) return CODA_OK;
   didclose = 1;
   if (notopened) return CODA_ERROR;
-  if (et_station_detach(id, my_att) != ET_OK) {
+  if (et_station_detach(evh.etSysId, evh.etAttId) != ET_OK) {
     cout << "ERROR: codaClose: detaching from ET"<<endl;
     return CODA_ERROR;
   }
-  if (et_close(id) != ET_OK) {
+  if (et_close(evh.etSysId) != ET_OK) {
     cout << "ERROR: codaClose: error closing ET"<<endl;
     return CODA_ERROR;
   }
@@ -194,19 +194,20 @@ Int_t THaEtClient::codaRead()
 	status = evetReadNoCopy(evh, &readBuffer, &len);
 	totalBytes += len;
 	if(status == 0){
-	  printf("evetRead(%2d): \n", ++evCount);
-	  uint32_t i;
-	  for (i=0; i< (len); i++) {
-	    printf("0x%08x ", readBuffer[i]);
-	    if( (i+1) % 8 == 0)
-	      printf("\n");
-	  }
-	  printf("\n");
-	if( !evbuffer.grow(len/bpi+1) )
-		throw runtime_error("THaEtClient: Maximum event buffer size reached");
-	assert(bpi * evbuffer.size() >= (size_t)len);
-	// printf("NUMBER OF BYTES TO COPY: %i\n", len);
-	memcpy(evbuffer.get(), readBuffer, sizeof(uint32_t)*len);
+		/*
+		printf("evetRead(%2d): \n", ++evCount);
+		uint32_t i;
+		for (i=0; i< (len); i++) {
+			printf("0x%08x ", readBuffer[i]);
+			if( (i+1) % 8 == 0)
+				printf("\n");
+		}
+		printf("\n");
+		*/
+		if( !evbuffer.grow(len/bpi+1) )
+			throw runtime_error("THaEtClient: Maximum event buffer size reached");
+		assert(bpi * evbuffer.size() >= (size_t)len);
+		memcpy(evbuffer.get(), readBuffer, sizeof(uint32_t)*len);
 	}
   if (firstRateCalc) {
   	firstRateCalc = 0;
@@ -215,7 +216,7 @@ Int_t THaEtClient::codaRead()
   else {
   	time_t daqt2 = time(nullptr);
   	double tdiff = difftime(daqt2, daqt1);
-    evsum += evCount;
+		evsum += evh.etChunkNumRead;
     if ((tdiff > 4) && (evsum > 30)) 
 	 	{
 			double daqrate  = static_cast<double>(evsum)/tdiff;
@@ -233,7 +234,7 @@ Int_t THaEtClient::codaRead()
     }
   }
  	
-	return CODA_OK;
+	return status;
 }
 
 Int_t THaEtClient::codaOpen(const char* computer,
@@ -354,8 +355,6 @@ THaEtClient::evetGetEtChunks(evetHandle_t &evh)
 		twait.tv_nsec = 0;
 		status = et_events_get(evh.etSysId, evh.etAttId, evh.etChunk, ET_TIMED, &twait, evh.etChunkSize, &evh.etChunkNumRead);
 	}
-	cout << "NUMBER OF CHUNKS REQUESTED: " << evh.etChunkSize;
-	cout << "\n NUMBER OF CHUNKS RECEIVED: " << evh.etChunkNumRead << endl;
 	if(status != ET_OK)
 	{
 		printf("%s: ERROR: et_events_get returned (%d) %s\n",
@@ -425,7 +424,6 @@ THaEtClient::evetGetChunk(evetHandle_t &evh)
 	et_event_getendian(currentChunk, &evh.currentChunkStat.endian);
 	et_event_needtoswap(currentChunk, &evh.currentChunkStat.swap);
 
-	printf("evh.currentChunkStat.length: %li\n",evh.currentChunkStat.length);
 	if(evh.verbose == 1)
 	{
 		uint32_t *data = evh.currentChunkStat.data;

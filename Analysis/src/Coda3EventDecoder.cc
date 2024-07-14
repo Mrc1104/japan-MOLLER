@@ -110,42 +110,6 @@ void Coda3EventDecoder::EncodeEndEventHeader(int* buffer, int eventcount, int lo
  */
 Int_t Coda3EventDecoder::DecodeEventIDBank(UInt_t *buffer)
 {
-	Int_t status = CODA_OK;
-	switch(ETBitInfo.payloadType){
-	case ROCRaw:
-		status = DecodeROCRawPayload(buffer);
-		break;
-	case PartialPHYS:
-		status = DecodePartialPHYSPayload(buffer);
-		break;
-	case Disentangled:
-		status = DecodeDisentangledPayload(buffer);
-		break;
-	case Other:
-		status = DecodeOtherPayload(buffer);
-		break;
-	case User:
-	case Control:
-	case PHYS:
-	default:
-		status = DecodePHYSPayload(buffer);
-		break;
-	}
-	return status;
-}
-
-/**
- * @brief Decodes PHYS Payloads (either ET or from File)
- *
- * PHYS Payloads can either be from the ET or file. Storing as a file permits
- * PHYS payloads to have PHYS events, user events, control events, etc.
- *
- * @param buffer - Pointer to the data
- * @return CODA_OK on success
- * @return CODA_ERROR on failure
- */
-Int_t Coda3EventDecoder::DecodePHYSPayload(UInt_t *buffer)
-{
 	// TODO:
 	// How should we handle bad events??
 	fPhysicsEventFlag = kFALSE;
@@ -214,168 +178,6 @@ Int_t Coda3EventDecoder::DecodePHYSPayload(UInt_t *buffer)
 	return status;
 }
 
-/**
- * @brief Decodes Partial PHYS Payloads
- * 
- * Partial PHYS Payloads is the output from the Data Concentrator.
- * Since this data is directly from the ROC (but before the EB),
- * we are assuming it is a PHYS event.
- *
- * @param buffer - Pointer to the data
- * @return CODA_OK on success
- * @return CODA_ERROR on failure
- */
-Int_t Coda3EventDecoder::DecodePartialPHYSPayload(UInt_t *buffer)
-{
-	assert(buffer);
-
-	Int_t status = CODA_OK;
-	Int_t ret = HED_OK;
-	fPhysicsEventFlag = kFALSE;
-	fControlEventFlag = kFALSE;
-
-	// Prep TBOBJ variables
-	tbank.Clear();
-	tsEvType = 0;
-	evt_time = 0;
-	trigger_bits = 0;
-	block_size = 0;
-
-	// General Event information
-	fEvtLength = buffer[0]+1;  // in longwords (4 bytes)
-	UInt_t PPHYSHeader = buffer[1];
-	unsigned char statusBits= ((PPHYSHeader & 0xF0000000) >> 28); // Top 4 bits
-	int EBID                = ((PPHYSHeader & 0x0FFF0000) >> 16); // 12bits
-	fBankDataType   				= ((PPHYSHeader & 0xff00)     >> 8 ); // 8 bits
-	block_size 							= ((PPHYSHeader & 0xff  )     >> 0 ); // 8 bits
-	
-	const unsigned char ERROR_BIT = 0x2;
-	const unsigned char SYNC_BIT  = 0x1;
-	if( ERROR_BIT & statusBits ){
-		QwWarning << "ERROR in Partially-Built PHYS Record!\n";
-		QwWarning << "Skipping to the end of the event and setting everything to false (0)!" << QwLog::endl;
-		fPhysicsEventFlag = kFALSE;
-		fControlEventFlag = kFALSE;
-
-		fEvtType = 0;
-		fEvtTag = 0;
-		fBankDataType = 0;
-		tbank.Clear();
-		tsEvType = 0;
-		evt_time = 0;
-		trigger_bits = 0;
-		block_size = 0;
-
-		fWordsSoFar = fEvtLength;
-		return CODA_ERROR;
-	}
-
-	fWordsSoFar = (2);
-
-	if(block_size > 1) {
-	QwWarning << "MultiBlock is not properly supported! block_size = "
-		<< block_size << QwLog::endl;
-	}
-
-	// Assume PHYS event
-	fEvtType = 1;
-	fPhysicsEventFlag = kTRUE;
-	ret = trigBankDecode( buffer );
-	if(ret != HED_OK) { trigBankErrorHandler( ret ); status = CODA_ERROR;}
-	else {
-		fEvtNumber = tbank.evtNum;
-		fWordsSoFar = 2 + tbank.len;
-	}
-
-	fFragLength = fEvtLength - fWordsSoFar;
-	QwDebug << Form("buffer[0-1] 0x%x 0x%x ; ", buffer[0], buffer[1]);
-	PrintDecoderInfo(QwDebug);
-
-	return status;
-}
-
-/**
- * @brief Decodes ROC Raw Payloads
- * 
- * ROC Raw Payloads are directly from the ROCs without any EB or DC acting
- * on the data stream. Will assume its a PHYS event unless its a User Event.
- *
- * @param buffer - Pointer to the data
- * @return CODA_OK on success
- * @return CODA_ERROR on failure
- */
-Int_t Coda3EventDecoder::DecodeROCRawPayload(UInt_t *buffer)
-{
-	assert(buffer);
-
-	Int_t status = CODA_OK;
-	Int_t ret = HED_OK;
-	fPhysicsEventFlag = kFALSE;
-	fControlEventFlag = kFALSE;
-
-	// Prep TBOBJ variables
-	tbank.Clear();
-	tsEvType = 0;
-	evt_time = 0;
-	trigger_bits = 0;
-	block_size = 0;
-
-	// General Event information
-	fEvtLength = buffer[0]+1;  // in longwords (4 bytes)
-	UInt_t rawRocHeader = buffer[1];
-	unsigned char statusBits= ((rawRocHeader & 0xF0000000) >> 28); // Top 4 bits
-	int rocID               = ((rawRocHeader & 0x0FFF0000) >> 16); // 12bits
-	fBankDataType   				= ((rawRocHeader & 0xff00)     >> 8 ); // 8 bits
-	block_size 							= ((rawRocHeader & 0xff  )     >> 0 ); // 8 bits
-	
-	const unsigned char ERROR_BIT = 0x2;
-	if( ERROR_BIT & statusBits ){
-		QwWarning << "ERROR in ROC Raw Data Record!\n";
-		QwWarning << "Skipping to the end of the event and setting everything to false (0)!" << QwLog::endl;
-		fPhysicsEventFlag = kFALSE;
-		fControlEventFlag = kFALSE;
-
-		fEvtType = 0;
-		fEvtTag = 0;
-		fBankDataType = 0;
-		tbank.Clear();
-		tsEvType = 0;
-		evt_time = 0;
-		trigger_bits = 0;
-		block_size = 0;
-
-		fWordsSoFar = fEvtLength;
-		return CODA_ERROR;
-	}
-
-	fWordsSoFar = (2);
-
-	if(block_size > 1) {
-	QwWarning << "MultiBlock is not properly supported! block_size = "
-		<< block_size << QwLog::endl;
-	}
-	if( block_size == 0 ) // This means its a USER event
-	{
-		fEvtType = 0;
-	 	printUserEvent(buffer);
-	}
-	else{ // Assume PHYS event
-		fEvtType = 1;
-		fPhysicsEventFlag = kTRUE;
-		ret = trigBankDecode( buffer );
-		if(ret != HED_OK) { trigBankErrorHandler( ret ); status = CODA_ERROR;}
-		else { 
-			fEvtNumber = tbank.evtNum;
-			fWordsSoFar = 2 + tbank.len;
-		}
-	}
-	fFragLength = fEvtLength - fWordsSoFar;	
-	QwDebug << Form("buffer[0-1] 0x%x 0x%x ; ", buffer[0], buffer[1]);
-	PrintDecoderInfo(QwDebug);
-
-	return status;
-}
-
 //_____________________________________________________________________________
 UInt_t Coda3EventDecoder::InterpretBankTag( UInt_t tag )
 {
@@ -385,17 +187,14 @@ UInt_t Coda3EventDecoder::InterpretBankTag( UInt_t tag )
 			case 0xffd1:
 				evtyp = kPRESTART_EVENT;
 				fControlEventFlag = kTRUE;
-				QwMessage << "Found a PRESTART event" << QwLog::endl;
 				break;
 			case 0xffd2:
 				evtyp = kGO_EVENT;
 				fControlEventFlag = kTRUE;
-				QwMessage << "Found a GO event" << QwLog::endl;
 				break;
 			case 0xffd4:
 				evtyp = kEND_EVENT;
 				fControlEventFlag = kTRUE;
-				QwMessage << "Found a END event" << QwLog::endl;
 				break;
 			case 0xff50:
 			case 0xff58:      // Physics event with sync bit
@@ -403,7 +202,6 @@ UInt_t Coda3EventDecoder::InterpretBankTag( UInt_t tag )
 			case 0xff70:
 				evtyp = 1;      // for CODA 3.* physics events are type 1.
 				fPhysicsEventFlag=kTRUE;
-				//QwMessage << "Found a PHYS event" << QwLog::endl;
 				break;
 			default:          // Undefined CODA 3 event type
 				QwWarning << "CodaDecoder:: WARNING:  Undefined CODA 3 event type, tag = "

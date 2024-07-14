@@ -453,8 +453,6 @@ Int_t QwEventBuffer::GetNextEvent()
       fEventRange.first = decoder->GetEvtNumber() + 1;
       if (decoder->GetEvtNumber() > 1000) status = EOF;
     }
-		std::cout << std::boolalpha << (fOnline) << " " <<
-								fExitOnEnd << " " << (fEndTime>0) << std::noboolalpha << std::endl;
     if (fOnline && fExitOnEnd && fEndTime>0){
       QwMessage << "Caught End Event (end time=="<< fEndTime 
 		<< ").  Exit event loop." << QwLog::endl;
