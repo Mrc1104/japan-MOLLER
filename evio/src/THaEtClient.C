@@ -65,10 +65,9 @@ THaEtClient::THaEtClient(const char* computer, const char* mysession, Int_t smod
   if(!stationname||strlen(stationname)>=ET_STATNAME_LENGTH){
     cout << "THaEtClient: bad station name\n";
 		cout << "Using default station name: " << defaultStationName << endl;
-  	strcpy(stationName,defaultStationName);
   }
 	else{
-  	strcpy(stationName,stationname);
+  	strcpy(fStationName,stationname);
 	}
 	THaEtClient::codaOpen(computer, mysession, smode);
 }
@@ -165,6 +164,10 @@ Int_t THaEtClient::codaClose() {
     cout << "ERROR: codaClose: detaching from ET"<<endl;
     return CODA_ERROR;
   }
+	if (evetClose(evh) ) {
+    cout << "ERROR: evetClose: error closing EVIO handle"<<endl;
+    return CODA_ERROR;
+	}
   if (et_close(evh.etSysId) != ET_OK) {
     cout << "ERROR: codaClose: error closing ET"<<endl;
     return CODA_ERROR;
@@ -175,7 +178,7 @@ Int_t THaEtClient::codaClose() {
 Int_t THaEtClient::codaRead()
 {
   if (firstread) {
-    Int_t status = init();
+    Int_t status = init(fStationName);
     if (status != CODA_OK) {
       cout << "THaEtClient: ERROR: codaRead, cannot connect to CODA"<<endl;
       return CODA_ERROR;
@@ -186,29 +189,18 @@ Int_t THaEtClient::codaRead()
   //  Read a chunk of data, return read status (0 = ok, else not).
   //  To try to use network efficiently, it actually gets
   //  the events in chunks, and passes them to the user.
-
   const size_t bpi = sizeof(uint32_t);
 	int status;
 	const uint32_t *readBuffer;
 	uint32_t len;
 	status = evetReadNoCopy(evh, &readBuffer, &len);
-	totalBytes += len;
 	if(status == 0){
-		/*
-		printf("evetRead(%2d): \n", ++evCount);
-		uint32_t i;
-		for (i=0; i< (len); i++) {
-			printf("0x%08x ", readBuffer[i]);
-			if( (i+1) % 8 == 0)
-				printf("\n");
-		}
-		printf("\n");
-		*/
 		if( !evbuffer.grow(len/bpi+1) )
 			throw runtime_error("THaEtClient: Maximum event buffer size reached");
 		assert(bpi * evbuffer.size() >= (size_t)len);
 		memcpy(evbuffer.get(), readBuffer, sizeof(uint32_t)*len);
-	}
+	} 
+	
   if (firstRateCalc) {
   	firstRateCalc = 0;
   	daqt1 = time(nullptr);
@@ -224,7 +216,7 @@ Int_t THaEtClient::codaRead()
       ratesum += daqrate;
       double avgrate  = ratesum/++xcnt;
 				
-      if (verbose > 0) {
+      if (evh.verbose > 0) {
       	printf("ET rate %4.1f Hz in %2.0f sec, avg %4.1f Hz\n", daqrate, tdiff, avgrate);
       }
       if (waitflag != 0) {
@@ -340,7 +332,7 @@ THaEtClient::evetClose(evetHandle_t &evh)
 int32_t
 THaEtClient::evetGetEtChunks(evetHandle_t &evh)
 {
-	if(evh.verbose == 1)
+	if(evh.verbose > 1)
 		printf("%s: enter\n", __func__);
 
 	EVETCHECKINIT(evh);
@@ -373,7 +365,7 @@ THaEtClient::evetGetEtChunks(evetHandle_t &evh)
 int32_t
 THaEtClient::evetGetChunk(evetHandle_t &evh)
 {
-	if(evh.verbose == 1)
+	if(evh.verbose > 1)
 		printf("%s: enter\n", __func__);
 
 	EVETCHECKINIT(evh);
@@ -424,7 +416,7 @@ THaEtClient::evetGetChunk(evetHandle_t &evh)
 	et_event_getendian(currentChunk, &evh.currentChunkStat.endian);
 	et_event_needtoswap(currentChunk, &evh.currentChunkStat.swap);
 
-	if(evh.verbose == 1)
+	if(evh.verbose > 1)
 	{
 		uint32_t *data = evh.currentChunkStat.data;
 		uint32_t idata = 0, len = evh.currentChunkStat.length;
@@ -461,7 +453,7 @@ THaEtClient::evetGetChunk(evetHandle_t &evh)
 int32_t
 THaEtClient::evetReadNoCopy(evetHandle_t &evh, const uint32_t **outputBuffer, uint32_t *length)
 {
-	if(evh.verbose == 1)
+	if(evh.verbose > 1)
 		printf("%s: enter\n", __func__);
 
 	EVETCHECKINIT(evh);
