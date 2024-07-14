@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 # Name of this project
-project(QwAnalysis VERSION 2.0 LANGUAGES CXX)
+project(QwAnalysis VERSION 2.0.0 LANGUAGES CXX)
 
 # Local path for cmake modules
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules/")

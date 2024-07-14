@@ -64,7 +64,7 @@ QwRunCondition::SetArgs(Int_t argc, Char_t* argv[])
   TString user_name = user_string;
 
   // get program name and its arguments (options)
-	TString QwVersion = Form("%d.%d",QWANALYSIS_VERSION_MAJOR, QWANALYSIS_VERSION_MINOR);
+	TString QwVersion = Form("%d.%d.%d",QWANALYSIS_VERSION_MAJOR, QWANALYSIS_VERSION_MINOR, QWANALYSIS_VERSION_PATCH);
   TString program_name = argv[0];
   TString argv_list;
   for (Int_t i=1; i<argc; i++) argv_list += argv[i];
