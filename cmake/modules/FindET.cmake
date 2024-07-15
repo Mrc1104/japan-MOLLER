@@ -12,7 +12,7 @@ if( DEFINED ENV{ET} )
     )
   find_path(ET_INCLUDE_DIR
     NAMES et.h
-    PATHS $ENV{ETINSTALL}/common/include
+    PATHS $ENV{ET}/common/include
     DOC "Event Transport (ET) header include directory"
     )
 elseif( DEFINED ENV{CODA} )
