@@ -77,7 +77,7 @@ THaEtClient::~THaEtClient() {
   delete [] session;
   delete [] etfile;
   Int_t status = THaEtClient::codaClose();
-  if (status == CODA_ERROR) cout << "ERROR: closing THaEtClient"<<endl;
+  if (status == CODA_FATAL) cout << "ERROR: closing THaEtClient"<<endl;
 }
 
 Int_t THaEtClient::init(const char* mystation)
@@ -85,7 +85,7 @@ Int_t THaEtClient::init(const char* mystation)
   static char station[ET_STATNAME_LENGTH];
   if(!mystation||strlen(mystation)>=ET_STATNAME_LENGTH){
     cout << "THaEtClient: bad station name\n";
-    return CODA_ERROR;
+    return CODA_FATAL;
   }
   strcpy(station,mystation);
 
@@ -101,7 +101,7 @@ Int_t THaEtClient::init(const char* mystation)
     cout << "Likely causes:  "<<endl;
     cout << "  1. Incorrect SESSION environment variable (it can also be passed to codaOpen)"<<endl;
     cout << "  2. ET not running (CODA not running) on specified computer"<<endl;
-    return CODA_ERROR;
+    return CODA_FATAL;
   }
 
 	evetOpen(id, ET_CHUNK_SIZE, evh);
@@ -181,7 +181,7 @@ Int_t THaEtClient::codaRead()
     Int_t status = init(fStationName);
     if (status != CODA_OK) {
       cout << "THaEtClient: ERROR: codaRead, cannot connect to CODA"<<endl;
-      return CODA_ERROR;
+      return CODA_FATAL;
     }
     firstread = 0;
   }
@@ -226,6 +226,7 @@ Int_t THaEtClient::codaRead()
     }
   }
  	
+	printf("THaEtClient::codaRead status = %i\n", status);
 	return status;
 }
 
@@ -286,10 +287,10 @@ THaEtClient::evetOpen(et_sys_id etSysId, int32_t chunk, evetHandle_t &evh)
   if (evh.etChunk == NULL) {
     printf("%s: out of memory\n", __func__);
     evh.etSysId = 0;
-    return -1;
+    return CODA_FATAL;
   }
 
-  return 0;
+  return CODA_OK;
 }
 
 int32_t
@@ -304,7 +305,7 @@ THaEtClient::evetClose(evetHandle_t &evh)
 		{
 			printf("%s: ERROR: evClose returned %s\n",
 					__func__, et_perror(stat));
-			return -1;
+			return CODA_ERROR;
 		}
 	}
 
@@ -317,7 +318,7 @@ THaEtClient::evetClose(evetHandle_t &evh)
 		{
 			printf("%s: ERROR: et_events_put returned %s\n",
 					__func__, et_perror(status));
-			return -1;
+			return CODA_FATAL;
 		}
 	}
 
@@ -325,7 +326,7 @@ THaEtClient::evetClose(evetHandle_t &evh)
 	if(evh.etChunk)
 		free(evh.etChunk);
 
-	return 0;
+	return CODA_OK;
 }
 
 
@@ -355,11 +356,12 @@ THaEtClient::evetGetEtChunks(evetHandle_t &evh)
 			printf("et_netclient: timeout calling et_events_get\n");
 			printf("Probably means CODA is not running...\n");
 		}
+		return CODA_FATAL;
 	}
 
 	evh.currentChunkID = -1;
 
-	return status;
+	return CODA_OK;
 }
 
 int32_t
@@ -382,7 +384,7 @@ THaEtClient::evetGetChunk(evetHandle_t &evh)
 			{
 				printf("%s: ERROR: et_events_put returned %s\n",
 						__func__, et_perror(status));
-				return -1;
+				return CODA_FATAL;
 			}
 		}
 
@@ -392,7 +394,7 @@ THaEtClient::evetGetChunk(evetHandle_t &evh)
 		{
 			printf("%s: ERROR: evetGetEtChunks(evh) returned %d\n",
 					__func__, stat);
-			return -1;
+			return CODA_FATAL;
 		}
 		evh.currentChunkID++;
 
@@ -406,7 +408,7 @@ THaEtClient::evetGetChunk(evetHandle_t &evh)
 		{
 			printf("%s: ERROR: evClose returned %s\n",
 					__func__, et_perror(stat));
-			return -1;
+			return CODA_FATAL;
 		}
 	}
 
@@ -445,9 +447,10 @@ THaEtClient::evetGetChunk(evetHandle_t &evh)
 	{
 		printf("%s: ERROR: evOpenBuffer returned %s\n",
 				__func__, et_perror(evstat));
+		return CODA_FATAL;
 	}
 
-	return evstat;
+	return CODA_OK;
 }
 
 int32_t
