@@ -225,8 +225,6 @@ Int_t THaEtClient::codaRead()
       daqt1 = time(nullptr);
     }
   }
- 	
-	printf("THaEtClient::codaRead status = %i\n", status);
 	return status;
 }
 
@@ -481,4 +479,3 @@ THaEtClient::evetReadNoCopy(evetHandle_t &evh, const uint32_t **outputBuffer, ui
 
 	return status;
 }
-// ClassImp(THaEtClient)

@@ -84,7 +84,6 @@ private:
 		Taken from Bryan Moffit's Repo:
 		https://github.com/bmoffit/evet
 	 */
-	// Attributes of et_event from et_event_getdata
 	typedef struct etChunkStat
 	{
 		uint32_t *data;
