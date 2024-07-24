@@ -267,6 +267,5 @@ Int_t THaCodaFile::filterToFile( const char* output_file )
     }
     handle = 0;
   }
-
 //_____________________________________________________________________________
 ClassImp(THaCodaFile)
