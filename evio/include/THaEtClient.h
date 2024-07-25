@@ -38,6 +38,7 @@ class TString;
 #define ADAQS2 "129.57.164.44"
 #define ADAQS3 "129.57.164.45"
 
+namespace Decoder {
 
 class THaEtClient : public THaCodaData
 {
@@ -47,7 +48,7 @@ public:
     explicit THaEtClient(Int_t mode=1);   // By default, gets data from ADAQS2
 // find data on 'computer'.  e.g. computer="129.57.164.44"
     explicit THaEtClient(const char* computer, Int_t mode=1);
-    THaEtClient(const char* computer, const char* session, Int_t mode=1, const char* stationname="japan_sta");
+    THaEtClient(const char* computer, const char* session, Int_t mode=1);
     ~THaEtClient();
 
     Int_t codaOpen(const char* computer, Int_t mode=1);
@@ -67,17 +68,13 @@ private:
 #endif
     char *daqhost,*session,*etfile;
     Int_t waitflag,didclose,notopened,firstread;
-    Int_t init(const char* computer="japan_sta");
+    Int_t init(const char* computer="hana_sta");
 
 // rate calculation
     Int_t firstRateCalc;
     Int_t evsum, xcnt;
     time_t daqt1;
     double ratesum;
-
-	// dynamic station name support
-	const char* defaultStationName = "japan_sta";
-	char fStationName[ET_STATNAME_LENGTH] = "japan_sta";
 
 	/* 
 		ET Data de-chunk-ifying.
@@ -112,9 +109,11 @@ private:
 	int32_t evetGetEtChunks(evetHandle_t &evh);
 	int32_t evetGetChunk(evetHandle_t &evh);
 
-	// event handle
 	evetHandle evh;
+
+  ClassDef(THaEtClient,0)   // ET client connection for online data
 };
 
+}
 
 #endif

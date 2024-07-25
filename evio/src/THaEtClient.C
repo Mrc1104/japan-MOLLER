@@ -13,7 +13,7 @@
 //
 /////////////////////////////////////////////////////////////////////
 
-#include "../include/THaEtClient.h"
+#include "THaEtClient.h"
 #include <iostream>
 #include <cstdlib>
 #include <cerrno>
@@ -30,6 +30,7 @@ static const int FAST          = 25;
 static const int SMALL_TIMEOUT = 10;
 static const int BIG_TIMEOUT   = 20;
 
+namespace Decoder {
 
 // Common member initialization for our constructors
 #define initflags                                       \
@@ -58,18 +59,10 @@ THaEtClient::THaEtClient(const char* computer,Int_t smode)
   THaEtClient::codaOpen(computer,smode);
 }
 
-THaEtClient::THaEtClient(const char* computer, const char* mysession, Int_t smode, const char* stationname)
-	: initflags
+THaEtClient::THaEtClient(const char* computer, const char* mysession, Int_t smode)
+  : initflags
 {
-
-  if(!stationname||strlen(stationname)>=ET_STATNAME_LENGTH){
-    cout << "THaEtClient: bad station name\n";
-		cout << "Using default station name: " << defaultStationName << endl;
-  }
-	else{
-  	strcpy(fStationName,stationname);
-	}
-	THaEtClient::codaOpen(computer, mysession, smode);
+  THaEtClient::codaOpen(computer, mysession, smode);
 }
 
 THaEtClient::~THaEtClient() {
@@ -77,7 +70,7 @@ THaEtClient::~THaEtClient() {
   delete [] session;
   delete [] etfile;
   Int_t status = THaEtClient::codaClose();
-  if (status == CODA_FATAL) cout << "ERROR: closing THaEtClient"<<endl;
+  if (status == CODA_ERROR) cout << "ERROR: closing THaEtClient"<<endl;
 }
 
 Int_t THaEtClient::init(const char* mystation)
@@ -178,7 +171,7 @@ Int_t THaEtClient::codaClose() {
 Int_t THaEtClient::codaRead()
 {
   if (firstread) {
-    Int_t status = init(fStationName);
+    Int_t status = init();
     if (status != CODA_OK) {
       cout << "THaEtClient: ERROR: codaRead, cannot connect to CODA"<<endl;
       return CODA_FATAL;
@@ -199,7 +192,7 @@ Int_t THaEtClient::codaRead()
 			throw runtime_error("THaEtClient: Maximum event buffer size reached");
 		assert(bpi * evbuffer.size() >= (size_t)len);
 		memcpy(evbuffer.get(), readBuffer, sizeof(uint32_t)*len);
-	} 
+	}
 	
   if (firstRateCalc) {
   	firstRateCalc = 0;
@@ -209,7 +202,7 @@ Int_t THaEtClient::codaRead()
   	time_t daqt2 = time(nullptr);
   	double tdiff = difftime(daqt2, daqt1);
 		evsum += evh.etChunkNumRead;
-    if ((tdiff > 4) && (evsum > 30)) 
+    if ((tdiff > 4) && (evsum > 30))
 	 	{
 			double daqrate  = static_cast<double>(evsum)/tdiff;
       evsum    = 0;
@@ -479,3 +472,6 @@ THaEtClient::evetReadNoCopy(evetHandle_t &evh, const uint32_t **outputBuffer, ui
 
 	return status;
 }
+
+}
+ClassImp(Decoder::THaEtClient)
