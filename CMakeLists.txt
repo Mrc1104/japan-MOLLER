@@ -126,6 +126,9 @@ report_build_info()
 add_subdirectory(evio)
 include_directories(evio/include)
 
+#----------------------------------------------------------------------------
+# et library
+#
 find_package(ET)
 IF(ET_FOUND)
   #  The QwEventBuffer class also needs to see the "__CODA_ET" define,
@@ -184,7 +187,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    evio
+    eviowrapper
   PUBLIC
     ROOT::Libraries
     ${MYSQLPP_LIBRARIES}
@@ -215,6 +218,7 @@ foreach(file ${exefiles})
   target_link_libraries(${filelower}
     PRIVATE
       ${PROJECT_NAME}
+			eviowrapper
   )
   target_compile_options(${filelower}
     PUBLIC

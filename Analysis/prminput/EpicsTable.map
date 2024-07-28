@@ -363,6 +363,8 @@ RTPAPOSUCNT	slow_controls_data		float		!
 RTPAPOSVCNT	slow_controls_data		float		! 
 RTPDPOSUCNT	slow_controls_data		float		! 
 RTPDPOSVCNT	slow_controls_data		float		!
+mrc	slow_controls_data		float		!
+crm	slow_controls_data		float		!
 !!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  Composite slow control variables
