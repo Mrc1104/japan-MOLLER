@@ -569,8 +569,10 @@ segments, ring 5 segments are denoted by `a,b,c (left,center,right)`.
 We see the branch name, `tq24_r5a`
         Keyword | Meaning
   ------------------------| ---------------------
+  tq |    thin quartz
+  24 | segment 24
   \_r5a |    ring 5 subsection a (left)
-
+  
 We can see that this branch corresponds to a ring 5 thin quartz
 detector, in segment 24, and in the additional ring 5 sub-segment a (left).
 
