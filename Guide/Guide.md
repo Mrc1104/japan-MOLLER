@@ -543,8 +543,7 @@ MOLLER measurement will occur in ring 5 so that ring is further
 subdivided by three more segments, giving 84 channels. In total, there
 are 224 thin quartz detectors channels.
 
-![image](Images/Quartz_Rings.png){width="0.80\linewidth"}
-[\[fig:view\]]{#fig:view label="fig:view"}
+![image](Images/Quartz_Rings.png)
 
 The thin quarts detectors are labeled as `tq` in the ROOT tree. The
 segment that the thin quarts correspond to is denoted explicitly by a
