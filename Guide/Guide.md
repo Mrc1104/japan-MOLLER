@@ -319,12 +319,12 @@ How these values are calculated can vary depending on the subsystem that
 they are calculated for.
      Subsystem|                 Quantity|                Name|          Unit
   ---------------| -----------------------------------| -------| -------------------
-   Beamline: BPM|        (1/2)(X_L-X_R)   |      Diff|           mm
-   Beamline: BPM|        (1/2)}(X_L+X_R)   |      Yield|          mm
-   Beamline: BCM|        (1/2)(X_L+X_R)   |      Yield|        uA
-   Beamline: BCM|       (X_L-X_R)/(X_L+X_R) |      Asym|         no unit
-   Main Detector|      (1/2)(Sig_L+Sig_R) |      Yield|   V/uA
-   Main Detector|   (Sig_L-Sig_R)/(Sig_L+Sig_R)|   Asym|         no unit
+   Beamline: BPM|        $\frac{1}{2}(X_L-X_R)$   |      Diff|           mm
+   Beamline: BPM|        $\frac{1}{2}(X_L+X_R)$   |      Yield|          mm
+   Beamline: BCM|        $\frac{1}{2}(X_L+X_R)$   |      Yield|        uA
+   Beamline: BCM|       $\frac{X_L-X_R}{X_L+X_R}$ |      Asym|         no unit
+   Main Detector|      $\frac{1}{2}(Sig_L+Sig_R)$ |      Yield|   V/uA
+   Main Detector|   $\frac{Sig_L-Sig_R}{Sig_L+Sig_R}$|   Asym|         no unit
 
 The BPM Difference is the difference in beam position reported by the
 BPM during a given multiplicity window. The BPM Yield is the average
@@ -353,10 +353,10 @@ one-to-one to the branch names found in the evt tree):
 
 We see the branch name, `asym_la14`.
 
-  ---------------------------- --------------------------------------------
-  asym\_ $\;\rightarrow$       Asymmetry calculation
-  la14 $\;\;\;\;\rightarrow$   Large Angle Monitor (See Detector section)
-  ---------------------------- --------------------------------------------
+  Keyword|                          Region
+  ----------| ----------------------------
+  asym|      Asymmetry calculation
+  la14|   Large Angle Monitor (See Detector section)
 
 We can see that this branch corresponds to the helicity multiplet
 asymmetry calculated for the large angle monitor device.
@@ -376,18 +376,18 @@ beamline, and `YY` designates the position in the region. The naming
 scheme describing the location along the beamline is identical for both
 monitors and is discussed below.
 
-  Keyword                          Region
-  ---------- ----------------------------
-  2iYY                       Electron Gun
-  0iYY              Vertical Wein Segment
-  1iYY                           Injector
-  0lYY                    Pre-Accelerator
-  0rYY         Pre-Accelerator Recombiner
-  1LYY                  1st (North) Linac
-  1HYY                             Hall A
-  1CYY                  Hall A Switchyard
-  1PYY             Hall A Compton Chicane
-  \_target                         Target
+  Keyword|                          Region
+  ----------| ----------------------------
+  2iYY|                       Electron Gun
+  0iYY|              Vertical Wein Segment
+  1iYY|                           Injector
+  0lYY|                    Pre-Accelerator
+  0rYY|         Pre-Accelerator Recombiner
+  1LYY|                  1st (North) Linac
+  1HYY|                             Hall A
+  1CYY|                  Hall A Switchyard
+  1PYY|             Hall A Compton Chicane
+  \_target|                         Target
 
 The `YY` are numerics that indicate where along the beamline (which
 girder) the monitor is placed. Smaller values are closer to the beamline
@@ -397,7 +397,7 @@ there is a straight path that bypasses the chicane. Those have an
 additional `1CYY{A,B,C,D}` to distinguish them. In general, `{A,B,C,D}`
 are appended at the end to further differentiate beamline monitors that
 are in the same region and monitor similar places along the
-beamline(https://ace.jlab.org/cnm/overview 2024).
+beamline
 
 ### BCM
 
@@ -426,10 +426,10 @@ beamline. See the Beamline Monitors section for details.
 
 We see the branch name, `bcm1h15`
 
-  ---------------------------- ---------------
-  1h $\;\;\;\;\;\rightarrow$   Hall A
-  15 $\;\;\;\;\;\rightarrow$   Fifteenth BCM
-  ---------------------------- ---------------
+  Keyword|                          Description
+  ----------| ----------------------------
+  1h |   Hall A
+  15 |   Fifteenth BCM
 
 We can see that this branch corresponds to a BCM located in Hall A.
 
@@ -454,16 +454,16 @@ where in the beamline it is monitoring and the other what beam parameter
 it is monitoring. The location keywords are described in the Beamline
 Monitors section. The beam parameter keywords are described below.
 
-  Keyword                                  Description
-  --------- ------------------------------------------
-  XP                                            X-plus
-  XM                                           X-minus
-  X           $scale \times (\frac{X_p-X_m}{X_p+X_m})$
-  YP                                            Y-plus
-  YM                                           Y-minus
-  Y           $scale \times (\frac{Y_p-Y_m}{Y_p+Y_m})$
-  Elli                                     Ellipticity
-  WS                                          Wire Sum
+  Keyword  |                                Description
+  ---------| ------------------------------------------
+  XP|                                            X-plus
+  XM|                                           X-minus
+  X |          $scale \times (\frac{X_p-X_m}{X_p+X_m})$
+  YP|                                            Y-plus
+  YM|                                           Y-minus
+  Y |          $scale \times (\frac{Y_p-Y_m}{Y_p+Y_m})$
+  Elli|                                     Ellipticity
+  WS|                                          Wire Sum
 
 ``` {.c}
     root [9] evt->Print("bpm*")
@@ -505,8 +505,8 @@ are described below.
   Keyword |                                             Description
   --------| -----------------------------------------------------
   Q|                                        Beam Intensity ($I_B$)
-  XI|          $scale x (X_p-X_m)/(X_p+X_m) x I_B$
-  YI|          $scale x (Y_p-Y_m)/(Y_p+Y_m) x I_B$
+  XI|          $scale \times (\frac{X_p-X_m}{X_p+X_m}) \times I_B$
+  YI|          $scale \times (\frac{Y_p-Y_m}{Y_p+Y_m}) \times  I_B$
 
 TODO: Cavity BPMs are not yet in the ROOT files. Update example once
 they are included.
