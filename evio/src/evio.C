@@ -213,8 +213,6 @@ int evOpen(char *filename,char *flags,EVFILE **handle)
     } else {
       a->file = fopen(filename,"r");
       if(a->file) {
-	int compressed;
-	compressed = 0;
 	char bytes[2];
 	checked_fread(bytes,2,1,a->file); /* Check magic bytes for compressions */
 	if(bytes[0]=='\037' && (bytes[1]=='\213' || bytes[1]=='\235')) {
@@ -743,11 +741,10 @@ static int evSearchWithinBlock(EVFILE *a, EVBSEARCH *b, int *bknum,
 {
   int temp, ev_size;
   int status;
-  int found = 0, t_evn, block_num;
+  int found = 0, t_evn;
   int ev_type;
 
   evFindEventBlockNum(a, b, bknum);
-  block_num = *bknum;
 
   /* check first event, if its event number is greater than
    * requested event number, return -1 
