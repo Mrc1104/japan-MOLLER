@@ -190,7 +190,8 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event, const TStrin
 
 /*****************************************************************/
 QwHelicityPattern::QwHelicityPattern(const QwHelicityPattern &source)
-: fYield(source.fYield),
+: fPatternSize(source.fPatternSize),
+  fYield(source.fYield),
   fDifference(source.fDifference),
   fAsymmetry(source.fAsymmetry),
   fEnableAlternateAsym(source.fEnableAlternateAsym),
@@ -204,7 +205,6 @@ QwHelicityPattern::QwHelicityPattern(const QwHelicityPattern &source)
   fPrintIndexFile(source.fPrintIndexFile),
   fBurstMinGoodPatterns(source.fBurstMinGoodPatterns),
   fGoodPatterns(source.fGoodPatterns),
-  fPatternSize(source.fPatternSize),
   fBurstCounter(source.fBurstCounter),
   fEnableBurstSum(source.fEnableBurstSum),
   fPrintBurstSum(source.fPrintBurstSum),
@@ -346,7 +346,7 @@ Bool_t QwHelicityPattern::NextPairIsComplete()
   // Potentially this function could check all possible pairs to see which are complete, if the initial
   // fNextPair is not complete.  The function must end with fNextPair equal to the index of the lowest pair
   // that is complete.
-  if (fNextPair<fPatternSize/2){
+  if (fNextPair<(size_t)fPatternSize/2){
     size_t firstevt  = fNextPair*2;
     size_t secondevt = firstevt + 1;
     filled = fEventLoaded.at(firstevt) && fEventLoaded.at(secondevt);
@@ -365,7 +365,7 @@ void  QwHelicityPattern::CalculatePairAsymmetry()
   Int_t minushel = 0;
   Int_t checkhel = 0;
 
-  if (fNextPair<fPatternSize/2){
+  if (fNextPair<(size_t)fPatternSize/2){
     size_t firstevt  = fNextPair*2;
     size_t secondevt = firstevt + 1;
     fPairIsGood = kTRUE;
@@ -388,7 +388,7 @@ void  QwHelicityPattern::CalculatePairAsymmetry()
 	checkhel= -9999;
 	// Helicity polarity is undefined.
 	QwDebug<<" QwHelicityPattern::CalculatePairAsymmetry == \n"
-	       <<" undefined local helicity (-9999) \n"
+	       <<" undefined local helicity (" << checkhel << ") \n"
 	       <<" impossible to compute assymetry \n"
 	       <<" dropping every thing -- pattern number ="<<fCurrentPatternNumber<<QwLog::endl;
 	// This is an unknown helicity event.
