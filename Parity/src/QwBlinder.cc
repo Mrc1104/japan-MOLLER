@@ -685,7 +685,11 @@ void QwBlinder::InitBlinders(const UInt_t seed_id)
 
   // Generate checksum
   TString hex_string;
-  hex_string.Form("%.16llx%.16llx", *(ULong64_t*)(&fBlindingFactor), *(ULong64_t*)(&fBlindingOffset));
+	ULong64_t ultmpFactor;
+	ULong64_t ultmpOffset;
+	memcpy(&ultmpFactor, &fBlindingFactor, sizeof(ultmpFactor));
+	memcpy(&ultmpOffset, &fBlindingOffset, sizeof(ultmpOffset));
+  hex_string.Form("%.16llx%.16llx", ultmpFactor, ultmpOffset);
   fDigest = GenerateDigest(hex_string);
   fChecksum = "";
   for (size_t i = 0; i < fDigest.size(); i++)
