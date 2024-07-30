@@ -130,9 +130,6 @@ PromptSummaryElement::Set(TString type, const Double_t a, const Double_t a_err, 
   Bool_t bpm= fElementName.Contains("bpm");
   Bool_t sam= fElementName.Contains("sam");
   Bool_t md= fElementName.Contains("md");
-  Bool_t dd=fElementName.Contains("_dd");
-  Bool_t da=fElementName.Contains("_da");
-  
 
   if (type.Contains("yield")){
     if (bcm) {
@@ -327,7 +324,7 @@ QwPromptSummary::PrintCSVHeader(Int_t nEvents, TString start_time, TString end_t
   out += "Start Time: "+start_time+"\nEnd Time: "+end_time+"\n";
   out += Form("Number of events processed: %i\n",nEvents);
   out += Form("Number of events in good multiplicity patterns: %3.0f\n", goodEvents);
-  out += Form("Percentage of good events: %3.1f \%\n", goodEvents/nEvents*100);
+  out += Form("Percentage of good events: %3.1f %%\n", goodEvents/nEvents*100);
   out += "=========================================================================\n";
   out += "Yield Units: bcm(uA), cavq(uA), bpm(mm), sam(mV/uA)\n";
   out += "Asymmetry/Difference Units: bcm(ppm), cavq(ppm), bpm(um), sam(ppm)\n";
