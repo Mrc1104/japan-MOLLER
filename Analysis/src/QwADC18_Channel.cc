@@ -86,7 +86,6 @@ Int_t QwADC18_Channel::GetBufferOffset(Int_t moduleindex, Int_t channelindex)
 /********************************************************/
 Int_t QwADC18_Channel::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;
   Bool_t bStatus;
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
 
@@ -106,7 +105,6 @@ Int_t QwADC18_Channel::ApplyHWChecks()
     }
 
     if (!MatchSequenceNumber(fSequenceNo_Prev)){//we have a sequence number error
-      fEventIsGood=kFALSE;
       fErrorFlag|=kErrorFlag_Sequence;
       if (bDEBUG)       QwWarning<<" QwQWVK_Channel "<<GetElementName()<<" Sequence number previous value = "<<fSequenceNo_Prev<<" Current value= "<< GetSequenceNumber()<<QwLog::endl;
     }
@@ -330,8 +328,8 @@ Int_t QwADC18_Channel::ProcessDataWord(UInt_t rawd)
 {
   // "Actual" values from data word
   UInt_t act_dtype  = (rawd & mask2422x) >> 22;
-  UInt_t act_chan   = (act_dtype != 4) ?
-                      ((rawd & mask3029x) >> 29) : 0;
+  /*UInt_t act_chan   = (act_dtype != 4) ?
+                      ((rawd & mask3029x) >> 29) : 0; */
   UInt_t act_dvalue = (rawd & mask2625x) >> 25;
   UInt_t act_snum   = (act_dtype == 1 || act_dtype == 2) ?
                       ((rawd & mask2118x) >> 18) : 0;
@@ -383,8 +381,8 @@ Int_t QwADC18_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UI
   // Print buffer
   if (debug) {
     QwOut << GetElementName() << " : " << QwLog::endl << std::hex;
-    Int_t n = 25;
-    for (size_t i = 0; i < num_words_left; i++) {
+    UInt_t n = 25;
+    for (UInt_t i = 0; i < num_words_left; i++) {
       QwOut << "0x" << std::setfill('0') << std::setw(8) << buffer[i] << " ";
       if (i % n == n - 1) QwOut << QwLog::endl;
     }
@@ -405,7 +403,7 @@ Int_t QwADC18_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UI
       if (debug) {
         QwOut << " : header " << std::hex;
         UInt_t n = kHeaderWordsPerModule;
-        for (size_t i = 0; i < n && i < num_words_left; i++) {
+        for (UInt_t i = 0; i < n && i < num_words_left; i++) {
           QwOut << "0x" << std::setfill('0') << std::setw(8) << buffer[i] << " ";
         }
         QwOut << std::dec << std::setfill(' ') << std::setw(0) << QwLog::endl;
@@ -430,7 +428,7 @@ Int_t QwADC18_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UI
       if (debug) {
         QwOut << " : channel " << std::hex;
         UInt_t n = kDataWordsPerChannel;
-        for (size_t i = 0; i < n && i < num_words_left; i++) {
+        for (UInt_t i = 0; i < n && i < num_words_left; i++) {
           QwOut << "0x" << std::setfill('0') << std::setw(8) << buffer[i] << " ";
         }
         QwOut << std::dec << std::setfill(' ') << std::setw(0) << QwLog::endl;
