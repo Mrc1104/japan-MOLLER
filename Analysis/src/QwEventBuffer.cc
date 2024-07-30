@@ -866,11 +866,12 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
     Int_t nmarkers = CheckForMarkerWords(subsystems);
     if (nmarkers>0) {
       //  There are markerwords for this ROC/Bank
-      for (size_t i=0; i<nmarkers; i++){
+      for (Int_t i=0; i<nmarkers; i++){
 	offset = FindMarkerWord(i,&localbuff[fWordsSoFar],fFragLength);
 	BankID_t tmpbank = GetMarkerWord(i);
 	tmpbank = ((tmpbank)<<32) + fSubbankTag;
-	if (offset != -1){
+	//if (offset != -1){
+	if (offset != UINT_MAX){
 	  offset++; //  Skip the marker word
 	  subsystems.ProcessEvBuffer(fEvtType, fROC, tmpbank,
 				     &localbuff[fWordsSoFar+offset],
