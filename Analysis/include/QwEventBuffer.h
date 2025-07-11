@@ -129,6 +129,7 @@ class QwEventBuffer {
 
   Int_t GetPhysicsEventNumber() {return fNumPhysicsEvents;};
   Int_t GetEventNumber() { return decoder->GetEvtNumber(); };
+  UInt_t GetEndEventCount() { return decoder->GetEndEventCount(); }
 
   Bool_t GetNextEventRange();
   Bool_t GetNextRunRange();

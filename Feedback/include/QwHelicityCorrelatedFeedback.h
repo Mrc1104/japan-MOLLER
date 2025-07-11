@@ -13,6 +13,7 @@
 #include "GreenMonster.h"
 #include "QwVQWK_Channel.h"
 #include "QwScaler_Channel.h"
+#include "QwMollerADC_Channel.h"
 
 #include "QwParameterFile.h"
 #include <time.h>
@@ -691,19 +692,19 @@ Int_t fXYAccumulatePatternMax;
     //  Double_t fHAIASetpoint[kHelModes];//New setpont calculated based on the charge asymmetry
     // Double_t fPrevHAIASetpoint[kHelModes];//previous setpoint
 
-    Double_t fPITASetpoint[];//New setpont calculated based on the charge asymmetry
-    Double_t fPrevPITASetpoint[];
+    Double_t fPITASetpoint[9];//New setpont calculated based on the charge asymmetry
+    Double_t fPrevPITASetpoint[9];
     // Double_t fPOSXYSetpoint[];
     //Double_t fPrevPOSXYSetpoint[];//previous setpoin
 
-Double_t fHCIASetpoint[];//New setpont calculated based on the charge asymmetry
-    Double_t fPrevHCIASetpoint[];//previous setpoin
+Double_t fHCIASetpoint[5];//New setpont calculated based on the charge asymmetry
+    Double_t fPrevHCIASetpoint[5];//previous setpoin
 
-Double_t fHAIASetpoint[];//New setpont calculated based on the charge asymmetry
-    Double_t fPrevHAIASetpoint[];//previous setpoin
+Double_t fHAIASetpoint[5];//New setpont calculated based on the charge asymmetry
+    Double_t fPrevHAIASetpoint[5];//previous setpoin
 
-Double_t fHBIASetpoint[];//New setpont calculated based on the charge asymmetry
-    Double_t fPrevHBIASetpoint[];//previous setpoin
+Double_t fHBIASetpoint[5];//New setpont calculated based on the charge asymmetry
+    Double_t fPrevHBIASetpoint[5];//previous setpoin
 
 Double_t fPITAPOSUSetpoint1;
 Double_t fPITAPOSUSetpoint2;
