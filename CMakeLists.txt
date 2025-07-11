@@ -242,7 +242,7 @@ endforeach()
 
 #----------------------------------------------------------------------------
 #  Build feedback library and executable
-### add_subdirectory(Feedback)
+add_subdirectory(Feedback)
 
 #----------------------------------------------------------------------------
 # uninstall
