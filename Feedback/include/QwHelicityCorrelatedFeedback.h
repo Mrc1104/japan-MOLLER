@@ -20,6 +20,7 @@
 
 
 // FIXME: These should not be hardcoded in
+/*
 static char const *LOGFILE_IA      = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_IA_log.txt";
 static char const *LOGFILE_PITA    = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITA_log.txt"; 
 static char const *LOGFILE_HA_IA   = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HA_IA_log.txt";
@@ -28,7 +29,16 @@ static char const *LOGFILE_PITAPOSV= "/adaqfs/halla/apar/PREX/japan_feedback/Log
 static char const *LOGFILE_PITAXY  = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITAPOSXY_log.txt";
 static char const *LOFGILE_HC_IA   = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HC_IA_log.txt";
 static char const *LOFGILE_HB_IA   = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HB_IA_log.txt";
+*/
 
+static char const *LOGFILE_IA      = "/home/mrc/logfiles/Feedback_IA_log.txt";
+static char const *LOGFILE_PITA    = "/home/mrc/logfiles/Feedback_PITA_log.txt"; 
+static char const *LOGFILE_HA_IA   = "/home/mrc/logfiles/Feedback_HA_IA_log.txt";
+static char const *LOGILE_PITAPOSU = "/home/mrc/logfiles/Feedback_PITAPOSU_log.txt";
+static char const *LOGFILE_PITAPOSV= "/home/mrc/logfiles/Feedback_PITAPOSV_log.txt";
+static char const *LOGFILE_PITAXY  = "/home/mrc/logfiles/Feedback_PITAPOSXY_log.txt";
+static char const *LOFGILE_HC_IA   = "/home/mrc/logfiles/Feedback_HC_IA_log.txt";
+static char const *LOFGILE_HB_IA   = "/home/mrc/logfiles/Feedback_HB_IA_log.txt";
 
 
 ///
