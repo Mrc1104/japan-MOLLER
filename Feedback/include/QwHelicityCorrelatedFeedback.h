@@ -270,7 +270,7 @@ out_file_PITAPOSXY = fopen(LOGFILE_PITAXY, "a");
     fclose(out_file_PITAPOSXY);
 
 
-  out_file_HC_IA = fopen(LOFGILE_PTA_HC_IA , "a");
+  out_file_HC_IA = fopen(LOFGILE_HC_IA , "a");
 
     fprintf(out_file_HC_IA,"%22s \n",asctime (timeinfo));
     fprintf(out_file_HC_IA,
