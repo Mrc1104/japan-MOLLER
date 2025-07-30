@@ -17,6 +17,20 @@
 
 #include "QwParameterFile.h"
 #include <time.h>
+
+
+// FIXME: These should not be hardcoded in
+static char const *LOGFILE_IA      = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_IA_log.txt";
+static char const *LOGFILE_PITA    = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITA_log.txt"; 
+static char const *LOGFILE_HA_IA   = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HA_IA_log.txt";
+static char const *LOGILE_PITAPOSU = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITAPOSU_log.txt";
+static char const *LOGFILE_PITAPOSV= "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITAPOSV_log.txt";
+static char const *LOGFILE_PITAXY  = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITAPOSXY_log.txt";
+static char const *LOFGILE_HC_IA   = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HC_IA_log.txt";
+static char const *LOFGILE_HB_IA   = "/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HB_IA_log.txt";
+
+
+
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -191,7 +205,7 @@ for(Int_t i=1;i<5;i++){
  
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
-    out_file_IA = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_IA_log.txt", "a");
+    out_file_IA = fopen(LOGFILE_IA, "a");
     // out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
 
     //out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
@@ -203,10 +217,10 @@ for(Int_t i=1;i<5;i++){
     //    out_file_PITA = fopen("Feedback_PITA_log.txt", "wt");
 
   //out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
-  // out_file_HA_IA = fopen("/local/scratch/qweak/Feedback_HA_IA_log.txt", "a"); 
+  // out_file_HA_IA = fopen("/local/scratch/qweak/Feedback_HA_IA_log.txt", "a");
 
-   out_file_PITA = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITA_log.txt", "a");
-   out_file_HA_IA = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HA_IA_log.txt", "a"); 
+   out_file_PITA = fopen(LOGFILE_PITA, "a");
+   out_file_HA_IA = fopen(LOGFILE_HA_IA, "a");
     fprintf(out_file_PITA,"%22s \n",asctime (timeinfo));
     fprintf(out_file_PITA,
 	    "%10s %9s %15s  %12s %12s %15s %15s %15s %15s\n",
@@ -231,7 +245,7 @@ for(Int_t i=1;i<5;i++){
 /*     	    "New PITAPOSV Setpoint[3],", "Old PITAPOSV Setpoint[3],"); */
 /*     fclose(out_file_PITAPOS); */
 
-out_file_PITAPOSU = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITAPOSU_log.txt", "a"); 
+out_file_PITAPOSU = fopen(LOGILE_PITAPOSU, "a");
     fprintf(out_file_PITAPOSU,"%22s \n",asctime (timeinfo));
     fprintf(out_file_PITAPOSU,
 	    "%9s %15s %15s %12s %12s %12s\n",
@@ -239,7 +253,7 @@ out_file_PITAPOSU = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedb
 	    "New PITAPOSU Setpoint[1],", "Old PITAPOSU Setpoint[1],");
     fclose(out_file_PITAPOSU);
 
-out_file_PITAPOSV = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITAPOSV_log.txt", "a"); 
+out_file_PITAPOSV = fopen(LOGFILE_PITAPOSV, "a");
     fprintf(out_file_PITAPOSV,"%22s \n",asctime (timeinfo));
     fprintf(out_file_PITAPOSV,
 	    "%9s %15s %15s %12s %12s %12s\n",
@@ -247,7 +261,7 @@ out_file_PITAPOSV = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedb
 	    "New PITAPOSV Setpoint[1],", "Old PITAPOSV Setpoint[1],");
     fclose(out_file_PITAPOSV);
 
-out_file_PITAPOSXY = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITAPOSXY_log.txt", "a"); 
+out_file_PITAPOSXY = fopen(LOGFILE_PITAXY, "a");
     fprintf(out_file_PITAPOSXY,"%22s \n",asctime (timeinfo));
     fprintf(out_file_PITAPOSXY,
 	    "%10s %9s %15s %15s %12s %12s %12s\n",
@@ -256,7 +270,7 @@ out_file_PITAPOSXY = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feed
     fclose(out_file_PITAPOSXY);
 
 
-  out_file_HC_IA = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HC_IA_log.txt", "a");
+  out_file_HC_IA = fopen(LOFGILE_PTA_HC_IA , "a");
 
     fprintf(out_file_HC_IA,"%22s \n",asctime (timeinfo));
     fprintf(out_file_HC_IA,
@@ -265,7 +279,7 @@ out_file_PITAPOSXY = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feed
   	    "New IA Setpoint,", "Old IA Setpoint");
     fclose(out_file_HC_IA);
 
-out_file_HA_IA = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HA_IA_log.txt", "a");
+out_file_HA_IA = fopen(LOGFILE_HA_IA, "a");
 
     fprintf(out_file_HA_IA,"%22s \n",asctime (timeinfo));
     fprintf(out_file_HA_IA,
@@ -274,7 +288,7 @@ out_file_HA_IA = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback
   	    "New IA Setpoint", "Old IA Setpoint");
     fclose(out_file_HA_IA);
  
-out_file_HB_IA = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HB_IA_log.txt", "a");
+out_file_HB_IA = fopen(LOFGILE_HB_IA, "a");
 
     fprintf(out_file_HB_IA,"%22s \n",asctime (timeinfo));
     fprintf(out_file_HB_IA,
