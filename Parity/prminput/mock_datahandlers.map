@@ -23,3 +23,17 @@
   disable-histos = true
   tree-name  = lrb_std
  tree-comment = Correlations
+
+[MyDataHandler]
+  name      = mydatahandler
+  priority  = 5
+  map       = mydatahandler.conf
+  tree-name  = mydatahandlertree
+  tree-comment = handler
+  slope-file-base = handler
+  slope-file-suff = new.slope.root
+  slope-path = .
+  alias-file-base = handler_
+  alias-file-suff =
+  alias-path = .
+  disable-histos = true

@@ -43,6 +43,8 @@
 
 // Parent Class
 #include "VQwDataHandler.h"
+#include "QwRootFile.h"
+class QwRootFile;
 
 class MyDataHandler :public VQwDataHandler, public MQwDataHandlerCloneable<MyDataHandler>
 {
@@ -53,19 +55,30 @@ class MyDataHandler :public VQwDataHandler, public MQwDataHandlerCloneable<MyDat
     /// \brief Constructor with name
     MyDataHandler(const TString& name);
 
+	/// \brief Copy constructor
+	MyDataHandler(const MyDataHandler &source);
+
     /// Virtual destructor -- We will be inheriting from this class later on
-    virtual ~QwCombiner();
+    virtual ~MyDataHandler();
 
     /// \brief Load the channels and sensitivities
-    Int_t LoadChannelMap(const std::string& mapfile) override; // lets be explicit
+    Int_t LoadChannelMap(const std::string& mapfile) override;
 
     /// \brief Connect to Channels (event only)
+	// Per Paul, this member varient will never be called
     Int_t ConnectChannels(QwSubsystemArrayParity& event) override;
+    /// \brief Connect to Channels (asym & diff)
+    Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override;
 
-    /// \brief Connect to Channels (asymmetry/difference only)
-    Int_t ConnectChannels(QwSubsystemArrayParity& asym,\
-			  QwSubsystemArrayParity& diff) override;
+	// I Can just overload my own Create / Fill Tree functions
+    void ConstructTreeBranches(QwRootFile *treerootfile,
+        					   const std::string& treeprefix = "",
+        					   const std::string& branchprefix = "") override;
+    void FillTreeBranches(QwRootFile *treerootfile) override;
+    void FillTreeVector(std::vector<Double_t> &values) const;
 
+	// lets be explicit and say that we are overriding inherited functions
+	void ParseConfigFile(QwParameterFile& file) override;
     void ProcessData() override;
 
 	protected:
@@ -102,13 +115,25 @@ class MyDataHandler :public VQwDataHandler, public MQwDataHandlerCloneable<MyDat
 	//    # dependent and Independent variables for Regression (arbitrary order)
 	//    dv asym_tq15_r1      [Dependent Var] [type]_[name]
 	//    iv diff_bpm_targetX  [Dependent Var] [type]_[name]
+	// Note: the type can be [mps] too!
 
+    /// List of channels to use in the combiner
+    std::vector< const VQwHardwareChannel* > fIndependentVar;
+    std::vector<  EQwHandleType> fIndependentType;
+    std::vector<  std::string  > fIndependentName;
+	std::vector<  std::string  > fIndependentFull;
+	std::vector<  Double_t     > fIndependentValues;
 
+    std::vector<  EQwHandleType> fDependentType;
+    std::vector<  std::string  > fDependentName;
+	std::vector<  std::string  > fDependentFull;
+	/* fDependentValues is inherited VQwDataHandler */
 
-
-
-
-
+	// fOuputVar and fOuputValues are inherited from VQwDataHandler
+	// std::vector< VQwHardwareChannel* > fOutputVar;
+	// std::vector< Double_t > fOutputValues;
+	std::vector< VQwHardwareChannel* > fOutputVar_other;
+	std::vector< Double_t > fOutputValues_other;
 
 };
 
