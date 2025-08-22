@@ -132,8 +132,10 @@ class MyDataHandler :public VQwDataHandler, public MQwDataHandlerCloneable<MyDat
 	// fOuputVar and fOuputValues are inherited from VQwDataHandler
 	// std::vector< VQwHardwareChannel* > fOutputVar;
 	// std::vector< Double_t > fOutputValues;
-	std::vector< VQwHardwareChannel* > fOutputVar_other;
-	std::vector< Double_t > fOutputValues_other;
+	std::vector< VQwHardwareChannel* > fOutputVar_other; // delete me
+	std::vector< Double_t > fOutputValues_other;         // delete me
+
+	double running_sum;
 
 };
 

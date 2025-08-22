@@ -95,6 +95,7 @@ Int_t MyDataHandler::LoadChannelMap(const std::string& mapfile)
 	return 0;
 }
 
+// For Feedback, we will not need this. Leave this with an empty implementation
 Int_t MyDataHandler::ConnectChannels(QwSubsystemArrayParity& event)
 {
 	SetEventcutErrorFlagPointer(event.GetEventcutErrorFlagPointer());
@@ -168,10 +169,10 @@ Int_t MyDataHandler::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemAr
 {
 	SetEventcutErrorFlagPointer(asym.GetEventcutErrorFlagPointer());
 	// Return if handler is not enabled
+	// How is this handled?
 
 	// Fill vector of pointers to the relevant data elements
 	// This is how we "share" access
-
 
 	// Get dependent vars first
 	for(size_t dv = 0; dv < fDependentName.size(); dv++) {
@@ -185,11 +186,9 @@ Int_t MyDataHandler::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemAr
 			switch(fDependentType.at(dv)) {
 			case kHandleTypeAsym:
 				dv_ptr = asym.RequestExternalPointer(fDependentName.at(dv));
-				printf("dv_ptr -> %p\n", dv_ptr);
 				break;
 			case kHandleTypeDiff:
 				dv_ptr = asym.RequestExternalPointer(fDependentName.at(dv));
-				printf("dv_ptr -> %p\n", dv_ptr);
 				break;
 			default:
 				QwWarning << "MyDataHandler::ConnectChannels(QwSubsystemArrayParity& asym,QwSubsystemArrayParity& diff): Dependent variable, "
@@ -198,20 +197,19 @@ Int_t MyDataHandler::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemAr
 						  << fDependentFull.at(dv) << QwLog::endl;
 				break;
 			}
-			if(dv_ptr == nullptr) {
-				QwWarning << "MyDataHandler::ConnectChannels(QwSubsystemArrayParity& asym,QwSubsystemArrayParity& diff): Dependent variable, "
-				          << fDependentName.at(dv)
-						  << " was not found (fullname == "
-						  << fDependentFull.at(dv) << QwLog::endl;
-				continue;
-			}
 		} // end if(dv_ptr == nullptr)
 
 		// pair creation
 		if(dv_ptr != nullptr) {
 			fDependentVar.push_back(dv_ptr);
 			fOutputVar.emplace_back(  dv_ptr->Clone(VQwDataElement::kDerived) );
+		} else {
+			QwWarning << "MyDataHandler::ConnectChannels(QwSubsystemArrayParity& asym,QwSubsystemArrayParity& diff): Dependent variable, "
+				<< fDependentName.at(dv)
+				<< " was not found (fullname == "
+				<< fDependentFull.at(dv) << QwLog::endl;
 		}
+
 
 	}
 
@@ -257,6 +255,7 @@ Int_t MyDataHandler::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemAr
 }
 
 /*  Just use the base class version for now... */
+/*  Might need to overload to allow for parsing of 'ep' data types */
 void MyDataHandler::ParseConfigFile(QwParameterFile& file)
 {
 	VQwDataHandler::ParseConfigFile(file);
@@ -267,7 +266,7 @@ void MyDataHandler::ProcessData()
 {
 	// I can see the data just find through this method --mrc 08/15/25
 	for (size_t i = 0; i < fDependentVar.size(); ++i) {
-		*(fOutputVar.at(i)) = *(fDependentVar[i]);
+		*(dynamic_cast<QwMollerADC_Channel*>(fOutputVar.at(i))) = *(dynamic_cast<const QwMollerADC_Channel*>(fDependentVar[i]) );
 
 	}
 	for (size_t i = 0; i < fDependentValues.size(); ++i) {
@@ -292,24 +291,38 @@ void MyDataHandler::ConstructTreeBranches(QwRootFile *treerootfile, const std::s
     	QwWarning << "Using MyDataHandler as Tree name." << QwLog::endl;
 		fTreeName = "MyDataHandler";
 	}
+	if( (branchprefix.find("stat") != string::npos) && fKeepRunningSum && fRunningsum != NULL ) {
+			fRunningsumFillsTree = kTRUE;
+	} else {
+			fRunningsumFillsTree = kFALSE;
+	}
 
 	// Construct Tree name and create new tree
 	fTreeName = treeprefix + fTreeName;
-	for(auto const &output : fOutputVar) {
-		treerootfile->ConstructTreeBranches(fTreeName, fTreeComment.c_str(), *output);
+	if(fRunningsumFillsTree) {
+		treerootfile->ConstructTreeBranches(fTreeName, fTreeComment, *fRunningsum, fPrefix+branchprefix);
+	} else {
+		for(auto const &output : fOutputVar) {
+			treerootfile->ConstructTreeBranches(fTreeName, fTreeComment.c_str(), *output);
+		}
+		for(auto const &output : fOutputVar_other) {
+			treerootfile->ConstructTreeBranches(fTreeName, fTreeComment.c_str(), *output);
+		}
 	}
-	for(auto const &output : fOutputVar_other) {
-		treerootfile->ConstructTreeBranches(fTreeName, fTreeComment.c_str(), *output);
-	}
-	// treerootfile->ConstructTreeBranches(fTreeName, fTreeComment.c_str(), *this);
 
 }
 void MyDataHandler::FillTreeBranches(QwRootFile *treerootfile)
 {
-	for(auto const &output : fOutputVar)
-		treerootfile->FillTreeBranches(*output);
-	for(auto const &output : fOutputVar_other)
-		treerootfile->FillTreeBranches(*output);
+
+    if (fRunningsumFillsTree) {
+      treerootfile->FillTreeBranches(*fRunningsum);
+	} else {
+
+		for(auto const &output : fOutputVar)
+			treerootfile->FillTreeBranches(*output);
+		for(auto const &output : fOutputVar_other)
+			treerootfile->FillTreeBranches(*output);
+	}
     treerootfile->FillTree(fTreeName);
 }
 /**
