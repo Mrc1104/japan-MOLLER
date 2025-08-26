@@ -53,263 +53,263 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
    ******************************************************************/
 
  public:
-  QwHelicityCorrelatedFeedback(QwSubsystemArrayParity &event):QwHelicityPattern(event){ 
+	 QwHelicityCorrelatedFeedback(QwSubsystemArrayParity &event):QwHelicityPattern(event){ 
 
-     //Currently pattern type based runningasymmetry accumulation works only with pattern size of 4
-    fFBRunningAsymmetry.resize(kHelModes,event);
-    fHelModeGoodPatternCounter.resize(kHelModes,0);
+		 //Currently pattern type based runningasymmetry accumulation works only with pattern size of 4
+		 fFBRunningAsymmetry.resize(kHelModes,event);
+		 fHelModeGoodPatternCounter.resize(kHelModes,0);
 
-    fEnableBurstSum=kFALSE;
-    fGoodPatternCounter=0;
-    fHAGoodPatternCounter=0;
-    // fPFGoodPatternCounter=0;
-fPFUGoodPatternCounter=0;
-fPFVGoodPatternCounter=0;
- fXGoodPatternCounter=0;
- fYGoodPatternCounter=0;
-    fPatternCounter=0;
-fHCIAGoodPatternCounter=0;
- fHAIAGoodPatternCounter=0;
- fHBIAGoodPatternCounter=0;
-
-
-/*     fFeedbackStatus=kTRUE; */
-/*     if (fEPICSCtrl.Get_FeedbackStatus()>0) */
-/*       fEPICSCtrl.Set_FeedbackStatus(0); */
-/*     if (fFeedbackStatus){ */
-/*       fFeedbackStatus=kFALSE; */
-/*       fEPICSCtrl.Set_FeedbackStatus(1.0); */
-/*     } */
-
-    CheckFeedbackStatus();
-  
-    //fPreviousHelPat=0;//at the beginning of the run this is non existing
-    //fCurrentHelPatMode=-1;//at the beginning of the run this is non existing
-
-    // fPITASetpointPOS=0;
-    //fPrevPITASetpointPOS=0;
-    //fPITASetpointNEG=0;
-    //fPrevPITASetpointNEG=0;
-    fPITA_MIN_Charge_asym=1;//default value is 1ppm
-
-  
-
-    //initialize setpoints to zero
-    //HA IA
-    
-
-    //Amali2019
-    for(Int_t i=1;i<9;i++){
-    fPrevPITASetpoint[i]=0;
-   fPITASetpoint[i]=0;
-   }
-
-    //  for(Int_t j=1;j<9;j++){
-    //fPrevPOSXYSetpoint[j]=0;
-    //fPOSXYSetpoint[j]=0;
-    // }
-
-fPITAPOSUSetpoint1=0;
-fPITAPOSUSetpoint2=0;
-fPITAPOSUSetpoint5=0;
- fPITAPOSUSetpoint6=0;
-
-fPrevPITAPOSUSetpoint1=0;
-fPrevPITAPOSUSetpoint2=0;
-fPrevPITAPOSUSetpoint5=0;
-fPrevPITAPOSUSetpoint6=0;
-
-fPOSXYSetpoint1=0;
-fPOSXYSetpoint2=0;
-fPOSXYSetpoint3=0;
-fPOSXYSetpoint4=0;
-fPOSXYSetpoint5=0;
-fPOSXYSetpoint6=0;
-fPOSXYSetpoint7=0;
-fPOSXYSetpoint8=0;
-
-fPrevPOSXYSetpoint1=0;
-fPrevPOSXYSetpoint2=0;
-fPrevPOSXYSetpoint3=0;
-fPrevPOSXYSetpoint4=0;
-fPrevPOSXYSetpoint5=0;
-fPrevPOSXYSetpoint6=0;
-fPrevPOSXYSetpoint7=0;
-fPrevPOSXYSetpoint8=0;
-
- fPITAPOSVSetpoint3=0; 
- fPITAPOSVSetpoint4=0; 
- fPITAPOSVSetpoint7=0; 
- fPITAPOSVSetpoint8=0; 
+		 fEnableBurstSum=kFALSE;
+		 fGoodPatternCounter=0;
+		 fHAGoodPatternCounter=0;
+		 // fPFGoodPatternCounter=0;
+		 fPFUGoodPatternCounter=0;
+		 fPFVGoodPatternCounter=0;
+		 fXGoodPatternCounter=0;
+		 fYGoodPatternCounter=0;
+		 fPatternCounter=0;
+		 fHCIAGoodPatternCounter=0;
+		 fHAIAGoodPatternCounter=0;
+		 fHBIAGoodPatternCounter=0;
 
 
- fPrevPITAPOSVSetpoint3=0; 
- fPrevPITAPOSVSetpoint4=0; 
- fPrevPITAPOSVSetpoint7=0; 
- fPrevPITAPOSVSetpoint8=0; 
+		 /*     fFeedbackStatus=kTRUE; */
+		 /*     if (fEPICSCtrl.Get_FeedbackStatus()>0) */
+		 /*       fEPICSCtrl.Set_FeedbackStatus(0); */
+		 /*     if (fFeedbackStatus){ */
+		 /*       fFeedbackStatus=kFALSE; */
+		 /*       fEPICSCtrl.Set_FeedbackStatus(1.0); */
+		 /*     } */
 
-   
+		 CheckFeedbackStatus();
 
- for(Int_t i=1;i<5;i++){
-      fPrevHCIASetpoint[i]=0;
-      fHCIASetpoint[i]=0;
-    }
+		 //fPreviousHelPat=0;//at the beginning of the run this is non existing
+		 //fCurrentHelPatMode=-1;//at the beginning of the run this is non existing
 
- for(Int_t i=1;i<5;i++){
-      fPrevHBIASetpoint[i]=0;
-      fHBIASetpoint[i]=0;
-    }
-
-for(Int_t i=1;i<5;i++){
-      fPrevHAIASetpoint[i]=0;
-      fHAIASetpoint[i]=0;
-    }
-
-    //PITA
-    // fPrevPITASetpointPOS=0;
-    //fPrevPITASetpointNEG=0;
-    //fPITASetpointPOS=0;
-    //fPITASetpointNEG=0;
-	
-
-    fTargetCharge.InitializeChannel("q_targ","derived");
-    //fHCTargetCharge.InitializeChannel("q_targC","derived");
-    fRunningCharge.InitializeChannel("q_targ","derived");
-    
-    //    fAsymBCM7.InitializeChannel("bcm7","derived");
-    //fAsymBCM8.InitializeChannel("bcm8","derived");
-
-    fChargeAsymmetry0.InitializeChannel("q_targ","derived");//this is the charge asym at the beginning of the feedback loop
-    fPreviousChargeAsymmetry.InitializeChannel("q_targ","derived");//charge asymmetry at the previous feedback loop
-    fCurrentChargeAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry 
-
-    fIAAsymmetry0.InitializeChannel("q_targ","derived");//this is the charge asymmetry of the IA at the beginning of the feedback loop
-    fPreviousIAAsymmetry.InitializeChannel("q_targ","derived");//this is the charge asymmetry of the IA at the previous feedback loop
-    fCurrentIAAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry of the IA
-
-    //fScalerChargeRunningSum.InitializeChannel("sca_bcm");
-    //fScalerCharge.InitializeChannel("sca_bcm");
-
-    // fHCChargeRunningSum.InitializeChannel("q_targC");
-    //fHCCharge.InitializeChannel("q_targC");
-
-/* fHCChargeAsymmetry0.InitializeChannel("q_targC","derived");//this is the charge asym at the beginning of the feedback loop */
-/*      fPreviousHCChargeAsymmetry.InitializeChannel("q_targC","derived");//charge asymmetry at the previous feedback loop */
-/*     fCurrentHCChargeAsymmetry.InitializeChannel("q_targC","derived");//current charge asymmetry  */
-    fTargetParameter.InitializeChannel("tempvar","derived");
-
-    fTargetHCChargeRunningSum.InitializeChannel("q_targC","derived");
-    fTargetHAChargeRunningSum.InitializeChannel("q_targA","derived");
-    fTargetHBChargeRunningSum.InitializeChannel("q_targB","derived");
-    fXYPosXDiffRunningSum.InitializeChannel("xy_pos_x","derived");
-    fXYPosYDiffRunningSum.InitializeChannel("xy_pos_y","derived");
-
-     fTargetXDiffRunningSum.InitializeChannel("x_targ","derived");//to access the published Target X diff 
-     /* fTargetXPDiffRunningSum.InitializeChannel("xp_targ","derived");//to access the published Target XP diff  */
-     fTargetYDiffRunningSum.InitializeChannel("y_targ","derived");//to access the published Target Y diff 
-    /* fTargetYPDiffRunningSum.InitializeChannel("yp_targ","derived");//to access the published Target YP diff */
-
-    /* fAsymBCM78DDRunningSum.InitializeChannel("bcm78dd","derived"); */
-    /* fYieldBCM8RunningSum.InitializeChannel("q_targ","derived"); */
-    /* fAsymUSLumiSumRunningSum.InitializeChannel("uslumisum","derived"); */
- 
-    time ( &rawtime );
-    timeinfo = localtime ( &rawtime );
-    out_file_IA = fopen(LOGFILE_IA, "a");
-    // out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
-
-    //out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
-    
-    fprintf(out_file_IA,"%22s \n",asctime (timeinfo));
-
-    fprintf(out_file_IA,"Pat num. \t  A_q[mode]\t  IA Setpoint \t  IA Previous Setpoint \n");
-    fclose(out_file_IA);
-    //    out_file_PITA = fopen("Feedback_PITA_log.txt", "wt");
-
-  //out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
-  // out_file_HA_IA = fopen("/local/scratch/qweak/Feedback_HA_IA_log.txt", "a");
-
-   out_file_PITA = fopen(LOGFILE_PITA, "a");
-   out_file_HA_IA = fopen(LOGFILE_HA_IA, "a");
-    fprintf(out_file_PITA,"%22s \n",asctime (timeinfo));
-    fprintf(out_file_PITA,
-	    "%10s %9s %15s  %12s %12s %15s %15s %15s %15s\n",
-	    "Current Pat.,","Pat num.,", "Charge Aq [ppm],", "+-Aq Error,", "Correction,",
-	    "New PITA Setpoint[1],", "Old PITA Setpoint[1],",
-    	    "New PITA Setpoint[5],", "Old PITA Setpoint[5]");
-    fclose(out_file_PITA);
-
-    /* fprintf(out_file_HA_IA,"%22s \n",asctime (timeinfo)); */
-    /* fprintf(out_file_HA_IA, */
-    /* 	    "%10s %22s  %16s %16s %26s %23s \n", */
-    /* 	    "Pat num.", "Charge Aq(ppm)", "Aq Error", "Correction", */
-    /* 	    "New IA Setpoint", "Old IA Setpoint"); */
-    /* fclose(out_file_HA_IA); */
-
-/* out_file_PITAPOS = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITAPOS_log.txt", "a");  */
-/*     fprintf(out_file_PITAPOS,"%22s \n",asctime (timeinfo)); */
-/*     fprintf(out_file_PITAPOS, */
-/* 	    "%9s %15s %15s %12s %12s %12s %15s %15s %12s %15s %15s\n", */
-/* 	    "Pat num.,", "DiffX [um],", "+-DiffX Error,","DiffY[um],","+-DiffY Error", "Correction POSU,", */
-/* 	    "New PITAPOSU Setpoint[1],", "Old PITAPOSU Setpoint[1],","Correctoon POSV,", */
-/*     	    "New PITAPOSV Setpoint[3],", "Old PITAPOSV Setpoint[3],"); */
-/*     fclose(out_file_PITAPOS); */
-
-out_file_PITAPOSU = fopen(LOGILE_PITAPOSU, "a");
-    fprintf(out_file_PITAPOSU,"%22s \n",asctime (timeinfo));
-    fprintf(out_file_PITAPOSU,
-	    "%9s %15s %15s %12s %12s %12s\n",
-	    "Pat num.,", "DiffX [um],", "+-DiffX Error,", "Correction POSU,",
-	    "New PITAPOSU Setpoint[1],", "Old PITAPOSU Setpoint[1],");
-    fclose(out_file_PITAPOSU);
-
-out_file_PITAPOSV = fopen(LOGFILE_PITAPOSV, "a");
-    fprintf(out_file_PITAPOSV,"%22s \n",asctime (timeinfo));
-    fprintf(out_file_PITAPOSV,
-	    "%9s %15s %15s %12s %12s %12s\n",
-	    "Pat num.,", "DiffY [um],", "+-DiffY Error,", "Correction POSV,",
-	    "New PITAPOSV Setpoint[1],", "Old PITAPOSV Setpoint[1],");
-    fclose(out_file_PITAPOSV);
-
-out_file_PITAPOSXY = fopen(LOGFILE_PITAXY, "a");
-    fprintf(out_file_PITAPOSXY,"%22s \n",asctime (timeinfo));
-    fprintf(out_file_PITAPOSXY,
-	    "%10s %9s %15s %15s %12s %12s %12s\n",
-	    "Current Pat.,","Pat num.,", "DiffX [um],", "DiffY [um],", "Correction POSXY,",
-	    "New PITAPOSXY Setpoint[1],", "Old PITAPOSXY Setpoint[1]");
-    fclose(out_file_PITAPOSXY);
+		 // fPITASetpointPOS=0;
+		 //fPrevPITASetpointPOS=0;
+		 //fPITASetpointNEG=0;
+		 //fPrevPITASetpointNEG=0;
+		 fPITA_MIN_Charge_asym=1;//default value is 1ppm
 
 
-  out_file_HC_IA = fopen(LOFGILE_HC_IA , "a");
 
-    fprintf(out_file_HC_IA,"%22s \n",asctime (timeinfo));
-    fprintf(out_file_HC_IA,
-  	    "%10s %10s %22s  %16s %16s %26s %23s \n",
-  	    "Current pat.,","Pat num.,", "Charge Asym(ppm),", "Asym Error,", "Correction,",
-  	    "New IA Setpoint,", "Old IA Setpoint");
-    fclose(out_file_HC_IA);
+		 //initialize setpoints to zero
+		 //HA IA
 
-out_file_HA_IA = fopen(LOGFILE_HA_IA, "a");
 
-    fprintf(out_file_HA_IA,"%22s \n",asctime (timeinfo));
-    fprintf(out_file_HA_IA,
-  	    "%10s %22s  %16s %16s %26s %23s \n",
-  	    "Pat num.", "Charge Asym(ppm)", "Asym Error", "Correction",
-  	    "New IA Setpoint", "Old IA Setpoint");
-    fclose(out_file_HA_IA);
- 
-out_file_HB_IA = fopen(LOFGILE_HB_IA, "a");
+		 //Amali2019
+		 for(Int_t i=1;i<9;i++){
+			 fPrevPITASetpoint[i]=0;
+			 fPITASetpoint[i]=0;
+		 }
 
-    fprintf(out_file_HB_IA,"%22s \n",asctime (timeinfo));
-    fprintf(out_file_HB_IA,
-  	    "%10s %22s  %16s %16s %26s %23s \n",
-  	    "Pat num.", "Charge Asym(ppm)", "Asym Error", "Correction",
-  	    "New IA Setpoint", "Old IA Setpoint");
-    fclose(out_file_HB_IA);
- 
- 
-  
-  };
+		 //  for(Int_t j=1;j<9;j++){
+		 //fPrevPOSXYSetpoint[j]=0;
+		 //fPOSXYSetpoint[j]=0;
+		 // }
+
+		 fPITAPOSUSetpoint1=0;
+		 fPITAPOSUSetpoint2=0;
+		 fPITAPOSUSetpoint5=0;
+		 fPITAPOSUSetpoint6=0;
+
+		 fPrevPITAPOSUSetpoint1=0;
+		 fPrevPITAPOSUSetpoint2=0;
+		 fPrevPITAPOSUSetpoint5=0;
+		 fPrevPITAPOSUSetpoint6=0;
+
+		 fPOSXYSetpoint1=0;
+		 fPOSXYSetpoint2=0;
+		 fPOSXYSetpoint3=0;
+		 fPOSXYSetpoint4=0;
+		 fPOSXYSetpoint5=0;
+		 fPOSXYSetpoint6=0;
+		 fPOSXYSetpoint7=0;
+		 fPOSXYSetpoint8=0;
+
+		 fPrevPOSXYSetpoint1=0;
+		 fPrevPOSXYSetpoint2=0;
+		 fPrevPOSXYSetpoint3=0;
+		 fPrevPOSXYSetpoint4=0;
+		 fPrevPOSXYSetpoint5=0;
+		 fPrevPOSXYSetpoint6=0;
+		 fPrevPOSXYSetpoint7=0;
+		 fPrevPOSXYSetpoint8=0;
+
+		 fPITAPOSVSetpoint3=0; 
+		 fPITAPOSVSetpoint4=0; 
+		 fPITAPOSVSetpoint7=0; 
+		 fPITAPOSVSetpoint8=0; 
+
+
+		 fPrevPITAPOSVSetpoint3=0; 
+		 fPrevPITAPOSVSetpoint4=0; 
+		 fPrevPITAPOSVSetpoint7=0; 
+		 fPrevPITAPOSVSetpoint8=0; 
+
+
+
+		 for(Int_t i=1;i<5;i++){
+			 fPrevHCIASetpoint[i]=0;
+			 fHCIASetpoint[i]=0;
+		 }
+
+		 for(Int_t i=1;i<5;i++){
+			 fPrevHBIASetpoint[i]=0;
+			 fHBIASetpoint[i]=0;
+		 }
+
+		 for(Int_t i=1;i<5;i++){
+			 fPrevHAIASetpoint[i]=0;
+			 fHAIASetpoint[i]=0;
+		 }
+
+		 //PITA
+		 // fPrevPITASetpointPOS=0;
+		 //fPrevPITASetpointNEG=0;
+		 //fPITASetpointPOS=0;
+		 //fPITASetpointNEG=0;
+
+
+		 fTargetCharge.InitializeChannel("q_targ","derived");
+		 //fHCTargetCharge.InitializeChannel("q_targC","derived");
+		 fRunningCharge.InitializeChannel("q_targ","derived");
+
+		 //    fAsymBCM7.InitializeChannel("bcm7","derived");
+		 //fAsymBCM8.InitializeChannel("bcm8","derived");
+
+		 fChargeAsymmetry0.InitializeChannel("q_targ","derived");//this is the charge asym at the beginning of the feedback loop
+		 fPreviousChargeAsymmetry.InitializeChannel("q_targ","derived");//charge asymmetry at the previous feedback loop
+		 fCurrentChargeAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry 
+
+		 fIAAsymmetry0.InitializeChannel("q_targ","derived");//this is the charge asymmetry of the IA at the beginning of the feedback loop
+		 fPreviousIAAsymmetry.InitializeChannel("q_targ","derived");//this is the charge asymmetry of the IA at the previous feedback loop
+		 fCurrentIAAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry of the IA
+
+		 //fScalerChargeRunningSum.InitializeChannel("sca_bcm");
+		 //fScalerCharge.InitializeChannel("sca_bcm");
+
+		 // fHCChargeRunningSum.InitializeChannel("q_targC");
+		 //fHCCharge.InitializeChannel("q_targC");
+
+		 /* fHCChargeAsymmetry0.InitializeChannel("q_targC","derived");//this is the charge asym at the beginning of the feedback loop */
+		 /*      fPreviousHCChargeAsymmetry.InitializeChannel("q_targC","derived");//charge asymmetry at the previous feedback loop */
+		 /*     fCurrentHCChargeAsymmetry.InitializeChannel("q_targC","derived");//current charge asymmetry  */
+		 fTargetParameter.InitializeChannel("tempvar","derived");
+
+		 fTargetHCChargeRunningSum.InitializeChannel("q_targC","derived");
+		 fTargetHAChargeRunningSum.InitializeChannel("q_targA","derived");
+		 fTargetHBChargeRunningSum.InitializeChannel("q_targB","derived");
+		 fXYPosXDiffRunningSum.InitializeChannel("xy_pos_x","derived");
+		 fXYPosYDiffRunningSum.InitializeChannel("xy_pos_y","derived");
+
+		 fTargetXDiffRunningSum.InitializeChannel("x_targ","derived");//to access the published Target X diff 
+		 /* fTargetXPDiffRunningSum.InitializeChannel("xp_targ","derived");//to access the published Target XP diff  */
+		 fTargetYDiffRunningSum.InitializeChannel("y_targ","derived");//to access the published Target Y diff 
+		 /* fTargetYPDiffRunningSum.InitializeChannel("yp_targ","derived");//to access the published Target YP diff */
+
+		 /* fAsymBCM78DDRunningSum.InitializeChannel("bcm78dd","derived"); */
+		 /* fYieldBCM8RunningSum.InitializeChannel("q_targ","derived"); */
+		 /* fAsymUSLumiSumRunningSum.InitializeChannel("uslumisum","derived"); */
+
+		 time ( &rawtime );
+		 timeinfo = localtime ( &rawtime );
+		 out_file_IA = fopen(LOGFILE_IA, "a");
+		 // out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
+
+		 //out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
+
+		 fprintf(out_file_IA,"%22s \n",asctime (timeinfo));
+
+		 fprintf(out_file_IA,"Pat num. \t  A_q[mode]\t  IA Setpoint \t  IA Previous Setpoint \n");
+		 fclose(out_file_IA);
+		 //    out_file_PITA = fopen("Feedback_PITA_log.txt", "wt");
+
+		 //out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
+		 // out_file_HA_IA = fopen("/local/scratch/qweak/Feedback_HA_IA_log.txt", "a");
+
+		 out_file_PITA = fopen(LOGFILE_PITA, "a");
+		 out_file_HA_IA = fopen(LOGFILE_HA_IA, "a");
+		 fprintf(out_file_PITA,"%22s \n",asctime (timeinfo));
+		 fprintf(out_file_PITA,
+				 "%10s %9s %15s  %12s %12s %15s %15s %15s %15s\n",
+				 "Current Pat.,","Pat num.,", "Charge Aq [ppm],", "+-Aq Error,", "Correction,",
+				 "New PITA Setpoint[1],", "Old PITA Setpoint[1],",
+				 "New PITA Setpoint[5],", "Old PITA Setpoint[5]");
+		 fclose(out_file_PITA);
+
+		 /* fprintf(out_file_HA_IA,"%22s \n",asctime (timeinfo)); */
+		 /* fprintf(out_file_HA_IA, */
+		 /* 	    "%10s %22s  %16s %16s %26s %23s \n", */
+		 /* 	    "Pat num.", "Charge Aq(ppm)", "Aq Error", "Correction", */
+		 /* 	    "New IA Setpoint", "Old IA Setpoint"); */
+		 /* fclose(out_file_HA_IA); */
+
+		 /* out_file_PITAPOS = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITAPOS_log.txt", "a");  */
+		 /*     fprintf(out_file_PITAPOS,"%22s \n",asctime (timeinfo)); */
+		 /*     fprintf(out_file_PITAPOS, */
+		 /* 	    "%9s %15s %15s %12s %12s %12s %15s %15s %12s %15s %15s\n", */
+		 /* 	    "Pat num.,", "DiffX [um],", "+-DiffX Error,","DiffY[um],","+-DiffY Error", "Correction POSU,", */
+		 /* 	    "New PITAPOSU Setpoint[1],", "Old PITAPOSU Setpoint[1],","Correctoon POSV,", */
+		 /*     	    "New PITAPOSV Setpoint[3],", "Old PITAPOSV Setpoint[3],"); */
+		 /*     fclose(out_file_PITAPOS); */
+
+		 out_file_PITAPOSU = fopen(LOGILE_PITAPOSU, "a");
+		 fprintf(out_file_PITAPOSU,"%22s \n",asctime (timeinfo));
+		 fprintf(out_file_PITAPOSU,
+				 "%9s %15s %15s %12s %12s %12s\n",
+				 "Pat num.,", "DiffX [um],", "+-DiffX Error,", "Correction POSU,",
+				 "New PITAPOSU Setpoint[1],", "Old PITAPOSU Setpoint[1],");
+		 fclose(out_file_PITAPOSU);
+
+		 out_file_PITAPOSV = fopen(LOGFILE_PITAPOSV, "a");
+		 fprintf(out_file_PITAPOSV,"%22s \n",asctime (timeinfo));
+		 fprintf(out_file_PITAPOSV,
+				 "%9s %15s %15s %12s %12s %12s\n",
+				 "Pat num.,", "DiffY [um],", "+-DiffY Error,", "Correction POSV,",
+				 "New PITAPOSV Setpoint[1],", "Old PITAPOSV Setpoint[1],");
+		 fclose(out_file_PITAPOSV);
+
+		 out_file_PITAPOSXY = fopen(LOGFILE_PITAXY, "a");
+		 fprintf(out_file_PITAPOSXY,"%22s \n",asctime (timeinfo));
+		 fprintf(out_file_PITAPOSXY,
+				 "%10s %9s %15s %15s %12s %12s %12s\n",
+				 "Current Pat.,","Pat num.,", "DiffX [um],", "DiffY [um],", "Correction POSXY,",
+				 "New PITAPOSXY Setpoint[1],", "Old PITAPOSXY Setpoint[1]");
+		 fclose(out_file_PITAPOSXY);
+
+
+		 out_file_HC_IA = fopen(LOFGILE_HC_IA , "a");
+
+		 fprintf(out_file_HC_IA,"%22s \n",asctime (timeinfo));
+		 fprintf(out_file_HC_IA,
+				 "%10s %10s %22s  %16s %16s %26s %23s \n",
+				 "Current pat.,","Pat num.,", "Charge Asym(ppm),", "Asym Error,", "Correction,",
+				 "New IA Setpoint,", "Old IA Setpoint");
+		 fclose(out_file_HC_IA);
+
+		 out_file_HA_IA = fopen(LOGFILE_HA_IA, "a");
+
+		 fprintf(out_file_HA_IA,"%22s \n",asctime (timeinfo));
+		 fprintf(out_file_HA_IA,
+				 "%10s %22s  %16s %16s %26s %23s \n",
+				 "Pat num.", "Charge Asym(ppm)", "Asym Error", "Correction",
+				 "New IA Setpoint", "Old IA Setpoint");
+		 fclose(out_file_HA_IA);
+
+		 out_file_HB_IA = fopen(LOFGILE_HB_IA, "a");
+
+		 fprintf(out_file_HB_IA,"%22s \n",asctime (timeinfo));
+		 fprintf(out_file_HB_IA,
+				 "%10s %22s  %16s %16s %26s %23s \n",
+				 "Pat num.", "Charge Asym(ppm)", "Asym Error", "Correction",
+				 "New IA Setpoint", "Old IA Setpoint");
+		 fclose(out_file_HB_IA);
+
+
+
+	 };
     
     
     ~QwHelicityCorrelatedFeedback() { 

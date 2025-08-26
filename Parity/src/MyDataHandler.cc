@@ -154,14 +154,12 @@ Int_t MyDataHandler::ConnectChannels(QwSubsystemArrayParity& event)
 		// pair creation
 		if(iv_ptr != nullptr) {
 			fIndependentVar.push_back(iv_ptr);
-			fOutputVar_other.emplace_back( iv_ptr->Clone() );
 		}
 	}
 	fIndependentValues.resize(fIndependentVar.size());
 	fDependentValues.resize(fDependentVar.size());
 
 	fOutputValues.resize(fOutputVar.size());
-	fOutputValues_other.resize(fOutputVar_other.size());
 
 	return 0;
 }
@@ -236,7 +234,6 @@ Int_t MyDataHandler::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemAr
 		if(iv_ptr != nullptr) {
 			// pair creation
 			fIndependentVar.push_back(iv_ptr);
-			fOutputVar_other.emplace_back( iv_ptr->Clone(VQwDataElement::kDerived) );
 		} else {
 			QwWarning << "Independent variable "
 			          << fIndependentName.at(iv)
@@ -249,7 +246,6 @@ Int_t MyDataHandler::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemAr
 	fDependentValues.resize(fDependentVar.size());
 
 	fOutputValues.resize(fOutputVar.size());
-	fOutputValues_other.resize(fOutputVar_other.size());
 
 	return 0;
 }
@@ -271,14 +267,6 @@ void MyDataHandler::ProcessData()
 	}
 	for (size_t i = 0; i < fDependentValues.size(); ++i) {
 		fOutputValues.at(i) = fDependentValues[i];
-	}
-	for (size_t i = 0; i < fIndependentVar.size(); ++i) {
-		*(dynamic_cast<QwMollerADC_Channel*> (fOutputVar_other.at(i))) = *(dynamic_cast<const QwMollerADC_Channel*>( fIndependentVar[i]) );
-		QwMessage << "fIndependentVar: " << fIndependentVar[i]->GetValue(1) << "\n";;
-		QwMessage << "fOutputVar_other: " << fOutputVar_other[i]->GetValue(1) << "\n";
-	}
-	for (size_t i = 0; i < fIndependentValues.size(); ++i) {
-		fOutputValues_other.at(i) = fIndependentValues[i];
 	}
 }
 
@@ -338,17 +326,6 @@ void MyDataHandler::FillTreeVector(std::vector<Double_t>& values) const
     fOutputVar.at(i)->FillTreeVector(values);
   }
 
-/*
-  // Fill the data element
-  for (size_t i = 0; i < fOutputVar.size(); ++i) {
-    if (fOutputVar.at(i) == NULL) {continue;}
-    fOutputVar.at(i)->FillTreeVector(values);
-  }
-  for (size_t i = 0; i < fOutputVar_other.size(); ++i) {
-    if (fOutputVar_other.at(i) == NULL) {continue;}
-    fOutputVar_other.at(i)->FillTreeVector(values);
-  }
-  */
 }
 
 

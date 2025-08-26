@@ -20,7 +20,7 @@
 #include "TString.h"
 
 #include "cadef.h"
-
+using namespace FAKE_EPICS;
 
 class QwEPICSControl{
 public:
