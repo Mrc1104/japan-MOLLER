@@ -33,7 +33,7 @@ enum TYPES
 {
 	// Data types
 	DBR_DOUBLE,
-	DBF_STRING
+	DBR_STRING,
 };
 
 
