@@ -47,6 +47,11 @@ void QwEPICS<double>::read(double &ret)
 {
 	ca_get(DBR_DOUBLE, ioc, &ret);
 }
+template<>
+void QwEPICS<double>::write(double val)
+{
+	ca_put(DBR_DOUBLE, ioc, &val);
+}
 
 template<typename T>
 void QwEPICS<T>::sync()
