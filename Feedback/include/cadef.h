@@ -3,6 +3,12 @@
 
 #include <string>
 #include <string_view>
+#include <fstream>
+#include <map>
+#include <sstream>
+#include <iostream>
+#include <memory>
+#include "TString.h"
 
 /*
 	DO NOT USE OTHER THAN FOR TESTING
@@ -29,6 +35,12 @@ typedef std::string chid;
 namespace FAKE_EPICS
 {
 
+// Path to DB
+static char *const ARCHIVE_DATA_BASE = "/home/mrc/logfiles/fake_epics/archive/%s_archive.txt";
+static char *const OUTPUT_DATA_BASE  = "/home/mrc/logfiles/fake_epics/output/%s_output/txt";
+static std::map<std::string, std::unique_ptr<std::ifstream>> archive_db_istream;
+static std::map<std::string, std::unique_ptr<std::ofstream>> output_db_ostream;
+
 enum TYPES
 {
 	// Data types
@@ -50,6 +62,39 @@ enum channel_state {
 template<class T>
 inline int ca_get(const TYPES type, const chid &ioc, T *value)
 {
+	// check to see if <ioc, std::stream> exist
+	if(archive_db_istream.count(ioc)==0) { // not found, create the stream
+		archive_db_istream[ioc] = std::make_unique<std::ifstream>(Form(ARCHIVE_DATA_BASE, ioc.c_str()));
+	}
+	auto stream = std::move(archive_db_istream[ioc]);
+	
+	// try to read in (value could be a double or string)
+	// we'll use stringstream to handle the overloaded case
+	unsigned counter = 0, max = 1;
+	std::string stream_string{""};
+	do{
+		counter++;
+		if(stream->eof()) {
+			std::cout << "Reading DB for IOC: " << ioc << " hit EOF... Rewinding\n";
+			stream->clear();
+			stream->seekg(0);
+		}
+		
+		getline(*stream, stream_string);
+		if(!stream->good()) {
+			std::cout << "Reading DB for IOC: " << ioc << " failed\n";
+			stream_string= "";
+		}
+
+	} while( (stream->eof()) || (counter < max) ) ;
+
+	if( stream_string != "" ) {
+		std::stringstream stream_entry(stream_string);
+		stream_entry >> *value;
+	} else {
+		*value = static_cast<T>(0x3F); // set it eqaul to '?'
+	}
+	archive_db_istream[ioc] = std::move(stream);	
 	return 0;
 }
 
