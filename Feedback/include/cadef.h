@@ -36,6 +36,16 @@ enum TYPES
 	DBR_STRING,
 };
 
+enum channel_state {
+    /// valid chid, IOC not found or unavailable
+	cs_never_conn,
+    /// valid chid, IOC was found, but unavailable (previously connected to server)
+	cs_prev_conn,
+    /// valid chid, IOC was found, still available
+	cs_conn,
+    /// channel deleted by user
+	cs_closed
+};
 
 template<class T>
 inline int ca_get(const TYPES type, const chid &ioc, T *value)
@@ -60,6 +70,12 @@ inline int ca_search(std::string s, chid *channel_id)
 	// Excellent talk by Sandeep Mantrala, "Understanding C++ Value Categories"
 	// moves if possible; just learned this -mrc
 	*channel_id = std::move(s);
+	return 0;
+}
+
+inline channel_state ca_state(chid chan)
+{
+	return cs_conn;
 }
 
 }; // namespace FAKE_EPICS

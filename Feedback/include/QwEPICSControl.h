@@ -3,6 +3,10 @@
 
 #include <string>
 #include "cadef.h"
+
+//TODO:
+#include "Orig_QwEPICSControl.h" // OLD IMPLEMENTATION; DELETE ME
+                                 // Added so intermediate steps will compile + link
 using namespace FAKE_EPICS;
 
 
@@ -24,7 +28,17 @@ using namespace FAKE_EPICS;
  *
  *	Alternative, the constructor takes a valid chid object (user 
  *	is responsible for calling ca_search and handling failure)?
+ *
+ *  This is a template class because we want to support two forms:
+ *  DBR_STRING and DBR_DOUBLE. Type-specific implementations lends
+ *  itself to templates + explicit specialization. If you try to
+ *  instantiate a type we do not support, e.g. QwEPICS<char>, then
+ *  then you will get a linker error!
+ *
+ *  NOTE: EPICS DB supports more types than these two.
+ *  Explicit specialization also enforces that we only support a subset.
  */
+template<typename T>
 class QwEPICS
 {
 public:
@@ -34,11 +48,9 @@ public:
 public:
 	// Wrappers wound the cadef commands
 	// Read the EPICS db
-	void read(std::string &ret);
-	void read(double &ret);
+	void read(T &ret);
 	// Write to the EPICS db
-	void write(std::string val);
-	void write(double val);
+	void write(T val);
 	// Sync for IO operations
 	void sync();
 
@@ -47,6 +59,5 @@ private:
 	bool connected();
 private:
 	chid ioc;
-	TYPES
-}
+};
 #endif
