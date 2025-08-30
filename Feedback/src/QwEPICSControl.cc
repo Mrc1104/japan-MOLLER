@@ -71,7 +71,7 @@ bool QwEPICS<T>::connected()
 		is_connected = kFALSE;
 	break;
 	case cs_conn:
-		QwError << "Valid chid, IOC was found, still available" << QwLog::endl;
+		QwMessage << "Valid chid, IOC was found, still available" << QwLog::endl;
 		is_connected = kTRUE;
 	break;
 	case cs_closed:
