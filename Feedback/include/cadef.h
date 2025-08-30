@@ -10,6 +10,7 @@
 #include <memory>
 #include "TString.h"
 
+#include "epicsTypes.h"
 /*
 	DO NOT USE OTHER THAN FOR TESTING
 
@@ -37,7 +38,7 @@ namespace FAKE_EPICS
 
 // Path to DB
 static char *const ARCHIVE_DATA_BASE = "/home/mrc/logfiles/fake_epics/archive/%s_archive.txt";
-static char *const OUTPUT_DATA_BASE  = "/home/mrc/logfiles/fake_epics/output/%s_output/txt";
+static char *const OUTPUT_DATA_BASE  = "/home/mrc/logfiles/fake_epics/output/%s_output.txt";
 static std::map<std::string, std::unique_ptr<std::ifstream>> archive_db_istream;
 static std::map<std::string, std::unique_ptr<std::ofstream>> output_db_ostream;
 
@@ -90,7 +91,13 @@ inline int ca_get(const TYPES type, const chid &ioc, T *value)
 
 	if( stream_string != "" ) {
 		std::stringstream stream_entry(stream_string);
-		stream_entry >> *value;
+		if constexpr(std::is_same<decltype(stream_string.c_str()), const T*>::value) {
+			for(unsigned c = 0; c < stream_string.size(); c++)
+				stream_entry >> value[c];
+		}
+		else {
+			stream_entry >> *value;
+		}
 	} else {
 		*value = static_cast<T>(0x3F); // set it eqaul to '?'
 	}
@@ -101,6 +108,24 @@ inline int ca_get(const TYPES type, const chid &ioc, T *value)
 template<class T>
 inline int ca_put(const TYPES type, const chid &ioc, T* value)
 {
+	// check to see if <ios, ostream> exists
+	if(output_db_ostream.count(ioc) == 0) { // not found, create the stream
+		output_db_ostream[ioc] = std::make_unique<std::ofstream>(Form(OUTPUT_DATA_BASE, ioc.c_str()));
+	}
+	auto stream = std::move(output_db_ostream[ioc]);
+	// we create this file so lot less error checking
+	if constexpr(std::is_same<const char*, const T*>::value) {
+		for(unsigned c = 0; c < MAX_STRING_SIZE; c++) {
+			if(value[c] == '\0') break;
+			*stream << value[c];
+		}
+		*stream << '\n';
+	}
+	else {
+		*stream << *value << '\n';
+	}
+
+	output_db_ostream[ioc] = std::move(stream);	
 	return 0;
 }
 
