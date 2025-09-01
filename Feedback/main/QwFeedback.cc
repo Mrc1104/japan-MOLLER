@@ -116,171 +116,171 @@ Int_t main(Int_t argc, Char_t* argv[])
     
   // Loop over all runs
   while (eventbuffer.OpenNextStream() == CODA_OK){
-    //  Begin processing for the first run.
- 
-    ///  Set the current event number for parameter file lookup
-    QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
-gQwOptions.Parse(kTRUE);
-    eventbuffer.ProcessOptions(gQwOptions);
+	  //  Begin processing for the first run.
 
-    QwError << "*** Before loading EPICS decoder" << QwLog::endl;
-    ///  Create an EPICS event
-    QwEPICSEvent epicsevent;
-    epicsevent.LoadChannelMap("EpicsTable.map");
-   
-    QwError << "*** Before setting up detectors object" << QwLog::endl;
-    ///  Load the detectors from file
-    QwSubsystemArrayParity detectors(gQwOptions);
-    detectors.ProcessOptions(gQwOptions);
-   detectors.ListPublishedValues();
+	  ///  Set the current event number for parameter file lookup
+	  QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
+	  gQwOptions.Parse(kTRUE);
+	  eventbuffer.ProcessOptions(gQwOptions);
 
+	  QwError << "*** Before loading EPICS decoder" << QwLog::endl;
+	  ///  Create an EPICS event
+	  QwEPICSEvent epicsevent;
+	  epicsevent.LoadChannelMap("EpicsTable.map");
 
-  ;
-    QwError << "*** Before creating helicity pattern" << QwLog::endl;
-    ///  Create the helicity pattern
-    QwHelicityCorrelatedFeedback helicitypattern(detectors);
-    //std::cout << "***********************Amali****************** "  << std::endl;
-    helicitypattern.ProcessOptions(gQwOptions);
+	  QwError << "*** Before setting up detectors object" << QwLog::endl;
+	  ///  Load the detectors from file
+	  QwSubsystemArrayParity detectors(gQwOptions);
+	  detectors.ProcessOptions(gQwOptions);
+	  detectors.ListPublishedValues();
 
-    QwError << "*** Before loading feedback param file" << QwLog::endl;
-    helicitypattern.LoadParameterFile("qweak_fb_prm.in");
+	  QwError << "*** Before creating helicity pattern" << QwLog::endl;
+	  ///  Create the helicity pattern
+	  QwHelicityCorrelatedFeedback helicitypattern(detectors);
+	  //std::cout << "***********************Amali****************** "  << std::endl;
+	  helicitypattern.ProcessOptions(gQwOptions);
 
-    QwHelicityCorrelatedFeedback patternsum(helicitypattern);
-    /*
-      helicitypattern.UpdateGMClean(0);
-      helicitypattern.FeedIASetPoint(0);
-      helicitypattern.UpdateGMClean(1);
-    */
+	  QwError << "*** Before loading feedback param file" << QwLog::endl;
+	  helicitypattern.LoadParameterFile("qweak_fb_prm.in");
 
-    ///  Create the event ring with the subsysten array
-  
-    
- 
-  
-    //     Create the running sum
-    QwSubsystemArrayParity runningsum(detectors);
+	  QwHelicityCorrelatedFeedback patternsum(helicitypattern);
+	  /*
+		 helicitypattern.UpdateGMClean(0);
+		 helicitypattern.FeedIASetPoint(0);
+		 helicitypattern.UpdateGMClean(1);
+	   */
 
-
-    Int_t failed_events_counts = 0; // count failed total events
-
-
-    //  Clear the single-event running sum at the beginning of the runlet
-    runningsum.ClearEventData();
-    helicitypattern.ClearRunningSum();
-
-    QwEventRing eventring(gQwOptions,detectors);
-
-    QwError << "*** Before starting event loop" << QwLog::endl;
-
-    // Loop over events in this CODA file
-    while (eventbuffer.GetNextEvent() == CODA_OK) {
-
-      if (eventbuffer.GetEventNumber()%1000)
-	std::cout<<std::flush;
-  
-      //  First, do processing of non-physics events...
-      if (eventbuffer.IsROCConfigurationEvent()){
-	//  Send ROC configuration event data to the subsystem objects.
-	eventbuffer.FillSubsystemConfigurationData(detectors);
-      }
-
-      //  Dump out of the loop when we see the end event.
-      if (eventbuffer.GetEndEventCount()>0){
-	QwMessage << "Number of events processed at end of run: " << eventbuffer.GetEventNumber() << std::endl;
-	break;
-      }
-      
-      //  Now, if this is not a physics event, go back and get a new event.
-      if (!eventbuffer.IsPhysicsEvent()) continue;
-
-
-      //  Fill the subsystem objects with their respective data for this event.
-      eventbuffer.FillSubsystemData(detectors);
-
-      //  Process the subsystem data
-      detectors.ProcessEvent();
-
-       // The event pass the event cut constraints
-      if (detectors.ApplySingleEventCuts()) {
-
-        // Accumulate the running sum to calculate the event based running average
-        runningsum.AccumulateRunningSum(detectors);
-
-//         // Fill the histograms
-//         rootfile->FillHistograms(detectors);
-
-//         // Fill the tree branches
-//         rootfile->FillTreeBranches(detectors);
-//         rootfile->FillTree("Mps_Tree");
-
-        // Add event to the ring
-        eventring.push(detectors);
-
-        // Check to see ring is ready
-        if (eventring.IsReady()) {
-
-          // Load the event into the helicity pattern
-          helicitypattern.LoadEventData(eventring.pop());
-
-          // Calculate helicity pattern asymmetry
-          if (helicitypattern.IsCompletePattern()) { 
-
-            // Update the blinder if conditions have changed
-            helicitypattern.UpdateBlinder(detectors);
-
-            // Calculate the asymmetry
-            helicitypattern.CalculateAsymmetry();
-            if (helicitypattern.IsGoodAsymmetry()) {
-	      patternsum.AccumulateRunningSum(helicitypattern);
-	      patternsum.ApplyFeedbackCorrections();//apply IA feedback
-	    }
-	    // Clear the data
-	    helicitypattern.ClearEventData();	      
-            
-          } // helicitypattern.IsCompletePattern()
-
-        } // eventring.IsReady()
-
-
-      // Failed single event cuts
-      } else {
-	failed_events_counts++;
-      }
-
-
-      
-
-    }   // end of loop over events  
-
-    QwMessage << "Number of events processed at end of run: "
-              << eventbuffer.GetEventNumber() << std::endl;
-
- 
-
-    //  Close event buffer stream
-    eventbuffer.CloseStream();
+	  ///  Create the event ring with the subsysten array
 
 
 
-    //  Print the event cut error summery for each subsystem
-    //    detectors.GetEventcutErrorCounters();
+
+	  //     Create the running sum
+	  QwSubsystemArrayParity runningsum(detectors);
 
 
-    //  Read from the datebase
-    //    database.SetupOneRun(eventbuffer);
-
-    // Each sussystem has its own Connect() and Disconnect() functions.
-    //    if (database.AllowsWriteAccess()) {
-    //      helicitypattern.FillDB(&database);
-    //      epicsevent.FillDB(&database);
-    //    }
+	  Int_t failed_events_counts = 0; // count failed total events
 
 
-    QwMessage << "Total events failed " << failed_events_counts << QwLog::endl;
+	  //  Clear the single-event running sum at the beginning of the runlet
+	  runningsum.ClearEventData();
+	  helicitypattern.ClearRunningSum();
 
-    //  Report run summary
-    eventbuffer.ReportRunSummary();
-    eventbuffer.PrintRunTimes();
+	  QwEventRing eventring(gQwOptions,detectors);
+
+	  QwError << "*** Before starting event loop" << QwLog::endl;
+
+	  // Loop over events in this CODA file
+	  while (eventbuffer.GetNextEvent() == CODA_OK) {
+
+		  if (eventbuffer.GetEventNumber()%5000 == 0)
+		  {
+			  QwMessage << eventbuffer.GetEventNumber() << QwLog::endl;
+		  }
+
+		  //  First, do processing of non-physics events...
+		  if (eventbuffer.IsROCConfigurationEvent()){
+			  //  Send ROC configuration event data to the subsystem objects.
+			  eventbuffer.FillSubsystemConfigurationData(detectors);
+		  }
+
+		  //  Dump out of the loop when we see the end event.
+		  if (eventbuffer.GetEndEventCount()>0){
+			  QwMessage << "Number of events processed at end of run: " << eventbuffer.GetEventNumber() << std::endl;
+			  break;
+		  }
+
+		  //  Now, if this is not a physics event, go back and get a new event.
+		  if (!eventbuffer.IsPhysicsEvent()) continue;
+
+
+		  //  Fill the subsystem objects with their respective data for this event.
+		  eventbuffer.FillSubsystemData(detectors);
+
+		  //  Process the subsystem data
+		  detectors.ProcessEvent();
+
+		  // The event pass the event cut constraints
+		  if (detectors.ApplySingleEventCuts()) {
+
+			  // Accumulate the running sum to calculate the event based running average
+			  runningsum.AccumulateRunningSum(detectors);
+
+			  //         // Fill the histograms
+			  //         rootfile->FillHistograms(detectors);
+
+			  //         // Fill the tree branches
+			  //         rootfile->FillTreeBranches(detectors);
+			  //         rootfile->FillTree("Mps_Tree");
+
+			  // Add event to the ring
+			  eventring.push(detectors);
+
+			  // Check to see ring is ready
+			  if (eventring.IsReady()) {
+
+				  // Load the event into the helicity pattern
+				  helicitypattern.LoadEventData(eventring.pop());
+
+				  // Calculate helicity pattern asymmetry
+				  if (helicitypattern.IsCompletePattern()) { 
+
+					  // Update the blinder if conditions have changed
+					  helicitypattern.UpdateBlinder(detectors);
+
+					  // Calculate the asymmetry
+					  helicitypattern.CalculateAsymmetry();
+					  if (helicitypattern.IsGoodAsymmetry()) {
+						  patternsum.AccumulateRunningSum(helicitypattern);
+						  patternsum.ApplyFeedbackCorrections();//apply IA feedback
+					  }
+					  // Clear the data
+					  helicitypattern.ClearEventData();	      
+
+				  } // helicitypattern.IsCompletePattern()
+
+			  } // eventring.IsReady()
+
+
+			  // Failed single event cuts
+		  } else {
+			  failed_events_counts++;
+		  }
+
+
+
+
+	  }   // end of loop over events  
+
+	  QwMessage << "Number of events processed at end of run: "
+		  << eventbuffer.GetEventNumber() << std::endl;
+
+
+
+	  //  Close event buffer stream
+	  eventbuffer.CloseStream();
+
+
+
+	  //  Print the event cut error summery for each subsystem
+	  //    detectors.GetEventcutErrorCounters();
+
+
+	  //  Read from the datebase
+	  //    database.SetupOneRun(eventbuffer);
+
+	  // Each sussystem has its own Connect() and Disconnect() functions.
+	  //    if (database.AllowsWriteAccess()) {
+	  //      helicitypattern.FillDB(&database);
+	  //      epicsevent.FillDB(&database);
+	  //    }
+
+
+	  QwMessage << "Total events failed " << failed_events_counts << QwLog::endl;
+
+	  //  Report run summary
+	  eventbuffer.ReportRunSummary();
+	  eventbuffer.PrintRunTimes();
 
   } //end of run loop
 

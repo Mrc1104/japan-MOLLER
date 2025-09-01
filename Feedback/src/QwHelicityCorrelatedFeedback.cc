@@ -1384,7 +1384,7 @@ void QwHelicityCorrelatedFeedback::LogParameters(Int_t mode){
 void QwHelicityCorrelatedFeedback::LogParameters(){
   // fEPICSCtrl.Set_ChargeAsymmetry(fChargeAsymmetry,fChargeAsymmetryError,fChargeAsymmetryWidth);//updates the epics values
 
-  out_file_PITA = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITA_log.txt", "a");
+  out_file_PITA = fopen(LOGFILE_PITA, "a");
   
 
   fprintf(out_file_PITA,"%10.0d %9.0d %+15.2f %15.2f %15.2f %25.2f %25.2f %25.2f %25.2f \n",fCurrentPatternNumber,fQuartetNumber,fChargeAsymmetry,fChargeAsymmetryError,TMath::Abs(fPITASetpoint1-fPrevPITASetpoint1),fPITASetpoint1,fPrevPITASetpoint1,fPITASetpoint5,fPrevPITASetpoint5);
@@ -1397,7 +1397,7 @@ void QwHelicityCorrelatedFeedback::LogParameters(){
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::LogPFUParameters(){
   
- out_file_PITAPOSU = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITAPOSU_log.txt", "a");
+ out_file_PITAPOSU = fopen(LOGFILE_PITAPOSU, "a");
   fprintf(out_file_PITAPOSU,"%9.0d %+15.2f %15.2f %15.2f %15.2f %15.2f \n",fQuartetNumber,fTargetXDiff,fTargetXDiffError,TMath::Abs(fPITAPOSUSetpoint1-fPrevPITAPOSUSetpoint1),fPITAPOSUSetpoint1,fPrevPITAPOSUSetpoint1);
   fclose(out_file_PITAPOSU); 
 };
@@ -1407,7 +1407,7 @@ void QwHelicityCorrelatedFeedback::LogPFUParameters(){
 void QwHelicityCorrelatedFeedback::LogPFVParameters(){
  
 
-  out_file_PITAPOSV = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITAPOSV_log.txt", "a");
+  out_file_PITAPOSV = fopen(LOGFILE_PITAPOSV, "a");
   fprintf(out_file_PITAPOSV,"%9.0d %+15.2f %15.2f %15.2f %15.2f %15.2f \n",fQuartetNumber,fTargetYDiff,fTargetYDiffError,TMath::Abs(fPITAPOSVSetpoint3-fPrevPITAPOSVSetpoint3),fPITAPOSVSetpoint3,fPrevPITAPOSVSetpoint3);
   fclose(out_file_PITAPOSV); 
 };
@@ -1416,7 +1416,7 @@ void QwHelicityCorrelatedFeedback::LogPFVParameters(){
 void QwHelicityCorrelatedFeedback::LogXYParameters(){
  
 
-  out_file_PITAPOSXY = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_PITAPOSXY_log.txt", "a");
+  out_file_PITAPOSXY = fopen(LOGFILE_PITAXY, "a");
   fprintf(out_file_PITAPOSXY,"%10d %9.0d %+15.2f %15.2f %15.2f %15.2f %15.2f \n",fCurrentPatternNumber,fQuartetNumber,fXDiff,fYDiff,TMath::Abs(fPOSXYSetpoint1-fPrevPOSXYSetpoint1),fPOSXYSetpoint1,fPrevPOSXYSetpoint1);
   fclose(out_file_PITAPOSXY); 
 };
@@ -1425,7 +1425,7 @@ void QwHelicityCorrelatedFeedback::LogXYParameters(){
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::LogHCParameters(){
  
-   out_file_HC_IA = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HC_IA_log.txt", "a");
+   out_file_HC_IA = fopen(LOFGILE_HC_IA, "a");
   //fQuartetNumber only available when we have good stable Hall C beam
    fprintf(out_file_HC_IA,"%10d %9.0d  %15.2f  %15.2f %15.0f %25.0f  %25.0f \n",fCurrentPatternNumber,fQuartetNumber,fTargetHCCharge,fTargetHCChargeError,TMath::Abs(fHCIASetpoint1-fPrevHCIASetpoint1),fHCIASetpoint1,fPrevHCIASetpoint1);
    fclose(out_file_HC_IA);
@@ -1435,7 +1435,7 @@ void QwHelicityCorrelatedFeedback::LogHCParameters(){
 
 void QwHelicityCorrelatedFeedback::LogHAParameters(){
  
-   out_file_HA_IA = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HA_IA_log.txt", "a");
+   out_file_HA_IA = fopen(LOFGILE_HA_IA, "a");
   //fQuartetNumber only available when we have good stable Hall C beam
    fprintf(out_file_HA_IA,"%10d %9.0d  %15.2f  %15.2f %15.0f %25.0f  %25.0f \n",fCurrentPatternNumber,fQuartetNumber,fTargetHACharge,fTargetHAChargeError,TMath::Abs(fHAIASetpoint1-fPrevHAIASetpoint1),fHAIASetpoint1,fPrevHAIASetpoint1);
    fclose(out_file_HA_IA);
@@ -1444,7 +1444,7 @@ void QwHelicityCorrelatedFeedback::LogHAParameters(){
 
 void QwHelicityCorrelatedFeedback::LogHBParameters(){
  
-   out_file_HB_IA = fopen("/adaqfs/halla/apar/PREX/japan_feedback/LogFiles/Feedback_HB_IA_log.txt", "a");
+   out_file_HB_IA = fopen(LOFGILE_HB_IA, "a");
   //fQuartetNumber only available when we have good stable Hall C beam
      fprintf(out_file_HB_IA," %9.0d  %15.2f  %15.2f %15.0f %25.0f  %25.0f \n",fQuartetNumber,fTargetHBCharge,fTargetHBChargeError,TMath::Abs(fHBIASetpoint1-fPrevHBIASetpoint1),fHBIASetpoint1,fPrevHBIASetpoint1);
    fclose(out_file_HB_IA);
@@ -2278,6 +2278,8 @@ void QwHelicityCorrelatedFeedback::AccumulateRunningSum(QwHelicityCorrelatedFeed
     // QwError << "fails on errorflag cut" << QwLog::endl;
   }
 
+// q_targC, q_targA, q_targB are all trhe same calculations, they just use different BCM configurations
+// If I can get it working for one, it shoudl work for all
   if(entry.fAsymmetry.RequestExternalValue("q_targC", &fTargetParameter)){
     //fScalerChargeRunningSum.PrintValue();
     //fScalerChargeRunningSum.AccumulateRunningSum(fScalerCharge);
@@ -2819,18 +2821,47 @@ void  QwHelicityCorrelatedFeedback::FillTreeVector(std::vector<Double_t> &values
 
 TString  QwHelicityCorrelatedFeedback::GetHalfWavePlateState()
 {
-  TString plate_status = gSystem->GetFromPipe("caget -t -w 0.1 IGL1I00DI24_24M");
-  return plate_status;
+	// That is annoying that we call a command line utility to get the plate status instead
+	// of using QwEPICSControl
+	// gSystem->GetFromPipe returns a string... likely the EPICS var is a double (int)?
+	// as of 08/31/25, QwEPICS only supports strings and doubles, adding int support would be trivial
+	// but for now, we will do int  = static_cast<int>(double)
+	// I also plan on refactoring all WavePlate Logic into its own class
+	// but for now, is always return open -- mrc 08/31/25
+
+	// Note to self: I imagine all epics vars are actually stored as unsigned ints but for feedback,
+	// we prefer the precision offered by doubles
+	QwWarning << "Calling QwHelicityCorrelatedFeedback::GetHalfWavePlateState()\n";
+	QwWarning << "Hardcoded to always return 'IN'";
+	// TString plate_status = gSystem->GetFromPipe("caget -t -w 0.1 IGL1I00DI24_24M");
+	// plate_status is either 'IN' or 'OUT'
+	TString plate_status = "IN";
+	return plate_status;
 };
 
-UInt_t QwHelicityCorrelatedFeedback::GetHalfWavePlate2State(){
-  TString ihwp2_value = gSystem->GetFromPipe("caget -tf0 -w 0.1  IGL1I00DIOFLRD");
-  UInt_t ihwp2 =ihwp2_value.Atoi();
-  
-  if (ihwp2>10000)
-    return 1;//13056=IN
-  else
-    return 0; //8960=OUT
+UInt_t QwHelicityCorrelatedFeedback::GetHalfWavePlate2State()
+{
+	// That is annoying that we call a command line utility to get the plate status instead
+	// of using QwEPICSControl
+	// gSystem->GetFromPipe returns a string... likely the EPICS var is a double (int)?
+	// as of 08/31/25, QwEPICS only supports strings and doubles, adding int support would be trivial
+	// but for now, we will do int  = static_cast<int>(double)
+	// I also plan on refactoring all WavePlate Logic into its own class
+	// but for now, is always return open -- mrc 08/31/25
+
+	// Note to self: I imagine all epics vars are actually stored as unsigned ints but for feedback,
+	// we prefer the precision offered by doubles
+	QwWarning << "Calling QwHelicityCorrelatedFeedback::GetHalfWavePlate2State()\n";
+	QwWarning << "Hardcoded to always return 'IN'\n";
+	// TString ihwp2_value = gSystem->GetFromPipe("caget -tf0 -w 0.1  IGL1I00DIOFLRD");
+	// UInt_t ihwp2 =ihwp2_value.Atoi();
+	// ihwp2 is either 13056 ('IN') or 8960 ('OUT')
+	
+	auto ihwp2 = 13056;
+	if (ihwp2>10000)
+		return 1;//13056=IN
+	else
+		return 0; //8960=OUT
 };
 
 void QwHelicityCorrelatedFeedback::CheckFeedbackStatus()

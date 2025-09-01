@@ -34,9 +34,10 @@ static char const *LOFGILE_HB_IA   = "/adaqfs/halla/apar/PREX/japan_feedback/Log
 static char const *LOGFILE_IA      = "/home/mrc/logfiles/Feedback_IA_log.txt";
 static char const *LOGFILE_PITA    = "/home/mrc/logfiles/Feedback_PITA_log.txt"; 
 static char const *LOGFILE_HA_IA   = "/home/mrc/logfiles/Feedback_HA_IA_log.txt";
-static char const *LOGILE_PITAPOSU = "/home/mrc/logfiles/Feedback_PITAPOSU_log.txt";
+static char const *LOGFILE_PITAPOSU = "/home/mrc/logfiles/Feedback_PITAPOSU_log.txt";
 static char const *LOGFILE_PITAPOSV= "/home/mrc/logfiles/Feedback_PITAPOSV_log.txt";
 static char const *LOGFILE_PITAXY  = "/home/mrc/logfiles/Feedback_PITAPOSXY_log.txt";
+static char const *LOFGILE_HA_IA   = "/home/mrc/logfiles/Feedback_HA_IA_log.txt";
 static char const *LOFGILE_HC_IA   = "/home/mrc/logfiles/Feedback_HC_IA_log.txt";
 static char const *LOFGILE_HB_IA   = "/home/mrc/logfiles/Feedback_HB_IA_log.txt";
 
@@ -255,7 +256,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 		 /*     	    "New PITAPOSV Setpoint[3],", "Old PITAPOSV Setpoint[3],"); */
 		 /*     fclose(out_file_PITAPOS); */
 
-		 out_file_PITAPOSU = fopen(LOGILE_PITAPOSU, "a");
+		 out_file_PITAPOSU = fopen(LOGFILE_PITAPOSU, "a");
 		 fprintf(out_file_PITAPOSU,"%22s \n",asctime (timeinfo));
 		 fprintf(out_file_PITAPOSU,
 				 "%9s %15s %15s %12s %12s %12s\n",

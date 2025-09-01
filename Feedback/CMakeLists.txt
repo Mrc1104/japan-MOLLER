@@ -25,12 +25,12 @@ report_build_info()
 #----------------------------------------------------------------------------
 #  Feedback needs both ET and EPICS
 IF(ET_FOUND)
-IF(EPICS_FOUND)
-  include_directories(${ROOT_INCLUDE_DIR})
-  include_directories(${ET_INCLUDE_DIR})
-  include_directories(${EPICS_INCLUDE_DIR}
-                      ${EPICS_INCLUDE_DIR}/os/Linux
-		      ${EPICS_INCLUDE_DIR}/compiler/gcc)
+#IF(EPICS_FOUND)
+#  include_directories(${ROOT_INCLUDE_DIR})
+#  include_directories(${ET_INCLUDE_DIR})
+#  include_directories(${EPICS_INCLUDE_DIR}
+#                      ${EPICS_INCLUDE_DIR}/os/Linux
+#		      ${EPICS_INCLUDE_DIR}/compiler/gcc)
   include_directories(${PROJECT_SOURCE_DIR}/Analysis/include
                       ${PROJECT_SOURCE_DIR}/Parity/include)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -43,7 +43,7 @@ IF(EPICS_FOUND)
  )
  add_library(QwFeedback SHARED ${feedback_sources})
  target_include_directories(QwFeedback  PUBLIC
-			    ${CMAKE_CURRENT_SOURCE_DIR}/include
+			    #${CMAKE_CURRENT_SOURCE_DIR}/include
 			    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 			    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 			    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
@@ -60,7 +60,8 @@ target_link_libraries(QwFeedback
     EVIO::ET
     ROOT::Libraries
     ${PROJECT_NAME}
-    ${EPICS_CA_LIBRARY} ${EPICS_CAS_LIBRARY} ${EPICS_COM_LIBRARY} ${EPICS_GDD_LIBRARY}
+#    ${EPICS_CA_LIBRARY}#${EPICS_CAS_LIBRARY}
+#	${EPICS_COM_LIBRARY}#${EPICS_GDD_LIBRARY}
   )
 
 install(TARGETS QwFeedback
@@ -103,8 +104,5 @@ endforeach()
 
 install(FILES ${my_feedback_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-endif(EPICS_FOUND)
+#endif(EPICS_FOUND)
 endif(ET_FOUND)
-
-
-

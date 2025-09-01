@@ -141,7 +141,41 @@ name=target_energy
  bpm_target,   combinedbpm,    2.6,       targetbeamangle
 end=energycalculator
 
+! As the name implies
+! This is a fake BCM
+! - mrc
+begin=combinedbpm
+name=bpm_fake
+bpm1h04, bpmstripline, 1.0, 1.0, 1.0
+bpm1h05, bpmstripline, 1.0, 1.0, 1.0
+bpm1h11, bpmstripline, 1.0, 1.0, 1.0
+bpm1h14, bpmstripline, 1.0, 1.0, 1.0
+end=combinedbpm
 
+
+!set of published variables
+!publish name,device_type, device name, property (x-pos,xp-angle,y-pos,yp-angle,c-charge,e-energy change, ef - effective charge)
+
+!Each line must contain,
+!1. publish name
+!2. device type
+!	bcm
+!	bpmstripline
+!	bpmcavity
+!	combobpm
+!	combobcm
+!	comboenergy
+!       scaler
+!3. device name 
+!4. property to publish 
+!	x-pos
+!	xp-angle
+!	y-pos
+!	yp-angle
+!	c-charge
+!	e-energy change
+!	ef-effective charge
+!       sc - scaler channel
 [PUBLISH]
  q_targ,   combobcm,     bcm_target,     c
  x_targ,   combobpm,     bpm_target,     x
@@ -149,6 +183,24 @@ end=energycalculator
  xp_targ,  combobpm,     bpm_target,     xp
  yp_targ,  combobpm,     bpm_target,     yp
  e_targ,   comboenergy,  target_energy,  e
+! Start of stuff I made up -- mrc
+ q_targA,   combobcm,     bcm_target,    c
+ q_targB,   combobcm,     bcm_target,    c
+ q_targC,   combobcm,     bcm_target,    c
+ xy_pos_x,  combobpm,     bpm_target,    xp
+ xy_pos_y,  combobpm,     bpm_target,    yp
+ bpm4aWS,  combobpm,     bpm_fake,    y
+ bpm4eWS,  combobpm,     bpm_fake,    y
+ bpm12WS,  combobpm,     bpm_fake,    y
+ bpm0r05WS,  combobpm,     bpm_fake,    y
+ bpm4eX,  combobpm,     bpm_fake,    y
+ bpm4eY,  combobpm,     bpm_fake,    y
+ bpm4aX,  combobpm,     bpm_fake,    y
+ bpm4aY,  combobpm,     bpm_fake,    y
+ bpm12X,  combobpm,     bpm_fake,    y
+ bpm12Y,  combobpm,     bpm_fake,    y
+ bpm0r05X,  combobpm,     bpm_fake,    y
+ bpm0r05Y,  combobpm,     bpm_fake,    y
 
 
 

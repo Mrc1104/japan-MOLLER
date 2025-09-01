@@ -1581,7 +1581,7 @@ void Get_IA_HB_4(Double_t &value){
     //   const char* epic_half_wave_plate = "IGL1I00DI24_24M";
     // plate_status = ca_get(DBF_STRING, fHalfWavePlateStatus, &plate_status);
     plate_status = ca_get(DBR_STRING, fHalfWavePlateStatus, &plate_status); // changed to DBR_STRING to be consistent with
-	                                                                        // DBR_DOUBLE. This function is still program -- mrc
+	                                                                        // DBR_DOUBLE. This function is still broken -- mrc
     if(plate_status == 1) {
       return "IN";
     }
