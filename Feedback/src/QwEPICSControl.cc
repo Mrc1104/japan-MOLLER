@@ -36,6 +36,20 @@ void QwEPICS<std::string>::read(std::string &ret)
 	ret = std::move(buffer);
 }
 
+// Note to self (09/03/25):
+// We could unify all of the write / read calls for the different
+// types by having one template<typename T> write / read
+// and use a collection of
+// if constexpr (std::is_same<type1, const T>::value)
+// else if constexpr (std::is_same<type2, const T>::value)
+// ...
+// else
+//	static_assert(!std::is_same<T,T>::value, "error message");
+// see: https://stackoverflow.com/questions/69501472/best-way-to-trigger-a-compile-time-error-if-no-if-constexprs-succeed
+//
+// Everything would be determined at compile time, we could easily support all DB structures
+// etc. Compile time errors are way better than linker errors!
+// My fake cadef implementation should support other types easily
 template<>
 void QwEPICS<std::string>::write(std::string val)
 {

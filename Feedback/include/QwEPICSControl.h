@@ -26,7 +26,7 @@ using namespace FAKE_EPICS;
  *	Likely, we should quit the program if a single IOC fails (how
  *	do we do feedback without the feedback channels?).
  *
- *	Alternative, the constructor takes a valid chid object (user 
+ *	Alternative: the constructor takes a valid chid object (user 
  *	is responsible for calling ca_search and handling failure)?
  *
  *  This is a template class because we want to support two forms:
