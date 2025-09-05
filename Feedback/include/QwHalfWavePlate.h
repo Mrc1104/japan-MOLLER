@@ -34,6 +34,30 @@
  *	(when I have a hammer, all I see are nails -- mrc).
  *
  *	... How to handle the return type ..?
+ *
+ *  Using template class to achieve IWHP and RHWP functionality would likely be a huge pain
+ *	they are only similar in name and not use. If we decide we need to support RHWP, then we should
+ *	rename this class to IHWP, and make a seperate RHWP class.
+ *	Or, keep QwHalfWavePlate name as is and make it a base class from which IWHP and RHWP could be derived
+ *	options... options... -- mrc (09/05/25)
+ *
+ * Imagine:
+ *	template< typename T >
+ *	QwHalfWavePlate
+ *	{
+ *	public:
+ *		Update();
+ *		T GetStatus();
+ *
+ *	private:
+ *		T status;
+ *		QwEPICS<T> HWP;
+ * }
+ * Then we would derive it as
+ * 	class QwRotatingWavePlate   : public QwHalfWavePlate<double> (continuous values)
+ * 	class QwInsertableWavePlate : public QwHalfWavePlate<double> (discrete values)
+ * and then we can define (outside of QwInsertableWavePlate), an enum with 'In' or 'OUT'
+ * I really like this idea
  */
 
 #include <string>
