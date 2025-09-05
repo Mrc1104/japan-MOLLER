@@ -47,6 +47,7 @@ enum TYPES
 	// Data types
 	DBR_DOUBLE,
 	DBR_STRING,
+	DBR_INT
 };
 
 enum channel_state {

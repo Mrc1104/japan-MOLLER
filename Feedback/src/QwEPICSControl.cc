@@ -24,48 +24,8 @@ QwEPICS<T>::QwEPICS(std::string ioc_name)
 	}
 }
 
-// Can I do this with if constexpr (...) instead of explicit specialization?
-// See Back to Basics: Templates in C++ - Nicolai Josuttis - CppCon 2022 (min 51)
-template<>
-void QwEPICS<std::string>::read(std::string &ret)
-{
- 	// EPICS DB API returns null-terminated c-strings
-	char buffer[MAX_STRING_SIZE] = {0};
-	ca_get(DBR_STRING, ioc, buffer);
-
-	ret = std::move(buffer);
-}
-
-// Note to self (09/03/25):
-// We could unify all of the write / read calls for the different
-// types by having one template<typename T> write / read
-// and use a collection of
-// if constexpr (std::is_same<type1, const T>::value)
-// else if constexpr (std::is_same<type2, const T>::value)
-// ...
-// else
-//	static_assert(!std::is_same<T,T>::value, "error message");
-// see: https://stackoverflow.com/questions/69501472/best-way-to-trigger-a-compile-time-error-if-no-if-constexprs-succeed
-//
-// Everything would be determined at compile time, we could easily support all DB structures
-// etc. Compile time errors are way better than linker errors!
-// My fake cadef implementation should support other types easily
-template<>
-void QwEPICS<std::string>::write(std::string val)
-{
-	ca_put(DBR_STRING, ioc, val.c_str());
-}
-
-template<>
-void QwEPICS<double>::read(double &ret)
-{
-	ca_get(DBR_DOUBLE, ioc, &ret);
-}
-template<>
-void QwEPICS<double>::write(double val)
-{
-	ca_put(DBR_DOUBLE, ioc, &val);
-}
+template<typename T>
+QwEPICS<T>::~QwEPICS(){}
 
 template<typename T>
 void QwEPICS<T>::sync()
@@ -90,6 +50,7 @@ bool QwEPICS<T>::connected()
 		is_connected = kFALSE;
 	break;
 	case cs_conn:
+		// Change this to QwDebug
 		QwMessage << "Valid chid, IOC was found, still available" << QwLog::endl;
 		is_connected = kTRUE;
 	break;
@@ -105,15 +66,62 @@ bool QwEPICS<T>::connected()
 	return is_connected;
 }
 
+/*
+ * EPIC DB Access supports several types.
+ * For a complete list, see $EPICS_BASE/include/db_access.h
+ *
+ * The below template<T> write / read functions support a subset of
+ * all EPICS DB types. To add support for a new type, add a
+ * if constexpr branch for the desired type. Make sure to explicitly instantiate
+ * the class definition below. Otherwise, you will get a *linker* error!
+ *
+ * Note: if constexpr is evaluated at *compile-time*
+ * See Back to Basics: Templates in C++ - Nicolai Josuttis - CppCon 2022 (min 51)
+ * See: https://stackoverflow.com/questions/69501472/best-way-to-trigger-a-compile-time-error-if-no-if-constexprs-succeed
+ */
 template<typename T>
-QwEPICS<T>::~QwEPICS(){}
+void QwEPICS<T>::write(T val)
+{
+	if constexpr(std::is_same<T, std::string>::value) {
+		ca_put(DBR_STRING, ioc, val.c_str());
+	} else if constexpr(std::is_same<T, double>::value) {
+		ca_put(DBR_DOUBLE, ioc, &val);
+	} else if constexpr(std::is_same<T, int>::value) {
+		ca_put(DBR_INT, ioc, &val);
+	} else {
+		static_assert(!std::is_same<T,T>::value,\
+		"We do not support the requested QwEPICS data type\n\
+		Supported Types:\n\
+		std::string, double, int\n");
+	}
+}
 
+template<typename T>
+void QwEPICS<T>::read(T &ret)
+{
+	if constexpr(std::is_same<T, std::string>::value) {
+		// EPICS DB returns null-terminated c-strings
+		char buffer[MAX_STRING_SIZE] = {0};
+		ca_get(DBR_STRING, ioc, buffer);
+		ret = std::move(buffer);
+	} else if constexpr(std::is_same<T, double>::value) {
+		ca_get(DBR_DOUBLE, ioc, &ret);
+	} else if constexpr(std::is_same<T, int>::value) {
+		ca_get(DBR_INT, ioc, &ret);
+	} else {
+		static_assert(!std::is_same<T,T>::value,\
+		"We do not support the requested QwEPICS data type\n\
+		Supported Types:\n\
+		std::string, double, int\n");
+	}
+}
 
 // Explicitly Instantiation Definitions
 // For now, we only support double and string,
 // but EPICS db supports more types
 template class QwEPICS<std::string>;
 template class QwEPICS<double>;
+template class QwEPICS<int>;
 /////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: OLD IMPLEMENTATION. DELETE ME
 // Added so intermediate steps will compile + link

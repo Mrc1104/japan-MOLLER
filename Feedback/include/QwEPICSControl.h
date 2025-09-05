@@ -31,10 +31,7 @@ using namespace FAKE_EPICS;
  *
  *  This is a template class because we want to support two forms:
  *  DBR_STRING and DBR_DOUBLE. Type-specific implementations lends
- *  itself to templates + explicit specialization. If you try to
- *  instantiate a type we do not support, e.g. QwEPICS<char>, then
- *  then you will get a linker error!
- *
+ *  itself to templates + explicit specialization.
  *  NOTE: EPICS DB supports more types than these two.
  *  Explicit specialization also enforces that we only support a subset.
  */
