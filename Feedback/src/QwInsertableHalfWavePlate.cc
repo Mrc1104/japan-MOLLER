@@ -9,7 +9,6 @@ static char const *DEFAULT_IHWP_IOC = "IGL1I00DI24_24M";
 IHWP::IHWP() : QwHalfWavePlate<int>(DEFAULT_IHWP_IOC)
 {
 	status = static_cast<int>( IHWP_STATUS::UNKNOWN );
-	std::cout << status << std::endl;
 }
 
 IHWP::IHWP(std::string ioc) : QwHalfWavePlate<int>( std::move(ioc) )
