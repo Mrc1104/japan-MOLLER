@@ -7,9 +7,13 @@
  *	This class contains the logic for the IHWPs located upstream of the pockel cells
  *  THere are two such HWPs: nonconfusingly named ihwp & ihwp2 in the original code.
  *  This class should contain:
- *		- DefineOptions(QwOptions&) --> The caller should be handling the options, not this class
+ *		- DefineOptions(QwOptions&)
+ *		---- The caller should be handling the options, not this class
  *		-- fAutoIWHP = allows the state to change as the feedback progress (what timescales?)
+ *		---- This option is irrelevent to the class. Caller should handle this
  *		-- fHalfwaveRevert = Sets 'IN'->'OUT', 'OUT'->'IN'
+ *		---- Could add this to QwInsertableHalfWavePlate as a Constructor param. All it would do is
+ *		---- invert the return value on GetStatus() calls -- mrc (09/06/25)
  *      -- The IWP IOC (we'll use the QwOption default args to set the nominal IOC id)
  *		---- IGL1I00DI24_24M (ihwp)
  *		---- IGL1I00DIOFLRD  (ihwp2) this is a passive ihwp readback: (13056=IN,8960=OUT)
@@ -19,7 +23,6 @@
  *		------ a static char const * DEFAULT_IOC_NAME instead
  *	Desired Methods Public:
  *		- Status() = returns and enum with the hwp status
- *		-- enum hwp_state{ IN, OUT, UNKNOWN}
  *	Desired Methods Private:
  *		- Update() = reads the EPICS DB and updates the status
  *
@@ -38,8 +41,8 @@
  *  Using template class to achieve IWHP and RHWP functionality would likely be a huge pain
  *	they are only similar in name and not use. If we decide we need to support RHWP, then we should
  *	rename this class to IHWP, and make a seperate RHWP class.
- *	Or, keep QwHalfWavePlate name as is and make it a base class from which IWHP and RHWP could be derived
- *	options... options... -- mrc (09/05/25)
+ *	Or, keep QwHalfWavePlate name as is and make it a base class from which IWHP and RHWP could be
+ *  derived. Options... options... -- mrc (09/05/25)
  *
  * Imagine:
  *	template< typename T >
@@ -55,7 +58,7 @@
  * }
  * Then we would derive it as
  * 	class QwRotatingWavePlate   : public QwHalfWavePlate<double> (continuous values)
- * 	class QwInsertableWavePlate : public QwHalfWavePlate<double> (discrete values)
+ * 	class QwInsertableWavePlate : public QwHalfWavePlate<int> (discrete values)
  * and then we can define (outside of QwInsertableWavePlate), an enum with 'In' or 'OUT'
  * I really like this idea
  */
@@ -69,7 +72,7 @@ class QwHalfWavePlate
 {
 public:
 	QwHalfWavePlate(std::string ioc);
-	// virtual ~QwHalfwavePlate();
+	// virtual ~QwHalfwavePlate(); // Do we need this? How to make a templated virtual dtor?
 
 	// Do we have a use case for a unified
 	// "update and return new status functionality"?
