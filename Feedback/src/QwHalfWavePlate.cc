@@ -1,44 +1,26 @@
 #include "QwHalfWavePlate.h"
 
-static char const *DEFAULT_IOC_NAME = "IGL1I00DI24_24M";
-HWP::HWP()
-{
-	// I do not like this -- mrc
-	wave_plate(DEFAULT_IOC_NAME);
-	status = HWP_STATUS::UNKNOWN:
-}
-HWP::HWP(std::string ioc)
-{
-	wave_plate(std::move(ioc));
-	status = HWP_STATUS::UNKNOWN:
-}
+template<typename T>
+QwHalfWavePlate<T>::QwHalfWavePlate(std::string ioc) : hwp_ioc(std::move(ioc)), status{} { }
 
+// template<typename T>
+// QwHalfWavePlate<T>::~QwHalfwavePlate() { }
 
-void HWP::Update()
+template<typename T>
+void QwHalfWavePlate<T>::Update()
 {
-	double value = 0.0;
-	wave_plate.read(&value);
-	update_status(value);
+	hwp_ioc.read(status);
 }
 
-HWP_STATUS HWP::GetStatus()
+template<typename T>
+T QwHalfWavePlate<T>::GetStatus() const
 {
 	return status;
 }
 
-void HWP::update_status(double value)
-{
-	HWP_STATUS hwp_value = static_cast<HWP_STATUS>(value);
-	switch(hwp_value) {
-	case HWP_STATUS::OUT:
-		status = HWP_STATUS::OUT;
-	break;
-	case HWP_STATUS::IN:
-		status = HWP_STATUS::IN;
-	break;
-	default:
-		status = HWP_STATUS::UNKNOWN;
-		QwError << "HWP Status is HWP_STATUS::UNKNOWN" << QwLog::endl;
-	break;
-	}
-}
+// QwEPICS does not support any arbitrary types so we are limited to
+// the types it supports. To enforce this, we will explicitly instantiate
+// the template definitions here.
+// Note: To relax requiring the explicit defintions, move the impl. into QwHalfWavePlate.h
+template class QwHalfWavePlate<int>;   // Insertable   HWP is either 'In' or 'Out' ( discrete )
+template class QwHalfWavePlate<double>;// The Rotating HWP goes from 0-360         (continuous)

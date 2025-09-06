@@ -7,7 +7,7 @@
  *	This class contains the logic for the IHWPs located upstream of the pockel cells
  *  THere are two such HWPs: nonconfusingly named ihwp & ihwp2 in the original code.
  *  This class should contain:
- *		- DefineOptions(QwOptions&)
+ *		- DefineOptions(QwOptions&) --> The caller should be handling the options, not this class
  *		-- fAutoIWHP = allows the state to change as the feedback progress (what timescales?)
  *		-- fHalfwaveRevert = Sets 'IN'->'OUT', 'OUT'->'IN'
  *      -- The IWP IOC (we'll use the QwOption default args to set the nominal IOC id)
@@ -64,30 +64,20 @@
 
 #include "QwEPICSControl.h"
 
-// As far as I can tell
-// 0 => 'OUT'
-// 1 => 'IN'
-enum class HWP_STATUS
-{
-	OUT = 0,
-	IN,
-	UNKNOWN
-};
-class HWP
+template<typename T>
+class QwHalfWavePlate
 {
 public:
-	HWP();
-	HWP(std::string &ioc);
+	QwHalfWavePlate(std::string ioc);
+	// virtual ~QwHalfwavePlate();
 
-	// Do we have a use case for a unified "update and return new status functionality"?
-	void Update();
-	HWP_STATUS GetStatus();
+	// Do we have a use case for a unified
+	// "update and return new status functionality"?
+	virtual void Update();
+	virtual T GetStatus() const;
 
-private:
-	void update_status(double value);	
-
-private:
-	QwEPICS<double> wave_plate;
-	HWP_STATUS status;
+protected:
+	QwEPICS<T> hwp_ioc;
+	T status;
 };
 #endif

@@ -38,6 +38,9 @@ IF(ET_FOUND)
  set(feedback_sources
    ${CMAKE_CURRENT_SOURCE_DIR}/src/GreenMonster.cc
    ${CMAKE_CURRENT_SOURCE_DIR}/src/QwEPICSControl.cc
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/QwHalfWavePlate.cc
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/QwInsertableHalfWavePlate.cc
+   ${CMAKE_CURRENT_SOURCE_DIR}/src/QwRotatableHalfWavePlate.cc
    ${CMAKE_CURRENT_SOURCE_DIR}/src/QwHelicityCorrelatedFeedback.cc
    ${CMAKE_CURRENT_SOURCE_DIR}/src/cfSockCli.cc
  )
