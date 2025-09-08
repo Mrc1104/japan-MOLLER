@@ -16,8 +16,7 @@ QwEPICS<T>::QwEPICS(std::string ioc_name)
 	// Change this to QwDebug
 	QwMessage << "Connecting to IOC Channel: " << ioc_name << QwLog::endl;
 	ca_search(ioc_name, &ioc);
-	// Do I need to call ca_pend_io first before checking its connection?
-	// ca_pend_io(10)
+	sync();
 	if( !connected() )
 	{
 		throw std::invalid_argument("Could not connect to IOC Channel\n");
