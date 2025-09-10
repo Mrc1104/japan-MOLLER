@@ -33,13 +33,15 @@ std::string demangle(const char* name)
 
 /* Following the Blog: https://www.nirfriedman.com/2018/04/29/unforgettable-factory/ */
 // Base is following the CRTP pattern to inject functionality
+// Base = Animal  <-> base_t
+// Args = int
+// T = Dog        <-> type_t
 template<class Base, class... Args>
 class Factory {
 public:
 	friend Base;
 	template<class ...T>
 	static std::unique_ptr<Base> Create(const std::string &type, T&&... args) {
-		std::unique_ptr<Base> ptr{};
 		if(InspectFactoryForKey(type)== false) {
 			QwError   << "Type " << type << " is not registered!" << QwLog::endl;
 			QwMessage << "Available types:" << QwLog::endl;
@@ -48,11 +50,10 @@ public:
 			QwWarning << "Declare your class as\n";
 			QwWarning << "\tclass " << type << " : public Factory::Registrar<" << type << ">";
 			QwWarning << QwLog::endl;
-			throw( QwException_TypeUnknown() ); // This is horrible error handling
-		} else {
-			ptr = data().at(type)(std::forward<T>(args)...);	
+			throw( QwException_TypeUnknown() );
 		}
-		return ptr;
+		// We already bounds checked
+		return data()[type](std::forward<T>(args)...);	
 	}
 	static bool InspectFactoryForKey(const std::string &type) {
 		return data().count(type);
@@ -64,6 +65,29 @@ public:
 			QwMessage << entry.first << QwLog::endl;
 		});
 	}
+
+	/// Dynamic cast of object into type
+	static bool Cast(std::unique_ptr<Base> base, const std::string& type) {
+		// I need to think on what to do here
+		// Casts()[type] can throw, check first
+		if(InspectFactoryForKey(type)== false) {
+			QwError   << "Type " << type << " is not registered!" << QwLog::endl;
+			QwMessage << "Available types:" << QwLog::endl;
+			ListRegisteredTypes();
+			QwWarning << "To Register a type with the factory\n";
+			QwWarning << "Declare your class as\n";
+			QwWarning << "\tclass " << type << " : public Factory::Registrar<" << type << ">";
+			QwWarning << QwLog::endl;
+			throw( QwException_TypeUnknown() );
+		}
+		// We already bounds checked
+		return Casts()[type](base);
+	}
+
+    /// Test whether object inherits from type
+    static bool InheritsFrom(std::unique_ptr<Base> base, const std::string& type) {
+      return (Cast(base,type) != 0);
+    }
 public:
 	// Registration
 	template<class T>
@@ -76,6 +100,8 @@ public:
 				return std::make_unique<T>(std::forward<Args>(args)...);
 			};
 			// Define how we will cast to the base type
+			// T = QwHelicity
+			// Base = VQwSusbsystem
 			Factory::Casts()[name] = [](std::unique_ptr<Base> base)->bool {
 				return (dynamic_cast<T*>(base.get()) != nullptr);
 			};
@@ -84,12 +110,10 @@ public:
 		static bool registered;
 	private:
 		// Force Registrar to be instantiated
-		Registrar() : Base(Key{}) { (void)registered;}
-	public:
-		// std::unique_ptr<T>
+		Registrar() : Base(Key{}) { (void)registered; }
 	};
 private:
-	// Passkey Idion -- Prevents inheritance from the base (CRTP) class
+	// Passkey Idiom -- Prevents inheritance from the base (CRTP) class
 	// The Base (CRTP) class will need to take a Key{} object in its constructor
 	class Key {
 		Key(){};
@@ -97,31 +121,21 @@ private:
 	};
 
 private:
+	Factory() = default;
+
 	// Function Pointer to our GetFactory Method
 	using FuncType = std::unique_ptr<Base>(*)(Args...);
-	Factory() = default;
 	// Map from string to concrete types function pointer
 	static auto &data() {
 		static std::unordered_map<std::string, FuncType> s;
 		return s;
 	}
+
 	using CastType = bool(*)(std::unique_ptr<Base>);
 	static auto &Casts() {
 		static std::unordered_map<std::string, CastType> c;
 		return c;
 	}
-
-public:
-    /// Dynamic cast of object into type
-    static bool Cast(std::unique_ptr<Base> base, const std::string& type) {
-	  // I need to think on what to do here
-      return Casts().at(type)(base);
-    }
-
-    /// Test whether object inherits from type
-    static bool InheritsFrom(std::unique_ptr<Base> base, const std::string& type) {
-      return (Cast(base,type) != 0);
-    }
 };
 
 // Fun Part
@@ -130,7 +144,6 @@ template<class T>
 bool Factory<Base,Args...>::Registrar<T>::registered =
 	Factory<Base,Args...>::Registrar<T>::registerT();
 
-/*
 /// Polymorphic copy constructor virtual base class
 template <class Base>
 class VQwCloneable {
@@ -156,9 +169,10 @@ class VQwCloneable {
     }
 
 }; // class VQwCloneable
-
 /// Polymorphic copy construction by curiously recurring template pattern (mix-in)
 /// We have lost covariancy: clone will have the base type, not the derived type...
+// Base = VQwSubsystem
+// Type = QwHelicity
 template <class Base, class Type>
 class MQwCloneable: virtual public VQwCloneable<Base> {
 
@@ -168,52 +182,65 @@ class MQwCloneable: virtual public VQwCloneable<Base> {
     virtual ~MQwCloneable() { };
 
     /// Concrete clone method
-    virtual auto Clone() const {
-      return std::make_unique<Base>(static_cast<const type_t&>(*this));
+    virtual std::unique_ptr<Base> Clone() const {
+      return std::make_unique<Base>(static_cast<const Type&>(*this));
     }
-
-    /// Object dynamic cast
-    static auto Cast(std::unique_ptr<type>) {
-      return dynamic_cast<Type>(Base);
-    }
-	static auto Cast(std::unique_ptr<Base> base, std::string &type) {
-		data().at(type)->Cast(base);
-	}
-
-    /// Test whether object inherits from type
-    static bool InheritsFrom(std::unique_ptr<Base>, const std::string& type) {
-      return (Cast(base,type) != 0);
-    }
-
 }; // class MQwCloneable
-*/
+
+template <class subsystem_t>
+class MQwDataHandlerCloneable: public MQwCloneable<VQwDataHandler,subsystem_t> { };
+/// Mix-in factory functionality for subsystems
+typedef class VQwCloneable<VQwSubsystem> VQwSubsystemCloneable;
+template <class subsystem_t>
+class MQwSubsystemCloneable: public MQwCloneable<VQwSubsystem,subsystem_t> { };
+/// Mix-in factory functionality for data elements
+typedef class VQwCloneable<VQwDataElement> VQwDataElementCloneable;
+template <class dataelement_t>
+class MQwDataElementCloneable: public MQwCloneable<VQwDataElement,dataelement_t> { };
+
 // Factory type with functionality for data Handlers
+
 // CRTP pattern, Animal is injecting functionality
 // This is creating a Factor of type Animal
 // that has an int member variable
+
+// I need to support
+// * InheritFrom
+// * Clone
 struct Animal : Factory<Animal, int> {
 
   // Define Interface Here
   Animal(Key) {}
   virtual void makeNoise() = 0;
+  virtual void loop() = 0;
 
   // We want to be able to
-  // * cast ()
+  // * Cast ()
   // * InheritFrom()
-
+  // * Clone()
 
 };
+
+// Base = Animal
+// 
+// T = Dog
+// class Dog : public Animal::Registrar<Dog> {
+
+// Constructor that we call
+// QwFactory<QwSubsystem,QwHelicity>("QwHelicity");
+
 /*
 // Factory type with functionality for data Handlers
 // CRTP pattern, QwHandlerFactory is injecting functionality
 // We will want to add our functionality for our factory here
 class VQwDataHandlerFactory : public Factory<VQwDataHandlerFactory, VQwDataHandler>
 {
+	// I want to define that MQwCloneable stuff here
 	// We define our Interface here
-	QwhandlerFactory(Key){}
-	virtual void makeNoise() = 0;
+	VQwDataHandlerFactory(Key){}
+	virtual void makeNoise() {}
 
-}
+};
 */
 
 };
