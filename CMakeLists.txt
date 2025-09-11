@@ -83,7 +83,7 @@ add_definitions(-D__USE_FEEDBACK__)
 # Add FEEDBACK SEPCIFIC CODE HERE
 message(STATUS "***********  Building Feedback  ***********")
 
-include_directories(${PROJECT_SOURCE_DIR}/Parity/include)
+include_directories(${PROJECT_SOURCE_DIR}/Feedback/include)
 list(APPEND my_project_headers
 		${PROJECT_SOURCE_DIR}/Feedback/include/GMSock.h
 		${PROJECT_SOURCE_DIR}/Feedback/include/GreenMonster.h
@@ -105,14 +105,14 @@ list(APPEND my_project_headers
 )
 list(APPEND my_project_sources
 		#${PROJECT_SOURCE_DIR}/Parity/src/Feedback/cfSockCli.c
-		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/GreenMonster.cc
-		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/QwEPICSControl.cc
-		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/QwHalfWavePlate.cc
-		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/QwHelicityCorrelatedFeedback.cc
-		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/QwInsertableHalfWavePlate.cc
-		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/QwPitaFeedback.cc
-		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/QwRotatableHalfWavePlate.cc
-		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/cfSockCli.cc
+		${PROJECT_SOURCE_DIR}/Feedback/src/GreenMonster.cc
+		${PROJECT_SOURCE_DIR}/Feedback/src/QwEPICSControl.cc
+		${PROJECT_SOURCE_DIR}/Feedback/src/QwHalfWavePlate.cc
+		${PROJECT_SOURCE_DIR}/Feedback/src/QwHelicityCorrelatedFeedback.cc
+		${PROJECT_SOURCE_DIR}/Feedback/src/QwInsertableHalfWavePlate.cc
+		${PROJECT_SOURCE_DIR}/Feedback/src/QwPitaFeedback.cc
+		${PROJECT_SOURCE_DIR}/Feedback/src/QwRotatableHalfWavePlate.cc
+		${PROJECT_SOURCE_DIR}/Feedback/src/cfSockCli.cc
 	)
 endif()
 
@@ -223,7 +223,7 @@ target_include_directories(${PROJECT_NAME}
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Analysis/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Parity/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Parity/Feedback/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Feedback/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
 		$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
   )
@@ -288,10 +288,10 @@ add_definitions(-D__USE_FEEDBACK__)
 # Add FEEDBACK SEPCIFIC CODE HERE
 message(STATUS "***********  Building Feedback  ***********")
 list(APPEND exefiles
-		${PROJECT_SOURCE_DIR}/Parity/Feedback/main/HWP_driver.cc
-		${PROJECT_SOURCE_DIR}/Parity/Feedback/main/Options_test.cc
-		${PROJECT_SOURCE_DIR}/Parity/Feedback/main/QwFeedback.cc
-		${PROJECT_SOURCE_DIR}/Parity/Feedback/main/test.cc
+		${PROJECT_SOURCE_DIR}/Feedback/main/HWP_driver.cc
+		${PROJECT_SOURCE_DIR}/Feedback/main/Options_test.cc
+		${PROJECT_SOURCE_DIR}/Feedback/main/QwFeedback.cc
+		${PROJECT_SOURCE_DIR}/Feedback/main/test.cc
 	)
 endif()
 
