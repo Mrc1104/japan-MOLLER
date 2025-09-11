@@ -39,7 +39,8 @@ template<typename T>
 class QwEPICS
 {
 public:
-	QwEPICS(std::string ioc_name);
+	QwEPICS(std::string &ioc_name);
+	QwEPICS(std::string &&ioc_name);
 	~QwEPICS();
 
 public:
