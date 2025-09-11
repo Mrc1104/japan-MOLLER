@@ -143,6 +143,11 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  QwError << "*** Before loading feedback param file" << QwLog::endl;
 	  helicitypattern.LoadParameterFile("qweak_fb_prm.in");
 
+	  // This will be replaced by our Feedback datahandlers
+	  // It is sorta goofy how we copy construct patternsum from helicitypattern
+	  // the diff being that helicity pattern goes over all events whereas
+	  // pattersum only processes once a pattern has been completed
+	  //! patternsum is the one that calls the feedback routines !//
 	  QwHelicityCorrelatedFeedback patternsum(helicitypattern);
 	  /*
 		 helicitypattern.UpdateGMClean(0);

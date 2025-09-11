@@ -46,6 +46,7 @@ QwPitaFeedback::~QwPitaFeedback() { }
 // just returns 0 (fails quietly)
 Int_t QwPitaFeedback::LoadChannelMap(const std::string& mapfile)
 {
+	QwMessage << "Loading Channel Map: " << mapfile << QwLog::endl;
 	// Open the Parameter File
 	QwParameterFile map(mapfile);
 
@@ -56,6 +57,7 @@ Int_t QwPitaFeedback::LoadChannelMap(const std::string& mapfile)
 	// Format: [label] [type]_[name]
 	//    ie :     dv    asym_tq05r2
 	while(map.ReadNextLine()) {
+		QwMessage << "QwPitaFeedback is reading the next line\n";
 		// Remove comments, spaces, and empty lines.
 		map.TrimComment();
 		map.TrimWhitespace();
@@ -85,10 +87,13 @@ Int_t QwPitaFeedback::LoadChannelMap(const std::string& mapfile)
 		QwMessage << v << QwLog::endl;
 	for(auto const & v : fDependentFull)
 		QwMessage << v << QwLog::endl;
+
+	return 0;
 }
 
 void QwPitaFeedback::ParseConfigFile(QwParameterFile& file)
-{
+{	
+	VQwDataHandler::ParseConfigFile(file);
 	/* Parameters I need to parse
 	 * 	PITA_VOLTAGE_IN
 	 * 	PITA_VOLTAGE_IN

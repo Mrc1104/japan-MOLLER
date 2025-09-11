@@ -71,6 +71,52 @@ list(REMOVE_ITEM my_project_headers
 		 )
 
 #----------------------------------------------------------------------------
+#  Build feedback library and executable
+#add_subdirectory(Feedback)
+# We ran into issues where our Factory method could not link
+# (or instantiate) across libQwAnalysis + Seperate Feedback Code.
+# The standard does not specify static initialization across translation
+# units, let alone across shared libraries. So we are combining them into one
+# shared library
+if(ENABLE_FEEDBACK)
+add_definitions(-D__USE_FEEDBACK__)
+# Add FEEDBACK SEPCIFIC CODE HERE
+message(STATUS "***********  Building Feedback  ***********")
+
+include_directories(${PROJECT_SOURCE_DIR}/Parity/include)
+list(APPEND my_project_headers
+		${PROJECT_SOURCE_DIR}/Feedback/include/GMSock.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/GreenMonster.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/GreenSock.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/Orig_QwEPICSControl.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/QwEPICSControl.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/QwFeedbackHandler.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/QwHalfWavePlate.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/QwHelicityCorrelatedFeedback.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/QwInsertableHalfWavePlate.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/QwPitaFeedback.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/QwRotatableHalfWavePlate.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/SCAN_cf_commands.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/cadef.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/cfSock.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/cfSockCli.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/cfSock_types.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/epicsTypes.h
+)
+list(APPEND my_project_sources
+		#${PROJECT_SOURCE_DIR}/Parity/src/Feedback/cfSockCli.c
+		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/GreenMonster.cc
+		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/QwEPICSControl.cc
+		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/QwHalfWavePlate.cc
+		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/QwHelicityCorrelatedFeedback.cc
+		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/QwInsertableHalfWavePlate.cc
+		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/QwPitaFeedback.cc
+		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/QwRotatableHalfWavePlate.cc
+		${PROJECT_SOURCE_DIR}/Parity/Feedback/src/cfSockCli.cc
+	)
+endif()
+
+#----------------------------------------------------------------------------
 # MYSQLPP
 #
 find_package(MYSQLPP)
@@ -171,6 +217,17 @@ endforeach()
 add_library(${PROJECT_NAME} SHARED ${my_project_sources} ${my_project_headers})
 add_dependencies(${PROJECT_NAME} check_git_repository)
 
+if(ENABLE_FEEDBACK)
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Analysis/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Parity/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Parity/Feedback/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+		$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+  )
+else()
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
@@ -179,6 +236,7 @@ target_include_directories(${PROJECT_NAME}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
 		$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
   )
+endif()
 
 target_compile_options(${PROJECT_NAME}
   PUBLIC
@@ -216,6 +274,27 @@ file(GLOB exefiles
   Parity/main/*.cc
   Analysis/main/*.cc
 )
+
+#----------------------------------------------------------------------------
+#  Build feedback library and executable
+#add_subdirectory(Feedback)
+# We ran into issues where our Factory method could not link
+# (or instantiate) across libQwAnalysis + Seperate Feedback Code.
+# The standard does not specify static initialization across translation
+# units, let alone across shared libraries. So we are combining them into one
+# shared library
+if(ENABLE_FEEDBACK)
+add_definitions(-D__USE_FEEDBACK__)
+# Add FEEDBACK SEPCIFIC CODE HERE
+message(STATUS "***********  Building Feedback  ***********")
+list(APPEND exefiles
+		${PROJECT_SOURCE_DIR}/Parity/Feedback/main/HWP_driver.cc
+		${PROJECT_SOURCE_DIR}/Parity/Feedback/main/Options_test.cc
+		${PROJECT_SOURCE_DIR}/Parity/Feedback/main/QwFeedback.cc
+		${PROJECT_SOURCE_DIR}/Parity/Feedback/main/test.cc
+	)
+endif()
+
 foreach(file ${exefiles})
   get_filename_component(filename ${file} NAME_WE)
   string(TOLOWER ${filename} filelower)
@@ -241,9 +320,6 @@ foreach(file ${exefiles})
   )
 endforeach()
 
-#----------------------------------------------------------------------------
-#  Build feedback library and executable
-add_subdirectory(Feedback)
 
 #----------------------------------------------------------------------------
 # uninstall

@@ -166,37 +166,54 @@ Int_t nEpicsVar1 = vEpicsVar1.size();
   }
 
   //new RTP variables
+  // PITA(-), POSU(-)
   status = ca_search("IGL0I00C1068_DAC05", &fIDRTP_PITA_1);//PC (PITA) 1
   status = ca_pend_io(10);
+  // PITA(-), POSU(+)
   status = ca_search("IGL0I00C1068_DAC06", &fIDRTP_PITA_2);//PC (PITA) 2
   status = ca_pend_io(10);
+  // PITA(-), POSV(-)
   status = ca_search("IGL0I00C1068_DAC07", &fIDRTP_PITA_3);//PC (PITA) 3
   status = ca_pend_io(10);
+  // PITA(-), POSV(+)
   status = ca_search("IGL0I00C1068_DAC08", &fIDRTP_PITA_4);//PC (PITA) 4
   status = ca_pend_io(10);
+  // PITA(+), POSU(-)
   status = ca_search("IGL0I00C1068_DAC09", &fIDRTP_PITA_5);//PC (PITA) 5
   status = ca_pend_io(10);
+  // PITA(+), POSU(+)
   status = ca_search("IGL0I00C1068_DAC10", &fIDRTP_PITA_6);//PC (PITA) 6
   status = ca_pend_io(10);
+  // PITA(+), POSV(-)
   status = ca_search("IGL0I00C1068_DAC11", &fIDRTP_PITA_7);//PC (PITA) 7
   status = ca_pend_io(10);
+  // PITA(+), POSV(+)
   status = ca_search("IGL0I00C1068_DAC12", &fIDRTP_PITA_8);//PC (PITA) 8
   status = ca_pend_io(10);
 
+  // POSXY
  status = ca_search("IGL0I00C1068_DAC05", &fIDRTP_POSXY_1);//PC (PITA) 1
   status = ca_pend_io(10);
+  // POSXY
   status = ca_search("IGL0I00C1068_DAC06", &fIDRTP_POSXY_2);//PC (PITA) 2
   status = ca_pend_io(10);
+  // POSXY
   status = ca_search("IGL0I00C1068_DAC07", &fIDRTP_POSXY_3);//PC (PITA) 3
   status = ca_pend_io(10);
+  // POSXY
   status = ca_search("IGL0I00C1068_DAC08", &fIDRTP_POSXY_4);//PC (PITA) 4
+  // POSXY
   status = ca_pend_io(10);
   status = ca_search("IGL0I00C1068_DAC09", &fIDRTP_POSXY_5);//PC (PITA) 5
+  // POSXY
   status = ca_pend_io(10);
   status = ca_search("IGL0I00C1068_DAC10", &fIDRTP_POSXY_6);//PC (PITA) 6
+  // POSXY
   status = ca_pend_io(10);
   status = ca_search("IGL0I00C1068_DAC11", &fIDRTP_POSXY_7);//PC (PITA) 7
+  // POSXY
   status = ca_pend_io(10);
+  // POSXY
   status = ca_search("IGL0I00C1068_DAC12", &fIDRTP_POSXY_8);//PC (PITA) 8
   status = ca_pend_io(10);
 
@@ -227,7 +244,7 @@ Int_t nEpicsVar1 = vEpicsVar1.size();
  status = ca_search("IGL0I00C1068_DAC12", &fIDRTP_PITAPOSV_8);//PC (PITA) 8
   status = ca_pend_io(10);
 
- //new Hall C IA variables
+ //new Hall C IA variables (all -)
   status = ca_search("C1068_QDAC11", &fIDIA_HC_1);//IA Cell Setpoint  Hall C
   status = ca_pend_io(10);
   status = ca_search("C1068_QDAC12", &fIDIA_HC_2);//IA Cell Setpoint  Hall C
@@ -238,7 +255,7 @@ Int_t nEpicsVar1 = vEpicsVar1.size();
   status = ca_pend_io(10);
 
 
- //new Hall A IA variables
+ //new Hall A IA variables (all -)
   status = ca_search("C1068_QDAC03", &fIDIA_HA_1);//IA Cell Setpoint  Hall C
   status = ca_pend_io(10);
   status = ca_search("C1068_QDAC04", &fIDIA_HA_2);//IA Cell Setpoint  Hall C
@@ -250,7 +267,7 @@ Int_t nEpicsVar1 = vEpicsVar1.size();
 
 
 
- //new Hall B IA variables
+ //new Hall B IA variables (all -)
   status = ca_search("C1068_QDAC07", &fIDIA_HB_1);//IA Cell Setpoint  Hall C
   status = ca_pend_io(10);
   status = ca_search("C1068_QDAC08", &fIDIA_HB_2);//IA Cell Setpoint  Hall C
@@ -259,16 +276,6 @@ Int_t nEpicsVar1 = vEpicsVar1.size();
   status = ca_pend_io(10);
   status = ca_search("C1068_QDAC10", &fIDIA_HB_4);//IA Cell Setpoint  Hall C
   status = ca_pend_io(10);
-
-  //new Hall A IA variables
-  // status = ca_search("C1068_QDAC03", &fIDHall_A_IA_A0);//IA Cell Setpoint  Hall A
-  // status = ca_pend_io(10);
-  // status = ca_search("C1068_QDAC04", &fIDHall_A_IA_A1);//IA Cell Setpoint  Hall A
-  // status = ca_pend_io(10);
-  // status = ca_search("C1068_QDAC05", &fIDHall_A_IA_A2);//IA Cell Setpoint  Hall A
-  // status = ca_pend_io(10);
-  // status = ca_search("C1068_QDAC06", &fIDHall_A_IA_A3);//IA Cell Setpoint  Hall A
-  // status = ca_pend_io(10);
 
   //  Helicity magnet controls
   // fHelMagNames[0] = "MHE0L01V";

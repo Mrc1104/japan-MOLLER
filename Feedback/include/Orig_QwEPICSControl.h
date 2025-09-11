@@ -1,5 +1,5 @@
-#ifndef __QwEPICSCONTROL__
-#define __QwEPICSCONTROL__
+#ifndef __ORIG_QwEPICSCONTROL__
+#define __ORIG_QwEPICSCONTROL__
 
 
 
