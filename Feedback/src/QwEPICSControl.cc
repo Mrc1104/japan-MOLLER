@@ -116,7 +116,7 @@ void QwEPICS<T>::read(T &ret)
 		// EPICS DB returns null-terminated c-strings
 		char buffer[MAX_STRING_SIZE] = {0};
 		ca_get(DBR_STRING, ioc, buffer);
-		ret = std::move(buffer);
+		ret = buffer;
 	} else if constexpr(std::is_same<T, double>::value) {
 		ca_get(DBR_DOUBLE, ioc, &ret);
 	} else if constexpr(std::is_same<T, int>::value) {
