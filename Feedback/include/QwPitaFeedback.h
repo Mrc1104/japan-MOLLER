@@ -60,6 +60,7 @@
 #include "TString.h"
 
 #include <array>
+#include <memory>
 
 class QwPitaFeedback : public VQwDataHandler,
                              public MQwDataHandlerCloneable<QwPitaFeedback>
@@ -115,10 +116,6 @@ private:
 	QwEPICS<Double_t> setpoint7;
 	QwEPICS<Double_t> setpoint8;
 
-	// What should the signiture look like?
-	Double_t fSlope_IN; // Read in from a .mapfile
-	Double_t fSlope_OUT;// Read in from a .mapfile
-
 	/* Charge Asymmetry is based off of these BPMs
 	I want to read these from a configuration file
 	These BPMS are the target parameters (not used directly
@@ -167,6 +164,12 @@ private:
 	directly inside the get and write functions
 	or have a ReadValues(QwSubsystemArrayParity &fAsymmetry) and get the same
 	effect
+
+
+	 We need to be able to construct this object before we know any of the details. How to do that?
+	 either need to offer a default constructor or we need to create it via a pointer.
+	 The pointer approach is probably best else we would need to how the IHWP is instantiated
+	 This issue can be sidestepped since I plan on making a vector<target_parameters>
 	*/
 private:
 	class target_parameters
@@ -199,11 +202,19 @@ private:
 
 	friend target_parameters; // this scheme probably wont work
 private:
+	// What should the signiture look like?
+	// Double_t fSlope_IN; // Read in from a .mapfile
+	// Double_t fSlope_OUT;// Read in from a .mapfile
+
 	/* There are two pita slope setpoint
 		1) IHWP=IN
 		2) IHWP=OUT
 	   Need functionality of reading the IHWP status
 	   Q: Why do we need fHalfWaveRevert boolean?
+
+	   We need to be able to construct this object before we know any of the details. How to do that?
+	   either need to offer a default constructor or we need to create it via a pointer.
+	   The pointer approach is probably best else we would need to how the IHWP is instantiated
 	*/
 	class pita_slope
 	{
@@ -232,17 +243,39 @@ private:
 			if(ihwp == IHWP_STATUS::UNKNOWN) {
 				QwWarning << "IHWP is in an indeterminate state: Setting PITA Slope to 0!" << QwLog::endl;
 			} else {
-				// ___|  Revert  |  !Revert |
-				//  IN| SLOPE_OUT| SLOPE_IN |
-				// OUT| SLOPE_IN | SLOPE_OUT|
-				slope = ((ihwp==IHWP_STATUS::IN && !revert_ihwp_status) ? slope_ihwp_in : slope_ihwp_out);
+				// XOR
+				// ___| !Revert  |  Revert  |
+				// OUT| SLOPE_OUT| SLOPE_IN |
+				//  IN| SLOPE_IN | SLOPE_OUT|
+				slope = ( ((ihwp==IHWP_STATUS::IN)!= revert_ihwp_status) ? slope_ihwp_in : slope_ihwp_out );
 			}
 			return slope;
 		}
 		IHWP_STATUS GetIHWPStatus() {
 			return ihwp.GetIHWPStatus();
 		}
+		void dump() // TODO: remove me
+		{
+			QwMessage << "Printing class pita_slope info\n";
+			QwMessage << "\tslope_ihwp_in    = " << slope_ihwp_in      << "\n";
+			QwMessage << "\tslope_ihwp_out   = " << slope_ihwp_out     << "\n";
+			QwMessage << "\trevert_ihwp_status = " << revert_ihwp_status << QwLog::endl;
+		}
 	};
+	// DataHandler Arrays use the QwOptions::Define(Process)Options
+	// but the individual datahandlers do not. This is an ugly method to
+	// get configuration parameters into my datahandler and causes
+	// me to delay the instantiation of internal objects -- mrc (09/15/25)
+	struct ihwp_config_options
+	{
+		double slope_in, slope_out;
+		bool revert_ihwp_state;
+		std::string ihwp_ioc_channel;
+		ihwp_config_options() : slope_in(0), slope_out(0), revert_ihwp_state(false), ihwp_ioc_channel("")
+		{}
+	};
+	ihwp_config_options options;
+	std::unique_ptr<pita_slope> slope;
 
 };
 

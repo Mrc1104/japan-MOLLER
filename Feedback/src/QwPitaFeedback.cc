@@ -3,6 +3,8 @@
 #include "QwParameterFile.h"
 #include "QwFactory.h"
 
+#include <stdexcept>
+
 
 // Register this handler with the factory
 // RegisterHandlerFactory(QwPitaFeedback);
@@ -19,8 +21,8 @@ QwPitaFeedback::QwPitaFeedback(const TString& name)
 	setpoint6("IGL0I00C1068_DAC10"),
 	setpoint7("IGL0I00C1068_DAC11"),
 	setpoint8("IGL0I00C1068_DAC12"),
-	fSlope_IN(0),
-	fSlope_OUT(0)
+	options(),
+	slope{nullptr}
 {
 
 	ParseSeparator = "_";
@@ -38,16 +40,29 @@ QwPitaFeedback::QwPitaFeedback(const QwPitaFeedback &source)
 	setpoint6(source.setpoint6),
 	setpoint7(source.setpoint7),
 	setpoint8(source.setpoint8),
-	fSlope_IN(source.fSlope_IN),
-	fSlope_OUT(source.fSlope_OUT) { }
+	options(source.options),
+	slope{nullptr}
+{
+	if(source.slope)
+		slope = std::make_unique<pita_slope>(*source.slope);
+}
 
 QwPitaFeedback::~QwPitaFeedback() { }
 
-// I need to overload this because the default VQwDataHandler::LoadChannelMao(mapfile)
-// just returns 0 (fails quietly)
 Int_t QwPitaFeedback::LoadChannelMap(const std::string& mapfile)
 {
 	QwMessage << "Loading Channel Map: " << mapfile << QwLog::endl;
+	// Create pita_slope object from options parsed in ParseConfigFile
+	// I would like to construct this object in the constructor, but
+	// then it would be in an incomplete state -- mrc (09/15/25)
+	// As of now, I know that slope will always be initialized... but what if that changes?
+	// How can I enforce that it is always valid?
+	if(options.ihwp_ioc_channel.size()) {
+		slope = std::make_unique<pita_slope>(options.ihwp_ioc_channel, options.slope_in, options.slope_out, options.revert_ihwp_state);
+	} else {
+		slope = std::make_unique<pita_slope>(options.slope_in, options.slope_out, options.revert_ihwp_state);
+	}
+
 	// Open the Parameter File
 	QwParameterFile map(mapfile);
 
@@ -98,10 +113,43 @@ Int_t QwPitaFeedback::LoadChannelMap(const std::string& mapfile)
 void QwPitaFeedback::ParseConfigFile(QwParameterFile& file)
 {	
 	VQwDataHandler::ParseConfigFile(file);
+
+	QwWarning << "Getting PITA info from config file!" << QwLog::endl;
 	/* Parameters I need to parse
 	 * 	PITA_VOLTAGE_IN
 	 * 	PITA_VOLTAGE_IN
 	 */
+
+
+	// Get PITA Slopes from File
+	/*
+	double slope_in = 0, slope_out = 0;
+	std::string ihwp_ioc_channel;
+	bool fRevert = false;
+	file.PopValue("revert-ihwp-state", fRevert);
+
+  	if(!file.PopValue("slope-ihwp-in",  slope_in) || !file.PopValue("slope-ihwp-out", slope_out)) {
+		throw std::runtime_error("PITA Slopes for IHWP-IN(OUT) not defined!\n\
+		                          Add slope-ihwp-in(out) to the .conf file.");
+	}
+
+	// Create a pita_slope object with the values defined above
+	// I am not happy about ParseConfigFile instantiating member variables
+	// I could store the configurations internally and then instatiate slope object
+	// inside loadchannel map instead.
+	if(file.PopValue("ihwp-ioc", ihwp_ioc_channel)) {
+		slope = std::make_unique<pita_slope>(ihwp_ioc_channel, slope_in, slope_out, fRevert);
+	} else {
+		slope = std::make_unique<pita_slope>(slope_in, slope_out, fRevert);
+	}
+	*/
+
+	file.PopValue("ihwp-ioc"         , options.ihwp_ioc_channel);
+	file.PopValue("revert-ihwp-state", options.revert_ihwp_state);
+  	if(!file.PopValue("slope-ihwp-in",  options.slope_in) || !file.PopValue("slope-ihwp-out", options.slope_out)) {
+		throw std::runtime_error("PITA Slopes for IHWP-IN(OUT) not defined!\n\
+		                          Add slope-ihwp-in(out) to the .conf file.");
+	}
 }
 
 
