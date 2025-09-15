@@ -23,6 +23,7 @@ QwPitaFeedback::QwPitaFeedback(const TString& name)
 	fSlope_OUT(0)
 {
 
+	ParseSeparator = "_";
 	fKeepRunningSum = kTRUE; // We require the Charge Asymmetry
 							 // for PITA Feedback
 }
@@ -68,9 +69,12 @@ Int_t QwPitaFeedback::LoadChannelMap(const std::string& mapfile)
 		std::string primary_token = map.GetNextToken(" ");
 		std::string current_token = map.GetNextToken(" ");
 
+		// Looks for type_<name>
+		// mps/asym/yield/diff_<name>
 		type_name = ParseHandledVariable(current_token);
 
 		if(primary_token == "dv") {
+			QwMessage << "Found Primary Token dv: " << type_name.first << " " << type_name.second << QwLog::endl;
 			// The Charge Asymmetry depends on these Parameters
 			fDependentType.push_back( type_name.first  );
 			fDependentName.push_back( type_name.second );
@@ -99,3 +103,62 @@ void QwPitaFeedback::ParseConfigFile(QwParameterFile& file)
 	 * 	PITA_VOLTAGE_IN
 	 */
 }
+
+
+Int_t QwPitaFeedback::ConnectChannels(QwSubsystemArrayParity& detectors)
+{
+	QwWarning << "QwPitaFeedback::ConnectChannels is not implemented!" << QwLog::endl;
+	return 0;
+}
+
+Int_t QwPitaFeedback::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff)
+{
+	SetEventcutErrorFlagPointer(asym.GetEventcutErrorFlagPointer());
+
+	// Fill vector of pointers to the relevant data elements
+	// This is how we "share" access
+
+	// Get dependent vars first
+	for(size_t dv = 0; dv < fDependentName.size(); dv++) {
+		if( fDependentType.at(dv) == kHandleTypeMps) {
+			// Ignore MPS type when connecting to asymm or diff
+			continue;
+		}
+		
+		const VQwHardwareChannel *dv_ptr = this->RequestExternalPointer(fDependentFull.at(dv));
+		if(dv_ptr == nullptr) {
+			switch(fDependentType.at(dv)) {
+			case kHandleTypeAsym:
+				dv_ptr = asym.RequestExternalPointer(fDependentName.at(dv));
+				break;
+			case kHandleTypeDiff:
+				dv_ptr = asym.RequestExternalPointer(fDependentName.at(dv));
+				break;
+			default:
+				QwWarning << "(" << fName << ") QwPitaFeedback::ConnectChannels(QwSubsystemArrayParity& asym,QwSubsystemArrayParity& diff): Dependent variable, "
+				          << fDependentName.at(dv)
+						  << " was not found (fullname == "
+						  << fDependentFull.at(dv) << ")" << QwLog::endl;
+				break;
+			}
+		} // end if(dv_ptr == nullptr)
+
+		// pair creation
+		if(dv_ptr != nullptr) {
+			fDependentVar.push_back(dv_ptr);
+			fOutputVar.emplace_back(  dv_ptr->Clone(VQwDataElement::kDerived) );
+		} else {
+			QwWarning << "(" << fName << ") QwPitaFeedback::ConnectChannels(QwSubsystemArrayParity& asym,QwSubsystemArrayParity& diff): Dependent variable, "
+				<< fDependentName.at(dv)
+				<< " was not found (fullname == "
+				<< fDependentFull.at(dv) << QwLog::endl;
+		}
+	}
+
+	fDependentValues.resize(fDependentVar.size());
+	fOutputValues.resize(fOutputVar.size());
+
+	return 0;
+}
+
+

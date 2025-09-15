@@ -46,10 +46,15 @@
  *		Cons: This is solving the 'hardcoding' problem with more hardcoding
  *		Cons: Makes our FeedBack.map configuration very rigid and requires several new options
  *		Cons: We would need to specify what pubished var we are accumulating ('x_targ' or 'y_targ')
+ *
+ *	If we use Alpha Pos U/V, and Delta Pos U/V (see RTP Cell Controls GUI) instead of modifying the
+ *	HV values directly, maybe the correction equations will be general enough we can derive their
+ *	functionality through mapfile cofiguration.
  */
 
 #include "VQwDataHandler.h"
 #include "QwEPICSControl.h"
+#include "QwInsertableHalfWavePlate.h"
 #include "QwFactory.h"
 
 #include "TString.h"
@@ -72,11 +77,11 @@ public: // Inherited Functions
     /// \brief Load the channels and sensitivities
     Int_t LoadChannelMap(const std::string& mapfile) override;
     void ParseConfigFile(QwParameterFile& file) override;
+    Int_t ConnectChannels(QwSubsystemArrayParity& detectors) override;
+    Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override;
+
 	/*
-    Int_t ConnectChannels(QwSubsystemArrayParity& yield, QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff){
-    virtual Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff);
     // Subsystems with support for subsystem arrays should override this
-    virtual Int_t ConnectChannels(QwSubsystemArrayParity& detectors) { return 0; }
     virtual void ProcessData();
     virtual void UpdateBurstCounter(Short_t burstcounter){fBurstCounter=burstcounter;};
     virtual void FinishDataHandler(){
@@ -110,8 +115,134 @@ private:
 	QwEPICS<Double_t> setpoint7;
 	QwEPICS<Double_t> setpoint8;
 
+	// What should the signiture look like?
 	Double_t fSlope_IN; // Read in from a .mapfile
 	Double_t fSlope_OUT;// Read in from a .mapfile
+
+	/* Charge Asymmetry is based off of these BPMs
+	I want to read these from a configuration file
+	These BPMS are the target parameters (not used directly
+	for PITA but are stored for posterity)
+	std::vector<const char*> vBPM = {
+		"bpm4aWS",
+		"bpm4eWS",
+		"bpm0i02aWS",
+		"bpm1i06WS",
+		"bpm12WS",
+		"bpm0r05WS",
+		"bpm0l06WS",
+		"bpm0l05WS",
+		"bpm0i05WS",
+		"bpm2i02WS",
+		"bpm2i01WS",
+		"bcm0l02",
+		"q_targ",
+		"q_targC",
+	};
+	I need to be able to call
+		MQwPublishable::RequestExternalValue(std::string,&fTargetParameter))
+	where
+	std::vector<target_parameters> vTargetParameters;
+	class target_parameters {
+	private:
+		std::string mean_name;
+		std::string width_name;
+		double mean;
+		double std;
+		QwEPICS<double> mean_ioc;
+		QwEPICS<double> std_ioc;
+	public:
+		target_parameters(string mean_ioc_name, string std_ioc_name)
+		: mean_name(mean_ioc_name), std_name(std_ioc_name),
+		  mean_ioc(mean_ioc_name), std_ioc(std_ioc_name), mean(0), std(0) { }
+		set_mean();
+		set_std();
+		write();
+	}
+	then I could do
+		for( auto const & param : target_parameters)
+			RequestExternalValue(param.name, &fTargetParameter)
+	If I make target_parameters a friend of QwPitaFeedback, then I can call
+		fAsymmetry.RequestExternalValue(vBPM1[j],&fTargetParameter)
+	directly inside the get and write functions
+	or have a ReadValues(QwSubsystemArrayParity &fAsymmetry) and get the same
+	effect
+	*/
+private:
+	class target_parameters
+	{
+	private:
+		double mean;
+		double width;
+		std::string mean_ioc_name;
+		std::string width_ioc_name;
+		QwEPICS<double> mean_ioc;
+		QwEPICS<double> width_ioc;
+	public:
+		target_parameters(std::string mean_name, std::string width_name)
+		: mean(0), width(0),
+		  mean_ioc_name(std::move(mean_name)), width_ioc_name(std::move(width_name)),
+		  mean_ioc(mean_ioc_name)            , width_ioc(width_ioc_name) { }
+
+		void SetMean(const double val)  { mean  = val; }
+		void SetWidth(const double val) { width = val; }
+
+		[[nodiscard]] double GetMean()  { return mean; }
+		[[nodiscard]] double GetWidth() { return width; }
+
+		/* I am not sure how this would actually work as a friend class
+		   Might just want to have a 'GetIOCName instead'...
+		if (fAsymmetry.RequestExternalValue(vBPM1[j],&fTargetParameter)){
+		void Write(const VQwHardwareChannel* channel) {  return (channel.RequestExternalValue(vBPM1[j],&fTargetParameter)  ); }
+		*/
+	};
+
+	friend target_parameters; // this scheme probably wont work
+private:
+	/* There are two pita slope setpoint
+		1) IHWP=IN
+		2) IHWP=OUT
+	   Need functionality of reading the IHWP status
+	   Q: Why do we need fHalfWaveRevert boolean?
+	*/
+	class pita_slope
+	{
+	private:
+		double slope_ihwp_in;
+		double slope_ihwp_out;
+		IHWP   ihwp;
+		bool   revert_ihwp_status; // fHalfWaveRevert, why would we revert the status?
+	public:
+		pita_slope(const double slope_in, const double slope_out, bool revert = false)
+		: slope_ihwp_in(slope_in), slope_ihwp_out(slope_out),
+		  ihwp(), revert_ihwp_status(revert) { }
+		pita_slope(std::string ioc_name, const double slope_in, const double slope_out, bool revert = false)
+		: slope_ihwp_in(slope_in), slope_ihwp_out(slope_out),
+		  ihwp(std::move(ioc_name)), revert_ihwp_status(revert) { }
+	public:
+		// Discussion:
+		// IHWP can have status as IN, OUT, or UNKNOWN. Presumably,
+		// the UNKNOWN state should not happen, but how to handle if it does?
+		// Currently, we just assume the IHWP is set to OUT if it is in an
+		// undeterminate state. Maybe we should return 0?
+		[[nodiscard]]
+		double GetSlope() noexcept {
+			ihwp.Update();
+			double slope = 0;
+			if(ihwp == IHWP_STATUS::UNKNOWN) {
+				QwWarning << "IHWP is in an indeterminate state: Setting PITA Slope to 0!" << QwLog::endl;
+			} else {
+				// ___|  Revert  |  !Revert |
+				//  IN| SLOPE_OUT| SLOPE_IN |
+				// OUT| SLOPE_IN | SLOPE_OUT|
+				slope = ((ihwp==IHWP_STATUS::IN && !revert_ihwp_status) ? slope_ihwp_in : slope_ihwp_out);
+			}
+			return slope;
+		}
+		IHWP_STATUS GetIHWPStatus() {
+			return ihwp.GetIHWPStatus();
+		}
+	};
 
 };
 
