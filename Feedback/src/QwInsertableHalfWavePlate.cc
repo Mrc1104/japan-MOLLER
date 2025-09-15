@@ -19,7 +19,8 @@ IHWP::IHWP(std::string ioc) : QwHalfWavePlate<int>( std::move(ioc) )
 void IHWP::Update()
 {
 	int tmp{};	
-	hwp_ioc.read(tmp);
+	hwp_ioc.Read(tmp);
+	hwp_ioc.Sync();
 	update_status(tmp);
 }
 

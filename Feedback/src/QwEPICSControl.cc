@@ -40,8 +40,10 @@ QwEPICS<T>::QwEPICS(std::string &&ioc_name)
 template<typename T>
 QwEPICS<T>::~QwEPICS(){}
 
+// ca_pend_io has a list of status returns
+// do we want to check and then *handle* said returns?
 template<typename T>
-void QwEPICS<T>::sync()
+void QwEPICS<T>::Sync()
 {
 	ca_pend_io(SYNC_WAIT_DURATION);
 }
@@ -93,7 +95,7 @@ bool QwEPICS<T>::connected()
  * See: https://stackoverflow.com/questions/69501472/best-way-to-trigger-a-compile-time-error-if-no-if-constexprs-succeed
  */
 template<typename T>
-void QwEPICS<T>::write(T val)
+void QwEPICS<T>::Write(T val)
 {
 	if constexpr(std::is_same<T, std::string>::value) {
 		ca_put(DBR_STRING, ioc, val.c_str());
@@ -110,7 +112,7 @@ void QwEPICS<T>::write(T val)
 }
 
 template<typename T>
-void QwEPICS<T>::read(T &ret)
+void QwEPICS<T>::Read(T &ret)
 {
 	if constexpr(std::is_same<T, std::string>::value) {
 		// EPICS DB returns null-terminated c-strings

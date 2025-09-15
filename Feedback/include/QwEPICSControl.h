@@ -46,11 +46,11 @@ public:
 public:
 	// Wrappers wound the cadef commands
 	// Read the EPICS db
-	void read(T &ret);
+	void Read(T &ret);
 	// Write to the EPICS db
-	void write(T val);
+	void Write(T val);
 	// Sync for IO operations
-	void sync();
+	void Sync();
 
 private:
 	// Check to see if the IOC connected successfully.

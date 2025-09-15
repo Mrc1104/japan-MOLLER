@@ -9,7 +9,7 @@ QwHalfWavePlate<T>::QwHalfWavePlate(std::string ioc) : hwp_ioc(std::move(ioc)), 
 template<typename T>
 void QwHalfWavePlate<T>::Update()
 {
-	hwp_ioc.read(status);
+	hwp_ioc.Read(status);
 }
 
 template<typename T>
