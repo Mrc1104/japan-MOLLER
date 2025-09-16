@@ -19,18 +19,27 @@ QwEPICSChannel<T>::QwEPICSChannel(std::string ioc_name)
 	Sync();
 	if( !connected() )
 	{
-		throw std::invalid_argument("Could not connect to IOC Channel\n");
+		throw std::runtime_error("Could not connect to IOC Channel\n");
 	}
 }
 
 template<typename T>
 QwEPICSChannel<T>::~QwEPICSChannel(){}
 
-// ca_pend_io has a list of status returns
-// do we want to check and then *handle* said returns?
+//  ca_pend_io has a list of status returns
+//  do we want to check and then *handle* said returns?
+//	Per Paul, it would be beneficial to have a local 'timeout'
+//	counter for the ca_pend_io call. When this counter exceeds a
+//	specified value, we throw an exception -- mrc (09/16/25)
 template<typename T>
 void QwEPICSChannel<T>::Sync()
 {
+	/* ca_pend_io return values.
+	   \returns ::ECA_NORMAL - Normal successful completion
+	   \returns ::ECA_TIMEOUT - Selected IO requests didn't complete before specified timeout
+	   \returns ::ECA_EVDISALLOW - Function inappropriate for use within an event handler
+		See: caerr.h
+	 */
 	ca_pend_io(SYNC_WAIT_DURATION);
 }
 
