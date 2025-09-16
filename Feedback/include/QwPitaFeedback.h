@@ -107,14 +107,14 @@ private:
 					   // One Soln: Smart pointers and dynamically allocate them
 	// For now, we will hardcode them and isntantiate inside the constructor
 	// Can we get a more discriptive naming scheme?
-	QwEPICS<Double_t> setpoint1;
-	QwEPICS<Double_t> setpoint2;
-	QwEPICS<Double_t> setpoint3;
-	QwEPICS<Double_t> setpoint4;
-	QwEPICS<Double_t> setpoint5;
-	QwEPICS<Double_t> setpoint6;
-	QwEPICS<Double_t> setpoint7;
-	QwEPICS<Double_t> setpoint8;
+	QwEPICSChannel<Double_t> setpoint1;
+	QwEPICSChannel<Double_t> setpoint2;
+	QwEPICSChannel<Double_t> setpoint3;
+	QwEPICSChannel<Double_t> setpoint4;
+	QwEPICSChannel<Double_t> setpoint5;
+	QwEPICSChannel<Double_t> setpoint6;
+	QwEPICSChannel<Double_t> setpoint7;
+	QwEPICSChannel<Double_t> setpoint8;
 
 	/* Charge Asymmetry is based off of these BPMs
 	I want to read these from a configuration file
@@ -179,8 +179,8 @@ private:
 		double width;
 		std::string mean_ioc_name;
 		std::string width_ioc_name;
-		QwEPICS<double> mean_ioc;
-		QwEPICS<double> width_ioc;
+		QwEPICSChannel<double> mean_ioc;
+		QwEPICSChannel<double> width_ioc;
 	public:
 		target_parameters(std::string mean_name, std::string width_name)
 		: mean(0), width(0),
