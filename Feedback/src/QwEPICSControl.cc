@@ -11,21 +11,7 @@ static const unsigned SYNC_WAIT_DURATION = 10;
 
 // What happens if the constructor fails?
 template<typename T>
-QwEPICS<T>::QwEPICS(std::string &ioc_name)
-{
-	// Change this to QwDebug
-	QwMessage << "Connecting to IOC Channel: " << ioc_name << QwLog::endl;
-	ca_search(ioc_name, &ioc);
-	sync();
-	if( !connected() )
-	{
-		throw std::invalid_argument("Could not connect to IOC Channel\n");
-	}
-}
-
-// What happens if the constructor fails?
-template<typename T>
-QwEPICS<T>::QwEPICS(std::string &&ioc_name)
+QwEPICS<T>::QwEPICS(std::string ioc_name)
 {
 	// Change this to QwDebug
 	QwMessage << "Connecting to IOC Channel: " << ioc_name << QwLog::endl;
