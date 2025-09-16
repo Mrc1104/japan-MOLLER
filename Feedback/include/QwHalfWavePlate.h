@@ -80,7 +80,7 @@ public:
 	virtual T GetStatus() const;
 
 protected:
-	QwEPICS<T> hwp_ioc;
+	QwEPICSChannel<T> hwp_ioc;
 	T status;
 };
 #endif

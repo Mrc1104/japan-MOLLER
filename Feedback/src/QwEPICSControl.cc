@@ -11,7 +11,7 @@ static const unsigned SYNC_WAIT_DURATION = 10;
 
 // What happens if the constructor fails?
 template<typename T>
-QwEPICS<T>::QwEPICS(std::string ioc_name)
+QwEPICSChannel<T>::QwEPICSChannel(std::string ioc_name)
 {
 	// Change this to QwDebug
 	QwMessage << "Connecting to IOC Channel: " << ioc_name << QwLog::endl;
@@ -24,18 +24,18 @@ QwEPICS<T>::QwEPICS(std::string ioc_name)
 }
 
 template<typename T>
-QwEPICS<T>::~QwEPICS(){}
+QwEPICSChannel<T>::~QwEPICSChannel(){}
 
 // ca_pend_io has a list of status returns
 // do we want to check and then *handle* said returns?
 template<typename T>
-void QwEPICS<T>::Sync()
+void QwEPICSChannel<T>::Sync()
 {
 	ca_pend_io(SYNC_WAIT_DURATION);
 }
 
 template<typename T>
-bool QwEPICS<T>::connected()
+bool QwEPICSChannel<T>::connected()
 {
 	// See caget.h
 	// enum channel_state;
@@ -81,7 +81,7 @@ bool QwEPICS<T>::connected()
  * See: https://stackoverflow.com/questions/69501472/best-way-to-trigger-a-compile-time-error-if-no-if-constexprs-succeed
  */
 template<typename T>
-void QwEPICS<T>::Write(T val)
+void QwEPICSChannel<T>::Write(T val)
 {
 	if constexpr(std::is_same<T, std::string>::value) {
 		ca_put(DBR_STRING, ioc, val.c_str());
@@ -91,14 +91,14 @@ void QwEPICS<T>::Write(T val)
 		ca_put(DBR_INT, ioc, &val);
 	} else {
 		static_assert(!std::is_same<T,T>::value,\
-		"We do not support the requested QwEPICS data type\n\
+		"We do not support the requested QwEPICSChannel data type\n\
 		Supported Types:\n\
 		std::string, double, int\n");
 	}
 }
 
 template<typename T>
-void QwEPICS<T>::Read(T &ret)
+void QwEPICSChannel<T>::Read(T &ret)
 {
 	if constexpr(std::is_same<T, std::string>::value) {
 		// EPICS DB returns null-terminated c-strings
@@ -111,7 +111,7 @@ void QwEPICS<T>::Read(T &ret)
 		ca_get(DBR_INT, ioc, &ret);
 	} else {
 		static_assert(!std::is_same<T,T>::value,\
-		"We do not support the requested QwEPICS data type\n\
+		"We do not support the requested QwEPICSChannel data type\n\
 		Supported Types:\n\
 		std::string, double, int\n");
 	}
@@ -120,9 +120,9 @@ void QwEPICS<T>::Read(T &ret)
 // Explicitly Instantiation Definitions
 // For now, we only support double and string,
 // but EPICS db supports more types
-template class QwEPICS<std::string>;
-template class QwEPICS<double>;
-template class QwEPICS<int>;
+template class QwEPICSChannel<std::string>;
+template class QwEPICSChannel<double>;
+template class QwEPICSChannel<int>;
 /////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: OLD IMPLEMENTATION. DELETE ME
 // Added so intermediate steps will compile + link

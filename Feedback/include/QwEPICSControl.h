@@ -11,7 +11,7 @@ using namespace FAKE_EPICS;
 
 
 /*
- * QwEPICS
+ * QwEPICSChannel
  *	This abstracts the EPICS calls (namely the cadef calls)
  *	into one class. The class contains one variable, the chid,
  *	which is linked to the corresponding EPICS var through a
@@ -36,11 +36,11 @@ using namespace FAKE_EPICS;
  *  Explicit specialization also enforces that we only support a subset.
  */
 template<typename T>
-class QwEPICS
+class QwEPICSChannel
 {
 public:
-	QwEPICS(std::string ioc_name);
-	~QwEPICS();
+	QwEPICSChannel(std::string ioc_name);
+	~QwEPICSChannel();
 
 public:
 	// Wrappers wound the cadef commands
