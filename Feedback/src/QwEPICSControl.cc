@@ -15,7 +15,7 @@ QwEPICSChannel<T>::QwEPICSChannel(std::string ioc_name)
 {
 	// Change this to QwDebug
 	QwMessage << "Connecting to IOC Channel: " << ioc_name << QwLog::endl;
-	ca_search(std::move(ioc_name), &ioc);
+	ca_search(ioc_name.c_str(), &ioc);
 	Sync();
 	if( !connected() )
 	{
