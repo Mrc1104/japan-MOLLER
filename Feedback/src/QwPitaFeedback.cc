@@ -3,6 +3,8 @@
 #include "QwParameterFile.h"
 #include "QwFactory.h"
 
+#include "QwMollerADC_Channel.h"
+
 #include <stdexcept>
 
 
@@ -52,11 +54,6 @@ QwPitaFeedback::~QwPitaFeedback() { }
 Int_t QwPitaFeedback::LoadChannelMap(const std::string& mapfile)
 {
 	QwMessage << "Loading Channel Map: " << mapfile << QwLog::endl;
-	// Create pita_slope object from options parsed in ParseConfigFile
-	// I would like to construct this object in the constructor, but
-	// then it would be in an incomplete state -- mrc (09/15/25)
-	// As of now, I know that slope will always be initialized... but what if that changes?
-	// How can I enforce that it is always valid?
 	if(options.ihwp_ioc_channel.size()) {
 		slope = std::make_unique<pita_slope>(options.ihwp_ioc_channel, options.slope_in, options.slope_out, options.revert_ihwp_state);
 	} else {
@@ -101,48 +98,33 @@ Int_t QwPitaFeedback::LoadChannelMap(const std::string& mapfile)
 
 	/* For Reassurance -- mrc */
 	for(auto const & v : fDependentType)
-		QwMessage << v << QwLog::endl;
+		QwMessage << "fDependentType: " << v << QwLog::endl;
 	for(auto const & v : fDependentName)
-		QwMessage << v << QwLog::endl;
+		QwMessage << "fDependentName: " << v << QwLog::endl;
 	for(auto const & v : fDependentFull)
-		QwMessage << v << QwLog::endl;
+		QwMessage << "fDependentFull: " << v << QwLog::endl;
 
 	return 0;
 }
 
 void QwPitaFeedback::ParseConfigFile(QwParameterFile& file)
 {	
+	// Construct a list of parameters we would want to load from a config
+	// here. For now, we are going to hardcoded everything.
+	// Once we determine what we need to implement the correction routines,
+	// then we can go back an modify the configuration impl.
+	/* List of things to (?) configure
+		[ ] ihwp-ioc
+		[ ] pita slopes (ihwp =  IN)
+		[ ] pita slopes (ihwp = OUT)
+		[ ] ihwp reversal(?)
+		[ ] IOC setpoints to apply corrections
+
+
+	*/
 	VQwDataHandler::ParseConfigFile(file);
 
 	QwWarning << "Getting PITA info from config file!" << QwLog::endl;
-	/* Parameters I need to parse
-	 * 	PITA_VOLTAGE_IN
-	 * 	PITA_VOLTAGE_IN
-	 */
-
-
-	// Get PITA Slopes from File
-	/*
-	double slope_in = 0, slope_out = 0;
-	std::string ihwp_ioc_channel;
-	bool fRevert = false;
-	file.PopValue("revert-ihwp-state", fRevert);
-
-  	if(!file.PopValue("slope-ihwp-in",  slope_in) || !file.PopValue("slope-ihwp-out", slope_out)) {
-		throw std::runtime_error("PITA Slopes for IHWP-IN(OUT) not defined!\n\
-		                          Add slope-ihwp-in(out) to the .conf file.");
-	}
-
-	// Create a pita_slope object with the values defined above
-	// I am not happy about ParseConfigFile instantiating member variables
-	// I could store the configurations internally and then instatiate slope object
-	// inside loadchannel map instead.
-	if(file.PopValue("ihwp-ioc", ihwp_ioc_channel)) {
-		slope = std::make_unique<pita_slope>(ihwp_ioc_channel, slope_in, slope_out, fRevert);
-	} else {
-		slope = std::make_unique<pita_slope>(slope_in, slope_out, fRevert);
-	}
-	*/
 
 	file.PopValue("ihwp-ioc"         , options.ihwp_ioc_channel);
 	file.PopValue("revert-ihwp-state", options.revert_ihwp_state);
@@ -209,4 +191,33 @@ Int_t QwPitaFeedback::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemA
 	return 0;
 }
 
+void QwPitaFeedback::ProcessData()
+{
+	// This is where I add the "N Pattern Check"
+	// if(QwMollerADC_Channel.GetGoodEventCount() >= fPatternRequired)
+	// {
+	//	 ...Do Feedback...
+	//	 
+	QwMessage << "QwPitaFeedback::ProcessData()" << QwLog::endl;
+	// VQwDataHandler::ProcessData();
+	for (size_t i = 0; i < fDependentVar.size(); ++i) {
+		// Call assignment operator
+    	fOutputVar[i]->AssignValueFrom(fDependentVar[i]);
+		fOutputVar[i]->PrintInfo();
+		// This does not work as I had expected
+		QwMessage << "q_targ good events: " << fRunningsum->GetGoodEventCount(i)<< QwLog::endl;
+	}
+	/*
+	for (size_t i = 0; i < fDependentValues.size(); ++i) {
+		fDependentValues[i] = QwMollerADC_Channel->GetValue();
+	}
+	*/
+	/*
+	for (size_t i = 0; i < fDependentValues.size(); ++i) {
+		fOutputValues.at(i) = fDependentValues[i];
+	}
+	for( auto const & out : fOutputValues )
+		QwMessage << "fOutputValues = " << out << QwLog::endl;
+	*/
+}
 

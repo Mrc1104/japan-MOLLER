@@ -80,14 +80,15 @@ public: // Inherited Functions
     void ParseConfigFile(QwParameterFile& file) override;
     Int_t ConnectChannels(QwSubsystemArrayParity& detectors) override;
     Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override;
+    void ProcessData() override;
+
 
 	/*
     // Subsystems with support for subsystem arrays should override this
-    virtual void ProcessData();
+    virtual void AccumulateRunningSum(VQwDataHandler &value, Int_t count = 0, Int_t ErrorMask = 0xFFFFFFF);
     virtual void UpdateBurstCounter(Short_t burstcounter){fBurstCounter=burstcounter;};
     virtual void FinishDataHandler(){
     virtual void ClearEventData();
-    virtual void AccumulateRunningSum(VQwDataHandler &value, Int_t count = 0, Int_t ErrorMask = 0xFFFFFFF);
     virtual void ConstructTreeBranches(
     virtual void FillTreeBranches(QwRootFile *treerootfile);
     /// \brief Construct the histograms in a folder with a prefix
@@ -140,22 +141,6 @@ private:
 		MQwPublishable::RequestExternalValue(std::string,&fTargetParameter))
 	where
 	std::vector<target_parameters> vTargetParameters;
-	class target_parameters {
-	private:
-		std::string mean_name;
-		std::string width_name;
-		double mean;
-		double std;
-		QwEPICS<double> mean_ioc;
-		QwEPICS<double> std_ioc;
-	public:
-		target_parameters(string mean_ioc_name, string std_ioc_name)
-		: mean_name(mean_ioc_name), std_name(std_ioc_name),
-		  mean_ioc(mean_ioc_name), std_ioc(std_ioc_name), mean(0), std(0) { }
-		set_mean();
-		set_std();
-		write();
-	}
 	then I could do
 		for( auto const & param : target_parameters)
 			RequestExternalValue(param.name, &fTargetParameter)
@@ -165,11 +150,6 @@ private:
 	or have a ReadValues(QwSubsystemArrayParity &fAsymmetry) and get the same
 	effect
 
-
-	 We need to be able to construct this object before we know any of the details. How to do that?
-	 either need to offer a default constructor or we need to create it via a pointer.
-	 The pointer approach is probably best else we would need to how the IHWP is instantiated
-	 This issue can be sidestepped since I plan on making a vector<target_parameters>
 	*/
 private:
 	class target_parameters
@@ -202,15 +182,12 @@ private:
 
 	friend target_parameters; // this scheme probably wont work
 private:
-	// What should the signiture look like?
-	// Double_t fSlope_IN; // Read in from a .mapfile
-	// Double_t fSlope_OUT;// Read in from a .mapfile
-
 	/* There are two pita slope setpoint
 		1) IHWP=IN
 		2) IHWP=OUT
 	   Need functionality of reading the IHWP status
 	   Q: Why do we need fHalfWaveRevert boolean?
+	   A: We may have needed that functionality but we no longer require it
 
 	   We need to be able to construct this object before we know any of the details. How to do that?
 	   either need to offer a default constructor or we need to create it via a pointer.
@@ -223,6 +200,9 @@ private:
 		double slope_ihwp_out;
 		IHWP   ihwp;
 		bool   revert_ihwp_status; // fHalfWaveRevert, why would we revert the status?
+		                           // Per Paul, we do not want to have a revert flag
+								   // and instead ideally would have a new feedback
+								   // system whenever we change IHWP states
 	public:
 		pita_slope(const double slope_in, const double slope_out, bool revert = false)
 		: slope_ihwp_in(slope_in), slope_ihwp_out(slope_out),
@@ -231,11 +211,6 @@ private:
 		: slope_ihwp_in(slope_in), slope_ihwp_out(slope_out),
 		  ihwp(std::move(ioc_name)), revert_ihwp_status(revert) { }
 	public:
-		// Discussion:
-		// IHWP can have status as IN, OUT, or UNKNOWN. Presumably,
-		// the UNKNOWN state should not happen, but how to handle if it does?
-		// Currently, we just assume the IHWP is set to OUT if it is in an
-		// undeterminate state. Maybe we should return 0?
 		[[nodiscard]]
 		double GetSlope() noexcept {
 			ihwp.Update();
