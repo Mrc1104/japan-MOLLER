@@ -133,7 +133,8 @@ class VQwDataHandler:  virtual public VQwDataHandlerCloneable, public MQwPublish
     };
 
     std::pair<EQwHandleType,std::string> ParseHandledVariable(const std::string& variable);
-
+    // It might make sense to have a void CalcOutput function that acts as our interface
+	// rather than this hyperspecific function (that we cannot override!)
    void CalcOneOutput(const VQwHardwareChannel* dv, VQwHardwareChannel* output,
                        std::vector< const VQwHardwareChannel* > &ivs,
                        std::vector< Double_t > &sens);
@@ -180,6 +181,27 @@ class VQwDataHandler:  virtual public VQwDataHandlerCloneable, public MQwPublish
    Bool_t fKeepRunningSum;
    Bool_t fRunningsumFillsTree;
    VQwDataHandler *fRunningsum;
+ public:
+  // Or I could just add a counter in QwPitaFeedback that gets incremented
+  // every successful 'Accumulate' call (e.g. every successfull pattern)
+   Int_t GetGoodEventCount(const int index)
+   {
+   		// GetGoodEventCount() is defined in VQwDataElement,
+		// so all possible channels should have this defined
+		return fOutputVar.at(index)->GetGoodEventCount();
+   }
+   Double_t GetValue(const int index)
+   {
+		return fOutputVar.at(index)->GetValue();
+   }
+   Double_t GetValueError(const int index)
+   {
+		return fOutputVar.at(index)->GetValueError();
+   }
+   Double_t GetValueWidth(const int index)
+   {
+   		return fOutputVar.at(index)->GetValueWidth();
+   }
 };
 
 #endif // VQWDATAHANDLER_H_

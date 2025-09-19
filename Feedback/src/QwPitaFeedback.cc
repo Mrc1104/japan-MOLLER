@@ -239,12 +239,24 @@ void QwPitaFeedback::AccumulateRunningSum(VQwDataHandler &value, Int_t count, In
 		ClearEventData();
 	}
 }
+// I will need at least three CalcCorrection functions to support
+// all of the feedbacks
+// 	1) asymmetric (PITA)
+//		-- Increasing the volage in one helicity state while
+//		-- decreasing the voltage in the other helicity state
+//	2) symmetric (IA)
+//		-- Increase or Decrease all voltages equally
+//  3) psuedo-XOR
+//		-- If Hel == Pol, subtract
+//		-- If Hel != Pol, add
+// Create a std::function pointer for the different calc routines (could
+// do a templated function ptr thing)
 void QwPitaFeedback::CalcCorrection()
 {
 	QwMessage << "fRunningsum data:\n\t";
-	QwMessage << fRunningsum->GetValue(0)      << "\n\t";
-	QwMessage << fRunningsum->GetValueError(0) << "\n\t";
-	QwMessage << fRunningsum->GetValueWidth(0) << QwLog::endl;
+	QwMessage << fRunningsum->GetValue(0)      / Qw::ppm << "\n\t";
+	QwMessage << fRunningsum->GetValueError(0) / Qw::ppm << "\n\t";
+	QwMessage << fRunningsum->GetValueWidth(0) / Qw::ppm << QwLog::endl;
 	
 	double correction = fRunningsum->GetValue(0) / Qw::ppm / slope->GetSlope();
 	QwMessage << "Correction value = " << correction << QwLog::endl;
@@ -266,4 +278,7 @@ void QwPitaFeedback::CalcCorrection()
 	QwMessage << "setpoint7 value = " << val << QwLog::endl;
 	setpoint8.Read(val);
 	QwMessage << "setpoint8 value = " << val << QwLog::endl;
+
+	// Which way does the sign go?
+	// setpointN +- correction?
 }
