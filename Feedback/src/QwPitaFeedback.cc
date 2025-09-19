@@ -2,6 +2,7 @@
 #include "VQwDataHandler.h"
 #include "QwParameterFile.h"
 #include "QwFactory.h"
+#include "QwUnits.h"
 
 #include "QwMollerADC_Channel.h"
 
@@ -43,7 +44,8 @@ QwPitaFeedback::QwPitaFeedback(const QwPitaFeedback &source)
 	setpoint7(source.setpoint7),
 	setpoint8(source.setpoint8),
 	options(source.options),
-	slope{nullptr}
+	slope{nullptr},
+	NPatterns(source.NPatterns)
 {
 	if(source.slope)
 		slope = std::make_unique<pita_slope>(*source.slope);
@@ -119,6 +121,10 @@ void QwPitaFeedback::ParseConfigFile(QwParameterFile& file)
 		[ ] pita slopes (ihwp = OUT)
 		[ ] ihwp reversal(?)
 		[ ] IOC setpoints to apply corrections
+		[ ] Patterns Required before feedback is performed
+		    Note: The feedback will actuate on N-1 because of the order
+			      in which we call ProcessData & AccumulateRunningSum
+				  in QwDataHandler
 
 
 	*/
@@ -132,6 +138,7 @@ void QwPitaFeedback::ParseConfigFile(QwParameterFile& file)
 		throw std::runtime_error("PITA Slopes for IHWP-IN(OUT) not defined!\n\
 		                          Add slope-ihwp-in(out) to the .conf file.");
 	}
+	NPatterns = 100;
 }
 
 
@@ -193,20 +200,15 @@ Int_t QwPitaFeedback::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemA
 
 void QwPitaFeedback::ProcessData()
 {
-	// This is where I add the "N Pattern Check"
-	// if(QwMollerADC_Channel.GetGoodEventCount() >= fPatternRequired)
-	// {
-	//	 ...Do Feedback...
-	//	 
-	QwMessage << "QwPitaFeedback::ProcessData()" << QwLog::endl;
-	// VQwDataHandler::ProcessData();
 	for (size_t i = 0; i < fDependentVar.size(); ++i) {
-		// Call assignment operator
+		// Call assignment operator to fill fOutputVar
+		// (in our case: fOutputVar is a QwMollerADC_Channel)
+		// This will fill our copied channels from which
+		// we will accumulate our fRunningsum
     	fOutputVar[i]->AssignValueFrom(fDependentVar[i]);
-		fOutputVar[i]->PrintInfo();
-		// This does not work as I had expected
-		QwMessage << "q_targ good events: " << fRunningsum->GetGoodEventCount(i)<< QwLog::endl;
+		// fOutputVar[i]->PrintInfo();
 	}
+
 	/*
 	for (size_t i = 0; i < fDependentValues.size(); ++i) {
 		fDependentValues[i] = QwMollerADC_Channel->GetValue();
@@ -221,3 +223,47 @@ void QwPitaFeedback::ProcessData()
 	*/
 }
 
+// This is a hack. We should derive a FeedbackHandler from QwDataHandler
+// and abstract this logic there. The re-direction scheme is error prone
+// and hard to follow -- mrc (09/19/25)
+void QwPitaFeedback::AccumulateRunningSum(VQwDataHandler &value, Int_t count, Int_t ErrorMask)
+{
+	// this = fRunningsum
+	VQwDataHandler::AccumulateRunningSum(value, count, ErrorMask);
+	// well this is horrible re-indirection
+	if(GetGoodEventCount(0) >= NPatterns) {
+		QwMessage << "q_targ good events: " <<GetGoodEventCount(0)<< QwLog::endl;
+		QwMessage << "NPatterns: " <<GetGoodEventCount(0)<< QwLog::endl;
+		static_cast<QwPitaFeedback&>(value).CalculateRunningAverage();
+		static_cast<QwPitaFeedback&>(value).CalcCorrection();
+		ClearEventData();
+	}
+}
+void QwPitaFeedback::CalcCorrection()
+{
+	QwMessage << "fRunningsum data:\n\t";
+	QwMessage << fRunningsum->GetValue(0)      << "\n\t";
+	QwMessage << fRunningsum->GetValueError(0) << "\n\t";
+	QwMessage << fRunningsum->GetValueWidth(0) << QwLog::endl;
+	
+	double correction = fRunningsum->GetValue(0) / Qw::ppm / slope->GetSlope();
+	QwMessage << "Correction value = " << correction << QwLog::endl;
+	
+	double val = 0;
+	setpoint1.Read(val);
+	QwMessage << "setpoint1 value = " << val << QwLog::endl;
+	setpoint2.Read(val);
+	QwMessage << "setpoint2 value = " << val << QwLog::endl;
+	setpoint3.Read(val);
+	QwMessage << "setpoint3 value = " << val << QwLog::endl;
+	setpoint4.Read(val);
+	QwMessage << "setpoint4 value = " << val << QwLog::endl;
+	setpoint5.Read(val);
+	QwMessage << "setpoint5 value = " << val << QwLog::endl;
+	setpoint6.Read(val);
+	QwMessage << "setpoint6 value = " << val << QwLog::endl;
+	setpoint7.Read(val);
+	QwMessage << "setpoint7 value = " << val << QwLog::endl;
+	setpoint8.Read(val);
+	QwMessage << "setpoint8 value = " << val << QwLog::endl;
+}

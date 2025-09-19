@@ -81,14 +81,16 @@ public: // Inherited Functions
     Int_t ConnectChannels(QwSubsystemArrayParity& detectors) override;
     Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override;
     void ProcessData() override;
+    void AccumulateRunningSum(VQwDataHandler &value, Int_t count = 0, Int_t ErrorMask = 0xFFFFFFF) override;
+
+	void CalcCorrection();
 
 
 	/*
     // Subsystems with support for subsystem arrays should override this
-    virtual void AccumulateRunningSum(VQwDataHandler &value, Int_t count = 0, Int_t ErrorMask = 0xFFFFFFF);
-    virtual void UpdateBurstCounter(Short_t burstcounter){fBurstCounter=burstcounter;};
-    virtual void FinishDataHandler(){
     virtual void ClearEventData();
+    virtual void FinishDataHandler(){
+    virtual void UpdateBurstCounter(Short_t burstcounter){fBurstCounter=burstcounter;};
     virtual void ConstructTreeBranches(
     virtual void FillTreeBranches(QwRootFile *treerootfile);
     /// \brief Construct the histograms in a folder with a prefix
@@ -251,7 +253,7 @@ private:
 	};
 	ihwp_config_options options;
 	std::unique_ptr<pita_slope> slope;
-
+	Int_t NPatterns;
 };
 
 #endif
