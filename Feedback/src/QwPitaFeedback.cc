@@ -16,6 +16,7 @@ const VQwDataHandlerFactory* MQwCloneable<VQwDataHandler,QwPitaFeedback>::fFacto
 
 QwPitaFeedback::QwPitaFeedback(const TString& name)
 : VQwDataHandler(name)
+, CorrectionRoutine()
 , options()
 , slope{nullptr}
 {
@@ -27,6 +28,7 @@ QwPitaFeedback::QwPitaFeedback(const TString& name)
 
 QwPitaFeedback::QwPitaFeedback(const QwPitaFeedback &source)
 : VQwDataHandler(source)
+, CorrectionRoutine(source.CorrectionRoutine)
 , options(source.options)
 , slope{nullptr}
 {
@@ -108,8 +110,25 @@ void QwPitaFeedback::ParseConfigFile(QwParameterFile& file)
 
 	*/
 	VQwDataHandler::ParseConfigFile(file);
+	
+	unsigned corr_routine_conf = static_cast<unsigned>(CORRECTION_ROUTINE::UNKNOWN);
+	file.PopValue("routine",corr_routine_conf);
+	switch(static_cast<CORRECTION_ROUTINE>(corr_routine_conf)) {
+	case CORRECTION_ROUTINE::ASYM:
+		CorrectionRoutine = &QwPitaFeedback::AsymCorrection;
+	break;
+	case CORRECTION_ROUTINE::SYM:
+		CorrectionRoutine = &QwPitaFeedback::SymCorrection;
+	break;
+	case CORRECTION_ROUTINE::XOR:
+		CorrectionRoutine = &QwPitaFeedback::XORCorrection;
+	break;
+	default:
+		throw std::runtime_error("Correction Routine not defined!\n\
+		                          Add 'routine = {asym, sym, xor, etc.}' to the .conf file.");
+	break;
+	}
 
-	QwWarning << "Getting PITA info from config file!" << QwLog::endl;
 	file.PopValue("num-patterns"     , options.num_patterns    );
 	file.PopValue("ihwp-ioc"         , options.ihwp_ioc_channel);
 	file.PopValue("revert-ihwp-state", options.revert_ihwp_state);
@@ -117,7 +136,7 @@ void QwPitaFeedback::ParseConfigFile(QwParameterFile& file)
 		throw std::runtime_error("PITA Slopes for IHWP-IN(OUT) not defined!\n\
 		                          Add slope-ihwp-in(out) to the .conf file.");
 	}
-	
+		
 }
 
 
@@ -255,7 +274,46 @@ void QwPitaFeedback::CalcCorrection()
 	QwMessage << "Correction value = " << correction << QwLog::endl;
 	
 	for(auto & v : setpoints) {
-		auto val = v.GetChannelValue();
-		QwMessage << "setpoint value = " << val << QwLog::endl;
+		CorrectionRoutine(this, v, correction);
 	}
+}
+
+
+void QwPitaFeedback::AsymCorrection(RTP<double>& setpoint, const double correction)
+{
+	// 	1) asymmetric (PITA)
+	//		-- Increasing the volage in one helicity state while
+	//		-- decreasing the voltage in the other helicity state
+	int sign = (setpoint.GetPolarization() == POLARITY::POSITIVE) ? -1 : +1;
+	double curr_setpoint = setpoint.GetChannelValue();
+	setpoint.SetChannelValue(curr_setpoint + sign * correction);
+	QwMessage << "using AsymCorrection\n";
+	QwMessage << "\tSign: " << sign << "\n";
+	QwMessage << "\tCurr: " << curr_setpoint << "\n";
+	QwMessage << "\tCorr: " << curr_setpoint + sign * correction << QwLog::endl;
+}
+void QwPitaFeedback::SymCorrection(RTP<double>& setpoint, const double correction)
+{
+	//	2) symmetric (IA)
+	//		-- Increase or Decrease all voltages equally
+	int sign = -1;
+	double curr_setpoint = setpoint.GetChannelValue();
+	setpoint.SetChannelValue(curr_setpoint + sign * correction);
+	QwMessage << "using SymCorrection\n";
+	QwMessage << "\tSign: " << sign << "\n";
+	QwMessage << "\tCurr: " << curr_setpoint << "\n";
+	QwMessage << "\tCorr: " << curr_setpoint + sign * correction << QwLog::endl;
+}
+void QwPitaFeedback::XORCorrection(RTP<double>& setpoint, const double correction)
+{
+	//  3) psuedo-XOR
+	//		-- If Hel == Pol, subtract
+	//		-- If Hel != Pol, add
+	int sign = (setpoint.GetPolarization() == setpoint.GetHelicity()) ? -1 : +1;
+	double curr_setpoint = setpoint.GetChannelValue();
+	setpoint.SetChannelValue(curr_setpoint + sign * correction);
+	QwMessage << "using XORCorrection\n";
+	QwMessage << "\tSign: " << sign << "\n";
+	QwMessage << "\tCurr: " << curr_setpoint << "\n";
+	QwMessage << "\tCorr: " << curr_setpoint + sign * correction << QwLog::endl;
 }

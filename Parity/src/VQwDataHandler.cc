@@ -237,6 +237,14 @@ pair<VQwDataHandler::EQwHandleType,string> VQwDataHandler::ParseHandledVariable(
       {type_name.first = kHandleTypeYield;} 
     else if (type == "mps")
       {type_name.first = kHandleTypeMps;}
+	else if (type == "HVPP")
+      {type_name.first = kHandleTypeHVPP;}
+	else if (type == "HVPN")
+      {type_name.first = kHandleTypeHVPN;}
+	else if (type == "HVNN")
+      {type_name.first = kHandleTypeHVNN;}
+	else if (type == "HVNP")
+      {type_name.first = kHandleTypeHVNP;}
     else
       {type_name.first = kHandleTypeUnknown;}
     type_name.second = name;
