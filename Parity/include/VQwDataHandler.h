@@ -31,7 +31,9 @@ class VQwDataHandler:  virtual public VQwDataHandlerCloneable, public MQwPublish
   public:
   
     enum EQwHandleType {
-      kHandleTypeUnknown=0, kHandleTypeMps, kHandleTypeAsym, kHandleTypeDiff, kHandleTypeYield
+      kHandleTypeUnknown=0, kHandleTypeMps, kHandleTypeAsym, kHandleTypeDiff, kHandleTypeYield,
+	  /* RTP HV Types */
+	  kHandleTypeHVPP,kHandleTypeHVPN, kHandleTypeHVNN,kHandleTypeHVNP
     };
     
     typedef std::vector< VQwHardwareChannel* >::iterator Iterator_HdwChan;

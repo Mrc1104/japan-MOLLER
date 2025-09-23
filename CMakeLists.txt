@@ -102,6 +102,7 @@ list(APPEND my_project_headers
 		${PROJECT_SOURCE_DIR}/Feedback/include/cfSockCli.h
 		${PROJECT_SOURCE_DIR}/Feedback/include/cfSock_types.h
 		${PROJECT_SOURCE_DIR}/Feedback/include/epicsTypes.h
+		${PROJECT_SOURCE_DIR}/Feedback/include/RTP_Voltage.h
 )
 list(APPEND my_project_sources
 		#${PROJECT_SOURCE_DIR}/Parity/src/Feedback/cfSockCli.c
@@ -292,6 +293,7 @@ list(APPEND exefiles
 		${PROJECT_SOURCE_DIR}/Feedback/main/Options_test.cc
 		${PROJECT_SOURCE_DIR}/Feedback/main/QwFeedback.cc
 		${PROJECT_SOURCE_DIR}/Feedback/main/test.cc
+		${PROJECT_SOURCE_DIR}/Feedback/main/QwPitaFeedback.cc
 	)
 endif()
 

@@ -56,10 +56,12 @@
 #include "QwEPICSControl.h"
 #include "QwInsertableHalfWavePlate.h"
 #include "QwFactory.h"
+#include "RTP_Voltage.h"
 
 #include "TString.h"
 
 #include <array>
+#include <vector>
 #include <memory>
 
 class QwPitaFeedback : public VQwDataHandler,
@@ -104,21 +106,6 @@ public: // Inherited Functions
 	*/
 
 private:
-	// QwEPICS<double> // I need to delay the construction of this object,
-					   // because we do not know the IOC name until after we
-					   // we parse the configuration file!
-					   // One Soln: Smart pointers and dynamically allocate them
-	// For now, we will hardcode them and isntantiate inside the constructor
-	// Can we get a more discriptive naming scheme?
-	QwEPICSChannel<Double_t> setpoint1;
-	QwEPICSChannel<Double_t> setpoint2;
-	QwEPICSChannel<Double_t> setpoint3;
-	QwEPICSChannel<Double_t> setpoint4;
-	QwEPICSChannel<Double_t> setpoint5;
-	QwEPICSChannel<Double_t> setpoint6;
-	QwEPICSChannel<Double_t> setpoint7;
-	QwEPICSChannel<Double_t> setpoint8;
-
 	/* Charge Asymmetry is based off of these BPMs
 	I want to read these from a configuration file
 	These BPMS are the target parameters (not used directly
@@ -239,21 +226,29 @@ private:
 			QwMessage << "\trevert_ihwp_status = " << revert_ihwp_status << QwLog::endl;
 		}
 	};
-	// DataHandler Arrays use the QwOptions::Define(Process)Options
-	// but the individual datahandlers do not. This is an ugly method to
-	// get configuration parameters into my datahandler and causes
-	// me to delay the instantiation of internal objects -- mrc (09/15/25)
-	struct ihwp_config_options
+
+	struct config_options
 	{
-		double slope_in, slope_out;
+		Int_t num_patterns;
+		Double_t slope_in, slope_out;
 		bool revert_ihwp_state;
 		std::string ihwp_ioc_channel;
-		ihwp_config_options() : slope_in(0), slope_out(0), revert_ihwp_state(false), ihwp_ioc_channel("")
-		{}
+		config_options()
+		: num_patterns(0)
+		, slope_in(0)
+		, slope_out(0)
+		, revert_ihwp_state(false)
+		, ihwp_ioc_channel(""){}
 	};
-	ihwp_config_options options;
+	config_options options;
 	std::unique_ptr<pita_slope> slope;
-	Int_t NPatterns;
+
+private:
+	std::vector<EQwHandleType> fEPICSType;
+	std::vector<std::string> fEPICSName;
+	std::vector<std::string> fEPICSFull;
+	std::vector<RTP<double>> setpoints;
+
 };
 
 #endif

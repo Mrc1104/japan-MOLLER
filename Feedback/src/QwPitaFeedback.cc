@@ -15,17 +15,9 @@ template<>
 const VQwDataHandlerFactory* MQwCloneable<VQwDataHandler,QwPitaFeedback>::fFactory = new QwFactory<VQwDataHandler,QwPitaFeedback>("QwPitaFeedback");
 
 QwPitaFeedback::QwPitaFeedback(const TString& name)
-	: VQwDataHandler(name),
-	setpoint1("IGL0I00C1068_DAC05"),// For now, we are hardcoding these in
-	setpoint2("IGL0I00C1068_DAC06"),// I would like to open them up to be
-	setpoint3("IGL0I00C1068_DAC07"),// configurable from mapfiles
-	setpoint4("IGL0I00C1068_DAC08"),
-	setpoint5("IGL0I00C1068_DAC09"),
-	setpoint6("IGL0I00C1068_DAC10"),
-	setpoint7("IGL0I00C1068_DAC11"),
-	setpoint8("IGL0I00C1068_DAC12"),
-	options(),
-	slope{nullptr}
+: VQwDataHandler(name)
+, options()
+, slope{nullptr}
 {
 
 	ParseSeparator = "_";
@@ -34,18 +26,9 @@ QwPitaFeedback::QwPitaFeedback(const TString& name)
 }
 
 QwPitaFeedback::QwPitaFeedback(const QwPitaFeedback &source)
-	: VQwDataHandler(source),
-	setpoint1(source.setpoint1),// For now, we are hardcoding these in
-	setpoint2(source.setpoint2),// I would like to open them up to be
-	setpoint3(source.setpoint3),// configurable from mapfiles
-	setpoint4(source.setpoint4),
-	setpoint5(source.setpoint5),
-	setpoint6(source.setpoint6),
-	setpoint7(source.setpoint7),
-	setpoint8(source.setpoint8),
-	options(source.options),
-	slope{nullptr},
-	NPatterns(source.NPatterns)
+: VQwDataHandler(source)
+, options(source.options)
+, slope{nullptr}
 {
 	if(source.slope)
 		slope = std::make_unique<pita_slope>(*source.slope);
@@ -93,18 +76,14 @@ Int_t QwPitaFeedback::LoadChannelMap(const std::string& mapfile)
 			fDependentType.push_back( type_name.first  );
 			fDependentName.push_back( type_name.second );
 			fDependentFull.push_back(  current_token   );
+		} else if (primary_token == "ep") {
+			fEPICSType.push_back(  type_name.first  );
+			fEPICSName.push_back(  type_name.second );
+			fEPICSFull.push_back(  current_token    );
 		} else {
 			QwError << "LoadChannelMan in QwCorrelator read invalid primary token: " << primary_token << QwLog::endl;
 		}
 	}
-
-	/* For Reassurance -- mrc */
-	for(auto const & v : fDependentType)
-		QwMessage << "fDependentType: " << v << QwLog::endl;
-	for(auto const & v : fDependentName)
-		QwMessage << "fDependentName: " << v << QwLog::endl;
-	for(auto const & v : fDependentFull)
-		QwMessage << "fDependentFull: " << v << QwLog::endl;
 
 	return 0;
 }
@@ -116,29 +95,29 @@ void QwPitaFeedback::ParseConfigFile(QwParameterFile& file)
 	// Once we determine what we need to implement the correction routines,
 	// then we can go back an modify the configuration impl.
 	/* List of things to (?) configure
-		[ ] ihwp-ioc
-		[ ] pita slopes (ihwp =  IN)
-		[ ] pita slopes (ihwp = OUT)
-		[ ] ihwp reversal(?)
-		[ ] IOC setpoints to apply corrections
-		[ ] Patterns Required before feedback is performed
+		[x] ihwp-ioc
+		[x] pita slopes (ihwp =  IN)
+		[x] pita slopes (ihwp = OUT)
+		[x] ihwp reversal(?)
+		[x] IOC setpoints to apply corrections
+		[x] Patterns Required before feedback is performed
 		    Note: The feedback will actuate on N-1 because of the order
 			      in which we call ProcessData & AccumulateRunningSum
 				  in QwDataHandler
-
+		[ ] CorrectionRoutine
 
 	*/
 	VQwDataHandler::ParseConfigFile(file);
 
 	QwWarning << "Getting PITA info from config file!" << QwLog::endl;
-
+	file.PopValue("num-patterns"     , options.num_patterns    );
 	file.PopValue("ihwp-ioc"         , options.ihwp_ioc_channel);
 	file.PopValue("revert-ihwp-state", options.revert_ihwp_state);
   	if(!file.PopValue("slope-ihwp-in",  options.slope_in) || !file.PopValue("slope-ihwp-out", options.slope_out)) {
 		throw std::runtime_error("PITA Slopes for IHWP-IN(OUT) not defined!\n\
 		                          Add slope-ihwp-in(out) to the .conf file.");
 	}
-	NPatterns = 100;
+	
 }
 
 
@@ -195,32 +174,46 @@ Int_t QwPitaFeedback::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemA
 	fDependentValues.resize(fDependentVar.size());
 	fOutputValues.resize(fOutputVar.size());
 
+	for(size_t ep = 0; ep < fEPICSName.size(); ep++) {
+		bool valid = kTRUE;
+		HELICITY hel = HELICITY::UNKNOWN;
+		POLARITY pol = POLARITY::UNKNOWN;
+		switch(fEPICSType.at(ep)) {
+		case kHandleTypeHVPP:
+			hel = HELICITY::POSITIVE;
+			pol = POLARITY::POSITIVE;
+		break;
+		case kHandleTypeHVPN:
+			hel = HELICITY::POSITIVE;
+			pol = POLARITY::NEGATIVE;
+		break;
+		case kHandleTypeHVNN:
+			hel = HELICITY::NEGATIVE;
+			pol = POLARITY::NEGATIVE;
+		break;
+		case kHandleTypeHVNP:
+			hel = HELICITY::NEGATIVE;
+			pol = POLARITY::POSITIVE;
+		break;
+		default:
+			valid = kFALSE;
+			QwError << "UNKNOWN EPICS Type (" << fEPICSType.at(ep) << ")!" << QwLog::endl;
+		}
+
+		if(valid) {
+			setpoints.emplace_back(fEPICSName.at(ep), pol, hel);
+		}
+
+	}
+
 	return 0;
 }
 
 void QwPitaFeedback::ProcessData()
 {
 	for (size_t i = 0; i < fDependentVar.size(); ++i) {
-		// Call assignment operator to fill fOutputVar
-		// (in our case: fOutputVar is a QwMollerADC_Channel)
-		// This will fill our copied channels from which
-		// we will accumulate our fRunningsum
     	fOutputVar[i]->AssignValueFrom(fDependentVar[i]);
-		// fOutputVar[i]->PrintInfo();
 	}
-
-	/*
-	for (size_t i = 0; i < fDependentValues.size(); ++i) {
-		fDependentValues[i] = QwMollerADC_Channel->GetValue();
-	}
-	*/
-	/*
-	for (size_t i = 0; i < fDependentValues.size(); ++i) {
-		fOutputValues.at(i) = fDependentValues[i];
-	}
-	for( auto const & out : fOutputValues )
-		QwMessage << "fOutputValues = " << out << QwLog::endl;
-	*/
 }
 
 // This is a hack. We should derive a FeedbackHandler from QwDataHandler
@@ -231,7 +224,7 @@ void QwPitaFeedback::AccumulateRunningSum(VQwDataHandler &value, Int_t count, In
 	// this = fRunningsum
 	VQwDataHandler::AccumulateRunningSum(value, count, ErrorMask);
 	// well this is horrible re-indirection
-	if(GetGoodEventCount(0) >= NPatterns) {
+	if(GetGoodEventCount(0) >= options.num_patterns) {
 		QwMessage << "q_targ good events: " <<GetGoodEventCount(0)<< QwLog::endl;
 		QwMessage << "NPatterns: " <<GetGoodEventCount(0)<< QwLog::endl;
 		static_cast<QwPitaFeedback&>(value).CalculateRunningAverage();
@@ -254,31 +247,15 @@ void QwPitaFeedback::AccumulateRunningSum(VQwDataHandler &value, Int_t count, In
 void QwPitaFeedback::CalcCorrection()
 {
 	QwMessage << "fRunningsum data:\n\t";
-	QwMessage << fRunningsum->GetValue(0)      / Qw::ppm << "\n\t";
-	QwMessage << fRunningsum->GetValueError(0) / Qw::ppm << "\n\t";
-	QwMessage << fRunningsum->GetValueWidth(0) / Qw::ppm << QwLog::endl;
+	QwMessage << "Mean: "  << fRunningsum->GetValue(0)      / Qw::ppm << "\n\t";
+	QwMessage << "Error: " << fRunningsum->GetValueError(0) / Qw::ppm << "\n\t";
+	QwMessage << "Width: " << fRunningsum->GetValueWidth(0) / Qw::ppm << QwLog::endl;
 	
 	double correction = fRunningsum->GetValue(0) / Qw::ppm / slope->GetSlope();
 	QwMessage << "Correction value = " << correction << QwLog::endl;
 	
-	double val = 0;
-	setpoint1.Read(val);
-	QwMessage << "setpoint1 value = " << val << QwLog::endl;
-	setpoint2.Read(val);
-	QwMessage << "setpoint2 value = " << val << QwLog::endl;
-	setpoint3.Read(val);
-	QwMessage << "setpoint3 value = " << val << QwLog::endl;
-	setpoint4.Read(val);
-	QwMessage << "setpoint4 value = " << val << QwLog::endl;
-	setpoint5.Read(val);
-	QwMessage << "setpoint5 value = " << val << QwLog::endl;
-	setpoint6.Read(val);
-	QwMessage << "setpoint6 value = " << val << QwLog::endl;
-	setpoint7.Read(val);
-	QwMessage << "setpoint7 value = " << val << QwLog::endl;
-	setpoint8.Read(val);
-	QwMessage << "setpoint8 value = " << val << QwLog::endl;
-
-	// Which way does the sign go?
-	// setpointN +- correction?
+	for(auto & v : setpoints) {
+		auto val = v.GetChannelValue();
+		QwMessage << "setpoint value = " << val << QwLog::endl;
+	}
 }
