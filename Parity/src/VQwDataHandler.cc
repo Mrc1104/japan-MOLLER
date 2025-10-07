@@ -38,7 +38,7 @@ using namespace std;
 #endif // __USE_DATABASE__
 
 
-VQwDataHandler::VQwDataHandler(const TString& name)
+template<typename T> VQwDataHandler<T>::VQwDataHandler(const TString& name)
 : fPriority(0),
   fBurstCounter(0),
   fName(name),
@@ -52,7 +52,7 @@ VQwDataHandler::VQwDataHandler(const TString& name)
   fKeepRunningSum(kFALSE)
 { fRunningsum=NULL;}
 
-VQwDataHandler::VQwDataHandler(const VQwDataHandler &source)
+template<typename T> VQwDataHandler<T>::VQwDataHandler(const VQwDataHandler &source)
 : fPriority(source.fPriority),
   fBurstCounter(source.fBurstCounter),
   fName(source.fName),
@@ -84,7 +84,7 @@ VQwDataHandler::VQwDataHandler(const VQwDataHandler &source)
 }
 
 
-VQwDataHandler::~VQwDataHandler() {
+template<typename T> VQwDataHandler<T>::~VQwDataHandler() {
   
   for (size_t i = 0; i < fOutputVar.size(); ++i) {
     if (fOutputVar.at(i) != NULL){
@@ -95,7 +95,7 @@ VQwDataHandler::~VQwDataHandler() {
 
 }
 
-void VQwDataHandler::ParseConfigFile(QwParameterFile& file){
+template<typename T> void VQwDataHandler<T>::ParseConfigFile(QwParameterFile& file){
   file.RewindToFileStart();
   file.EnableGreediness();
   while (file.ReadNextLine()) {
@@ -110,7 +110,7 @@ void VQwDataHandler::ParseConfigFile(QwParameterFile& file){
 }
 
 
-void VQwDataHandler::CalcOneOutput(const VQwHardwareChannel* dv, VQwHardwareChannel* output,
+template<typename T> void VQwDataHandler<T>::CalcOneOutput(const VQwHardwareChannel* dv, VQwHardwareChannel* output,
                                   vector< const VQwHardwareChannel* > &ivs,
                                   vector< Double_t > &sens) {
   
@@ -137,7 +137,7 @@ void VQwDataHandler::CalcOneOutput(const VQwHardwareChannel* dv, VQwHardwareChan
   
 }
 
-void VQwDataHandler::ProcessData() {
+template<typename T> void VQwDataHandler<T>::ProcessData() {
   
   for (size_t i = 0; i < fDependentVar.size(); ++i) {
     *(fOutputVar.at(i)) = *(fDependentVar[i]);
@@ -149,7 +149,7 @@ void VQwDataHandler::ProcessData() {
 }
 
 
-Int_t VQwDataHandler::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) {
+template<typename T> Int_t VQwDataHandler<T>::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) {
   SetEventcutErrorFlagPointer(asym.GetEventcutErrorFlagPointer());
 
   /// Fill vector of pointers to the relevant data elements
@@ -223,7 +223,7 @@ Int_t VQwDataHandler::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemA
 }
 
 
-pair<VQwDataHandler::EQwHandleType,string> VQwDataHandler::ParseHandledVariable(const string& variable) {
+pair<VQwDataHandler<T>::EQwHandleType,string> VQwDataHandler<T>::ParseHandledVariable(const string& variable) {
   
   pair<EQwHandleType,string> type_name;
   size_t len = variable.length();
@@ -251,7 +251,7 @@ pair<VQwDataHandler::EQwHandleType,string> VQwDataHandler::ParseHandledVariable(
   
 }
 
-void VQwDataHandler::ConstructTreeBranches(
+template<typename T> void VQwDataHandler<T>::ConstructTreeBranches(
     QwRootFile *treerootfile,
     const std::string& treeprefix,
     const std::string& branchprefix)
@@ -279,7 +279,7 @@ void VQwDataHandler::ConstructTreeBranches(
   }
 }
 
-void VQwDataHandler::ConstructBranchAndVector(
+template<typename T> void VQwDataHandler<T>::ConstructBranchAndVector(
     TTree *tree,
     TString& prefix,
     std::vector<Double_t>& values)
@@ -289,7 +289,7 @@ void VQwDataHandler::ConstructBranchAndVector(
   }
 }
 
-void VQwDataHandler::FillTreeBranches(QwRootFile *treerootfile)
+template<typename T> void VQwDataHandler<T>::FillTreeBranches(QwRootFile *treerootfile)
 {
   if (fTreeName.size()>0){
     if (fRunningsumFillsTree) {
@@ -301,7 +301,7 @@ void VQwDataHandler::FillTreeBranches(QwRootFile *treerootfile)
   }
 }
 
-void VQwDataHandler::ConstructNTupleFields(
+template<typename T> void VQwDataHandler<T>::ConstructNTupleFields(
     QwRootFile *treerootfile,
     const std::string& treeprefix,
     const std::string& branchprefix)
@@ -331,7 +331,7 @@ void VQwDataHandler::ConstructNTupleFields(
   }
 }
 
-void VQwDataHandler::FillNTupleFields(QwRootFile *treerootfile)
+template<typename T> void VQwDataHandler<T>::FillNTupleFields(QwRootFile *treerootfile)
 {
   if (fTreeName.size()>0){
 #ifdef HAS_RNTUPLE_SUPPORT
@@ -349,7 +349,7 @@ void VQwDataHandler::FillNTupleFields(QwRootFile *treerootfile)
  * Fill the tree vector
  * @param values Vector of values
  */
-void VQwDataHandler::FillTreeVector(std::vector<Double_t>& values) const
+template<typename T> void VQwDataHandler<T>::FillTreeVector(std::vector<Double_t>& values) const
 {
   // Fill the data element
   for (size_t i = 0; i < fOutputVar.size(); ++i) {
@@ -359,14 +359,14 @@ void VQwDataHandler::FillTreeVector(std::vector<Double_t>& values) const
 }
 
 #ifdef HAS_RNTUPLE_SUPPORT
-void VQwDataHandler::ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString& prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs)
+template<typename T> void VQwDataHandler<T>::ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString& prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs)
 {
   for (size_t i = 0; i < fOutputVar.size(); ++i) {
     fOutputVar.at(i)->ConstructNTupleAndVector(model, prefix, values, fieldPtrs);
   }
 }
 
-void VQwDataHandler::FillNTupleVector(std::vector<Double_t>& values) const
+template<typename T> void VQwDataHandler<T>::FillNTupleVector(std::vector<Double_t>& values) const
 {
   // Fill the data element
   for (size_t i = 0; i < fOutputVar.size(); ++i) {
@@ -376,7 +376,7 @@ void VQwDataHandler::FillNTupleVector(std::vector<Double_t>& values) const
 }
 #endif // HAS_RNTUPLE_SUPPORT
 
-void VQwDataHandler::InitRunningSum()
+template<typename T> void VQwDataHandler<T>::InitRunningSum()
 {
   if (fKeepRunningSum && fRunningsum == NULL){
     fRunningsum = this->Clone();
@@ -385,14 +385,14 @@ void VQwDataHandler::InitRunningSum()
   }
 }
 
-void VQwDataHandler::AccumulateRunningSum()
+template<typename T> void VQwDataHandler<T>::AccumulateRunningSum()
 {
   if (fKeepRunningSum && fErrorFlagPtr!=NULL && (*fErrorFlagPtr)==0){
     fRunningsum->AccumulateRunningSum(*this);
   }
 }
 
-void VQwDataHandler::AccumulateRunningSum(VQwDataHandler &value, Int_t count, Int_t ErrorMask)
+template<typename T> void VQwDataHandler<T>::AccumulateRunningSum(VQwDataHandler &value, Int_t count, Int_t ErrorMask)
 {
   for (size_t i = 0; i < fOutputVar.size(); i++){
     this->fOutputVar[i]->AccumulateRunningSum(value.fOutputVar[i], count, ErrorMask);
@@ -400,7 +400,7 @@ void VQwDataHandler::AccumulateRunningSum(VQwDataHandler &value, Int_t count, In
 }
 
 
-void VQwDataHandler::CalculateRunningAverage()
+template<typename T> void VQwDataHandler<T>::CalculateRunningAverage()
 {
   if (fKeepRunningSum && (fRunningsum != NULL)){
     for(size_t i = 0; i < fRunningsum->fOutputVar.size(); i++) {
@@ -410,7 +410,7 @@ void VQwDataHandler::CalculateRunningAverage()
   }
 }
 
-void VQwDataHandler::PrintValue() const
+template<typename T> void VQwDataHandler<T>::PrintValue() const
 {
   QwMessage<<"=== "<< fName << " ==="<<QwLog::endl<<QwLog::endl;
   for(size_t i = 0; i < fOutputVar.size(); i++) {
@@ -419,7 +419,7 @@ void VQwDataHandler::PrintValue() const
 }
 
 
-void VQwDataHandler::ClearEventData()
+template<typename T> void VQwDataHandler<T>::ClearEventData()
 {
   for(size_t i = 0; i < fOutputVar.size(); i++) {
     fOutputVar[i]->ClearEventData();
@@ -431,7 +431,7 @@ void VQwDataHandler::ClearEventData()
 
 
 //*****************************************************************//
-Bool_t VQwDataHandler::PublishInternalValues() const
+template<typename T> Bool_t VQwDataHandler<T>::PublishInternalValues() const
 {
   // Publish variables
   Bool_t status = kTRUE;
@@ -467,7 +467,7 @@ Bool_t VQwDataHandler::PublishInternalValues() const
   return status;
 }    
 
-Bool_t VQwDataHandler::PublishByRequest(TString device_name)
+template<typename T> Bool_t VQwDataHandler<T>::PublishByRequest(TString device_name)
 {
   Bool_t status = kFALSE;
   for(size_t i=0;i<fOutputVar.size(); ++i) {
@@ -482,7 +482,7 @@ Bool_t VQwDataHandler::PublishByRequest(TString device_name)
   return status;
 }
 
-void VQwDataHandler::WritePromptSummary(QwPromptSummary *ps, TString type)
+template<typename T> void VQwDataHandler<T>::WritePromptSummary(QwPromptSummary *ps, TString type)
 {
      Bool_t local_print_flag = false;
      Bool_t local_add_element= type.Contains("asy");
@@ -537,7 +537,7 @@ void VQwDataHandler::WritePromptSummary(QwPromptSummary *ps, TString type)
 
 
 #ifdef __USE_DATABASE__
-void VQwDataHandler::FillDB(QwParityDB *db, TString datatype)
+template<typename T> void VQwDataHandler<T>::FillDB(QwParityDB *db, TString datatype)
 {
 
   Bool_t local_print_flag = kTRUE;
@@ -614,3 +614,5 @@ void VQwDataHandler::FillDB(QwParityDB *db, TString datatype)
 }
 #endif // __USE_DATABASE__
 
+template class VQwDataHandler<QwSubsystemArrayParity>;
+template class VQwDataHandler<QwHelicityPattern>;

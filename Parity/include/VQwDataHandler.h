@@ -24,9 +24,11 @@ Last Modified: August 1, 2018 1:39 PM
 class QwParameterFile;
 class QwRootFile;
 class QwPromptSummary;
+template<typename Handler>
 class QwDataHandlerArray;
 
-class VQwDataHandler:  virtual public VQwDataHandlerCloneable, public MQwPublishable_child<QwDataHandlerArray,VQwDataHandler> {
+template<typename T>
+class VQwDataHandler:  virtual public VQwCloneable<VQwDataHandler<T>>, public MQwPublishable_child<QwDataHandlerArray<T>,VQwDataHandler<T>> {
 
   public:
   

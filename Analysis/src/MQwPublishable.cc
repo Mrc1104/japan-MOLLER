@@ -225,6 +225,8 @@ Bool_t MQwPublishable_child<U,T>::PublishInternalValue(
 
 // Force instantiation of template classes we will need
 template class MQwPublishable<QwSubsystemArray,VQwSubsystem>;
-template class MQwPublishable<QwDataHandlerArray,VQwDataHandler>;
+template class MQwPublishable<QwDataHandlerArray<QwSubsystemArrayParity>,VQwDataHandler<QwSubsystemArrayParity>>;
+template class MQwPublishable<QwDataHandlerArray<QwHelicityPattern>,VQwDataHandler<QwHelicityPattern>>;
 template class MQwPublishable_child<QwSubsystemArray,VQwSubsystem>;
-template class MQwPublishable_child<QwDataHandlerArray,VQwDataHandler>;
+template class MQwPublishable_child<QwDataHandlerArray<QwSubsystemArrayParity>,VQwDataHandler<QwSubsystemArrayParity>>;
+template class MQwPublishable_child<QwDataHandlerArray<QwHelicityPattern>,VQwDataHandler<QwHelicityPattern>>;

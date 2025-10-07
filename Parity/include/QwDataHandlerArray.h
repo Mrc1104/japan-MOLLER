@@ -43,19 +43,20 @@ class QwPromptSummary;
  *   with the CODA routines.
  *
  */
+template<typename Handler>
 class QwDataHandlerArray:
-    public std::vector<std::shared_ptr<VQwDataHandler> >,
-    public MQwPublishable<QwDataHandlerArray,VQwDataHandler>
+    public std::vector<std::shared_ptr<VQwDataHandler<Handler>> >,
+    public MQwPublishable<QwDataHandlerArray<Handler>,VQwDataHandler<Handler>>
 {
  private:
-  typedef std::vector<std::shared_ptr<VQwDataHandler> >  HandlerPtrs;
+  using HandlerPtrs = std::vector<std::shared_ptr<VQwDataHandler<Handler>> >;
  public:
-  using HandlerPtrs::const_iterator;
-  using HandlerPtrs::iterator;
-  using HandlerPtrs::begin;
-  using HandlerPtrs::end;
-  using HandlerPtrs::size;
-  using HandlerPtrs::empty;
+  using typename HandlerPtrs::const_iterator;
+  using typename HandlerPtrs::iterator;
+  using typename HandlerPtrs::begin;
+  using typename HandlerPtrs::end;
+  using typename HandlerPtrs::size;
+  using typename HandlerPtrs::empty;
 
   private:
     /// Private default constructor
@@ -81,13 +82,13 @@ class QwDataHandlerArray:
     void LoadDataHandlersFromParameterFile(QwParameterFile& mapfile, T& detectors, const TString &run);
 
     /// \brief Add the datahandler to this array
-    void push_back(VQwDataHandler* handler);
-    void push_back(std::shared_ptr<VQwDataHandler> handler);
+    void push_back(VQwDataHandler<Handler>* handler);
+    void push_back(std::shared_ptr<VQwDataHandler<Handler>> handler);
 
     /// \brief Get the handler with the specified name
-    VQwDataHandler* GetDataHandlerByName(const TString& name);
+    VQwDataHandler<Handler>* GetDataHandlerByName(const TString& name);
 
-    std::vector<VQwDataHandler*> GetDataHandlerByType(const std::string& type);
+    std::vector<VQwDataHandler<Handler>*> GetDataHandlerByType(const std::string& type);
 
     void ConstructTreeBranches(
         QwRootFile *treerootfile,
@@ -132,13 +133,13 @@ class QwDataHandlerArray:
     void  ProcessEvent();
 
     void UpdateBurstCounter(Short_t burstcounter)
-    {
-      if (!empty()) {
-	for(iterator handler = begin(); handler != end(); ++handler){
-	  (*handler)->UpdateBurstCounter(burstcounter);
+	{
+		if (!empty()) {
+			for(iterator handler = begin(); handler != end(); ++handler){
+				(*handler)->UpdateBurstCounter(burstcounter);
+			}
+		}
 	}
-      }
-    }
 
     /// \brief Assignment operator
     QwDataHandlerArray& operator=  (const QwDataHandlerArray &value);
@@ -212,8 +213,8 @@ class QwDataHandlerArray:
     Bool_t fPrintRunningSum;
 
     /// Test whether this handler array can contain a particular handler
-    static Bool_t CanContain(VQwDataHandler* handler) {
-      return (dynamic_cast<VQwDataHandler*>(handler) != 0);
+    static Bool_t CanContain(VQwDataHandler<Handler>* handler) {
+      return (dynamic_cast<VQwDataHandler<Handler>*>(handler) != 0);
     };
 
 }; // class QwDataHandlerArray
