@@ -22,21 +22,20 @@ class QwParameterFile;
  * \brief
  *
  */
-
+template<typename Type>
 class QwCombinerSubsystem: public VQwSubsystemParity, 
-  public MQwSubsystemCloneable<QwCombinerSubsystem>,
-  public QwCombiner
+  public MQwSubsystemCloneable<QwCombinerSubsystem<Type>>,
+  public QwCombiner<Type>
 {
-  
   public:
       // Constructors
       /// \brief Constructor with just name.
       QwCombinerSubsystem(const TString name)
-      : VQwSubsystem(name), VQwSubsystemParity(name), QwCombiner(name) { }
+      : VQwSubsystem(name), VQwSubsystemParity(name), QwCombiner<Type>(name) { }
 
       // Copy Constructor
       QwCombinerSubsystem(const QwCombinerSubsystem &source)
-      : VQwSubsystem(source), VQwSubsystemParity(source), QwCombiner(source) { }
+      : VQwSubsystem(source), VQwSubsystemParity(source), QwCombiner<Type>(source) { }
 	
       // Destructor 
       ~QwCombinerSubsystem();
@@ -52,7 +51,7 @@ class QwCombinerSubsystem: public VQwSubsystemParity,
       void PrintValue() const;
 
       void ProcessData(){
-        QwCombiner::ProcessData();
+        QwCombiner<Type>::ProcessData();
       }
 
       /// \brief Overloaded Operators
@@ -65,17 +64,17 @@ class QwCombinerSubsystem: public VQwSubsystemParity,
       void Scale(Double_t value);
 
       void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector <Double_t> &values){
-        QwCombiner::ConstructBranchAndVector(tree,prefix,values);
+        QwCombiner<Type>::ConstructBranchAndVector(tree,prefix,values);
       }
       void FillTreeVector(std::vector<Double_t> &values) const{
-        QwCombiner::FillTreeVector(values);
+        QwCombiner<Type>::FillTreeVector(values);
       }
 #ifdef HAS_RNTUPLE_SUPPORT
       void ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString& prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs){
-        QwCombiner::ConstructNTupleAndVector(model, prefix, values, fieldPtrs);
+        QwCombiner<Type>::ConstructNTupleAndVector(model, prefix, values, fieldPtrs);
       }
       void FillNTupleVector(std::vector<Double_t>& values) const{
-        QwCombiner::FillNTupleVector(values);
+        QwCombiner<Type>::FillNTupleVector(values);
       }
 #endif // HAS_RNTUPLE_SUPPORT
 
@@ -138,7 +137,8 @@ class QwCombinerSubsystem: public VQwSubsystemParity,
       */
    //   QwCombinerSubsystem() {};     
 
-      
+    using QwCombiner<Type>::fOutputVar;
+    using QwCombiner<Type>::fDependentVar;
 }; // class QwCombinerSubsystem
 
 

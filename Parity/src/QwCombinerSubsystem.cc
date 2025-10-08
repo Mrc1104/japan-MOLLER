@@ -11,10 +11,10 @@
 #include "QwSubsystemArrayParity.h"
 #include "QwParameterFile.h"
 
-RegisterSubsystemFactory(QwCombinerSubsystem);
+RegisterSubsystemFactory(QwCombinerSubsystem<QwSubsystemArrayParity>);
 
 
-QwCombinerSubsystem::~QwCombinerSubsystem()
+template<typename Type>  QwCombinerSubsystem<Type>::~QwCombinerSubsystem()
 {
 }
 
@@ -22,12 +22,12 @@ struct null_deleter {
   void operator()(void const *) const { }
 };
 
-std::shared_ptr<VQwSubsystem> QwCombinerSubsystem::GetSharedPointerToStaticObject(){
+template<typename Type> std::shared_ptr<VQwSubsystem>  QwCombinerSubsystem<Type>::GetSharedPointerToStaticObject(){
   std::shared_ptr<VQwSubsystem> px(this, null_deleter());
   return px;
 }
 
-VQwSubsystem& QwCombinerSubsystem::operator=(VQwSubsystem* value)
+template<typename Type> VQwSubsystem&  QwCombinerSubsystem<Type>::operator=(VQwSubsystem* value)
 {
   QwCombinerSubsystem* input= dynamic_cast<QwCombinerSubsystem*>(value);
   if (input!=NULL) {
@@ -38,7 +38,7 @@ VQwSubsystem& QwCombinerSubsystem::operator=(VQwSubsystem* value)
   return *this;
 }
 
-VQwSubsystem& QwCombinerSubsystem::operator+=(VQwSubsystem* value)
+template<typename Type> VQwSubsystem&  QwCombinerSubsystem<Type>::operator+=(VQwSubsystem* value)
 {
   QwCombinerSubsystem* input = dynamic_cast<QwCombinerSubsystem*>(value);
   if (input!=NULL) {
@@ -49,7 +49,7 @@ VQwSubsystem& QwCombinerSubsystem::operator+=(VQwSubsystem* value)
   return *this;
 }
 
-VQwSubsystem& QwCombinerSubsystem:: operator-=(VQwSubsystem* value)
+template<typename Type> VQwSubsystem&  QwCombinerSubsystem<Type>:: operator-=(VQwSubsystem* value)
 {
   QwCombinerSubsystem* input = dynamic_cast<QwCombinerSubsystem*>(value);
   if (input!=NULL) {
@@ -60,7 +60,7 @@ VQwSubsystem& QwCombinerSubsystem:: operator-=(VQwSubsystem* value)
   return *this;
 }
 
-VQwSubsystem& QwCombinerSubsystem:: operator*=(VQwSubsystem* value)
+template<typename Type> VQwSubsystem&  QwCombinerSubsystem<Type>:: operator*=(VQwSubsystem* value)
 {
   QwCombinerSubsystem* input = dynamic_cast<QwCombinerSubsystem*>(value);
   if (input!=NULL) {
@@ -71,7 +71,7 @@ VQwSubsystem& QwCombinerSubsystem:: operator*=(VQwSubsystem* value)
   return *this;
 }
 
-VQwSubsystem& QwCombinerSubsystem:: operator/=(VQwSubsystem* value)
+template<typename Type> VQwSubsystem&  QwCombinerSubsystem<Type>:: operator/=(VQwSubsystem* value)
 {
   QwCombinerSubsystem* input = dynamic_cast<QwCombinerSubsystem*>(value);
   if (input!=NULL) {
@@ -83,14 +83,14 @@ VQwSubsystem& QwCombinerSubsystem:: operator/=(VQwSubsystem* value)
 }
 
 
-void QwCombinerSubsystem::Ratio(VQwSubsystem* value1, VQwSubsystem* value2)
+template<typename Type> void  QwCombinerSubsystem<Type>::Ratio(VQwSubsystem* value1, VQwSubsystem* value2)
 {
   *this = value1;
   *this /= value2;
 }
 
 
-void QwCombinerSubsystem::Scale(Double_t value)
+template<typename Type> void  QwCombinerSubsystem<Type>::Scale(Double_t value)
 { 
   for(size_t i = 0; i < this->fDependentVar.size(); i++)
   {
@@ -99,15 +99,15 @@ void QwCombinerSubsystem::Scale(Double_t value)
   
 };
 
-void QwCombinerSubsystem::AccumulateRunningSum(VQwSubsystem* input, Int_t count, Int_t ErrorMask)
+template<typename Type> void  QwCombinerSubsystem<Type>::AccumulateRunningSum(VQwSubsystem* input, Int_t count, Int_t ErrorMask)
 {
   QwCombinerSubsystem* value = dynamic_cast<QwCombinerSubsystem*> (input);
   if (value!=NULL){
-    QwCombiner::AccumulateRunningSum(*value, count, ErrorMask);
+    QwCombiner<Type>::AccumulateRunningSum(*value, count, ErrorMask);
   }
 }
 
-void QwCombinerSubsystem::DeaccumulateRunningSum(VQwSubsystem* input, Int_t ErrorMask)
+template<typename Type> void  QwCombinerSubsystem<Type>::DeaccumulateRunningSum(VQwSubsystem* input, Int_t ErrorMask)
 {
   QwCombinerSubsystem* value = dynamic_cast<QwCombinerSubsystem*> (input);
   if (value!=NULL) {
@@ -117,45 +117,45 @@ void QwCombinerSubsystem::DeaccumulateRunningSum(VQwSubsystem* input, Int_t Erro
   }
 }
 
-void QwCombinerSubsystem::CalculateRunningAverage()
+template<typename Type> void  QwCombinerSubsystem<Type>::CalculateRunningAverage()
 {
-  QwCombiner::CalculateRunningAverage();
+  QwCombiner<Type>::CalculateRunningAverage();
 }
 
-void QwCombinerSubsystem:: PrintValue() const{
-  QwCombiner::PrintValue();
+template<typename Type> void  QwCombinerSubsystem<Type>:: PrintValue() const{
+  QwCombiner<Type>::PrintValue();
 }
 
 
-void QwCombinerSubsystem::ConstructHistograms(TDirectory *folder, TString &prefix)
+template<typename Type> void  QwCombinerSubsystem<Type>::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   for (size_t i = 0; i < fDependentVar.size(); i++){
     fOutputVar.at(i)->ConstructHistograms(folder,prefix);
   }
 };
 
-void QwCombinerSubsystem::FillHistograms()
+template<typename Type> void  QwCombinerSubsystem<Type>::FillHistograms()
 {
   for (size_t i = 0; i < fDependentVar.size(); i++){
     fOutputVar.at(i)->FillHistograms();
   }
 };
 
-void QwCombinerSubsystem::DeleteHistograms()
+template<typename Type> void  QwCombinerSubsystem<Type>::DeleteHistograms()
 {
   for (size_t i = 0; i < fDependentVar.size(); i++){
     //    fOutputVar.at(i)->DeleteHistograms();
   }
 };
 
-void QwCombinerSubsystem::ConstructBranch(TTree *tree, TString & prefix)
+template<typename Type> void  QwCombinerSubsystem<Type>::ConstructBranch(TTree *tree, TString & prefix)
 {
   for (size_t i = 0; i < fDependentVar.size(); i++){
     fOutputVar.at(i)->ConstructBranch(tree, prefix);
   }
 };
 
-void QwCombinerSubsystem::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file)
+template<typename Type> void  QwCombinerSubsystem<Type>::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file)
 {
   TString tmp;
   QwParameterFile* nextmodule;
@@ -171,12 +171,12 @@ void QwCombinerSubsystem::ConstructBranch(TTree *tree, TString & prefix, QwParam
 };
 
 
-void QwCombinerSubsystem::IncrementErrorCounters()
+template<typename Type> void  QwCombinerSubsystem<Type>::IncrementErrorCounters()
 {
   /// TODO:  Write QwCombinerSubsystem::IncrementErrorCounters
 }
 
-void QwCombinerSubsystem::UpdateErrorFlag(const VQwSubsystem *ev_error){
+template<typename Type> void  QwCombinerSubsystem<Type>::UpdateErrorFlag(const VQwSubsystem *ev_error){
   /// TODO:  Write QwCombinerSubsystem::UpdateErrorFlag
   //if (Compare(ev_error)){
   //QwCombinerSubsystem* input = dynamic_cast<QwCombinerSubsystem*> (ev_error);
@@ -193,56 +193,54 @@ void QwCombinerSubsystem::UpdateErrorFlag(const VQwSubsystem *ev_error){
 
 
 
-Int_t QwCombinerSubsystem::LoadChannelMap(TString)
+template<typename Type> Int_t  QwCombinerSubsystem<Type>::LoadChannelMap(TString)
 {
   Int_t sample = 0;
   return sample;
 }
 
 
-Int_t QwCombinerSubsystem::LoadInputParameters(TString)
+template<typename Type> Int_t  QwCombinerSubsystem<Type>::LoadInputParameters(TString)
 {
   Int_t sample = 0;
   return sample;
 }
 
 
-Int_t QwCombinerSubsystem::LoadEventCuts(TString)
+template<typename Type> Int_t  QwCombinerSubsystem<Type>::LoadEventCuts(TString)
 {
   Int_t sample = 0;
   return sample;
   
 }
 
-Int_t QwCombinerSubsystem::ProcessConfigurationBuffer(const ROCID_t roc_id, const BankID_t bank_id, UInt_t* buffer, UInt_t num_words)
+template<typename Type> Int_t  QwCombinerSubsystem<Type>::ProcessConfigurationBuffer(const ROCID_t roc_id, const BankID_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Int_t sample = 0;
   return sample;
 }
 
 
-Int_t QwCombinerSubsystem::ProcessEvBuffer(const ROCID_t roc_id, const BankID_t bank_id, UInt_t* buffer, UInt_t num_words)
+template<typename Type> Int_t  QwCombinerSubsystem<Type>::ProcessEvBuffer(const ROCID_t roc_id, const BankID_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Int_t sample = 0;
   return sample;
 }
 
 
-Bool_t QwCombinerSubsystem::ApplySingleEventCuts()
+template<typename Type> Bool_t  QwCombinerSubsystem<Type>::ApplySingleEventCuts()
 {
   return true;
 }
 
-void QwCombinerSubsystem::PrintErrorCounters() const
+template<typename Type> void  QwCombinerSubsystem<Type>::PrintErrorCounters() const
 {
 }
 
-UInt_t QwCombinerSubsystem::GetEventcutErrorFlag()
+template<typename Type> UInt_t  QwCombinerSubsystem<Type>::GetEventcutErrorFlag()
 {
     return 0;
   
 }
 
-
-
-
+template class QwCombinerSubsystem<QwSubsystemArrayParity>;

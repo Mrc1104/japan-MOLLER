@@ -23,7 +23,7 @@
 
 
 // Register this handler with the factory
-RegisterHandlerFactory(QwAlarmHandler);
+RegisterHandlerFactory(QwAlarmHandler, QwHelicityPattern);
 
 
 /// \brief Constructor with name
@@ -176,24 +176,24 @@ Int_t QwAlarmHandler::ConnectChannels(
   /// Fill vector of pointers to the relevant data elements
   for (size_t anaInd = 0; anaInd < fAlarmObjectList.size(); anaInd++) {
     // Get the dependent variables
-    if (fAlarmObjectList.at(anaInd).analysisType==kHandleTypeMps || fAlarmObjectList.at(anaInd).alarmParameterMapStr.count("Channel-Name") == 0){
+    if (fAlarmObjectList.at(anaInd).analysisType==VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeMps || fAlarmObjectList.at(anaInd).alarmParameterMapStr.count("Channel-Name") == 0){
       //  Quietly ignore the MPS type when we're connecting the asym & diff
       continue;
     }
     const VQwHardwareChannel* ana_ptr = NULL;
     const UInt_t* eventcut = NULL;
     switch (fAlarmObjectList.at(anaInd).analysisType) {
-      case kHandleTypeYield:
+      case VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeYield:
         SetEventcutErrorFlagPointer(yield.GetEventcutErrorFlagPointer());
         ana_ptr = yield.ReturnInternalValue(fAlarmObjectList.at(anaInd).alarmParameterMapStr.at("Channel-Name"));
         eventcut = yield.GetEventcutErrorFlagPointer();
         break;
-      case kHandleTypeAsym:
+      case VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeAsym:
         SetEventcutErrorFlagPointer(asym.GetEventcutErrorFlagPointer());
         ana_ptr = asym.ReturnInternalValue(fAlarmObjectList.at(anaInd).alarmParameterMapStr.at("Channel-Name"));
         eventcut = asym.GetEventcutErrorFlagPointer();
         break;
-      case kHandleTypeDiff:
+      case VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeDiff:
         SetEventcutErrorFlagPointer(diff.GetEventcutErrorFlagPointer());
         ana_ptr = diff.ReturnInternalValue(fAlarmObjectList.at(anaInd).alarmParameterMapStr.at("Channel-Name"));
         eventcut = diff.GetEventcutErrorFlagPointer();
@@ -236,10 +236,10 @@ Int_t QwAlarmHandler::ConnectChannels(
     string name = " s";
     string calc = "calc_";
 
-    if (fAnalysisType.at(dv)==kHandleTypeAsym || fAnalysisType.at(dv)==kHandleTypeDiff){
+    if (fAnalysisType.at(dv)==VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeAsym || fAnalysisType.at(dv)==VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeDiff){
       //  Quietly skip the asymmetry or difference types.
       continue;
-    } else if(fAnalysisType.at(dv) != kHandleTypeMps){
+    } else if(fAnalysisType.at(dv) != VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeMps){
       QwWarning << "QwAlarmHandler::ConnectChannels(QwSubsystemArrayParity& event):  Dependent variable, "
                 << fAnalysisName.at(dv)
 	              << ", for MPS alarm handler does not have MPS type, type=="

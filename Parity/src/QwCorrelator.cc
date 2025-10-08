@@ -35,7 +35,7 @@ Last Modified: August 1, 2018 1:43 PM
 #endif // __USE_DATABASE__
 
 // Register this handler with the factory
-RegisterHandlerFactory(QwCorrelator);
+RegisterHandlerFactory(QwCorrelator,QwHelicityPattern);
 
 // Static members
 bool QwCorrelator::fPrintCorrelations = false;
@@ -311,24 +311,24 @@ Int_t QwCorrelator::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArr
 
     const VQwHardwareChannel* dv_ptr = 0;
     
-    if (fDependentType.at(dv)==kHandleTypeMps){
+    if (fDependentType.at(dv)==EQwHandleType::kHandleTypeMps){
       //  Quietly ignore the MPS type when we're connecting the asym & diff
       continue;
     }else{
       dv_ptr = this->RequestExternalPointer(fDependentFull.at(dv));
       if (dv_ptr==NULL){
 	switch (fDependentType.at(dv)) {
-        case kHandleTypeAsym:
+        case EQwHandleType::kHandleTypeAsym:
           dv_ptr = asym.RequestExternalPointer(fDependentName.at(dv));
           break;
-        case kHandleTypeDiff:
+        case EQwHandleType::kHandleTypeDiff:
           dv_ptr = diff.RequestExternalPointer(fDependentName.at(dv));
           break;
         default:
           QwWarning << "QwCorrelator::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff): "
                     << "Dependent variable, " << fDependentName.at(dv)
                     << ", for asym/diff correlator does not have proper type, type=="
-                    << fDependentType.at(dv) << "." << QwLog::endl;
+                    << static_cast<int>(fDependentType.at(dv)) << "." << QwLog::endl;
           break;
         }
       }
@@ -356,10 +356,10 @@ Int_t QwCorrelator::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArr
     iv_ptr = this->RequestExternalPointer(fIndependentFull.at(iv));
     if (iv_ptr==NULL){
       switch (fIndependentType.at(iv)) {
-      case kHandleTypeAsym:
+      case EQwHandleType::kHandleTypeAsym:
         iv_ptr = asym.RequestExternalPointer(fIndependentName.at(iv));
         break;
-      case kHandleTypeDiff:
+      case EQwHandleType::kHandleTypeDiff:
         iv_ptr = diff.RequestExternalPointer(fIndependentName.at(iv));
         break;
       default:

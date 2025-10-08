@@ -19,7 +19,7 @@ Last Modified: August 1, 2018 1:41 PM
 #include "VQwDataHandler.h"
 
 
-class LRBCorrector : public VQwDataHandler, public MQwDataHandlerCloneable<LRBCorrector>{
+class LRBCorrector : public VQwDataHandler<QwHelicityPattern>, public MQwDataHandlerCloneable<QwHelicityPattern,LRBCorrector>{
  public:
     /// \brief Constructor with name
     LRBCorrector(const TString& name);

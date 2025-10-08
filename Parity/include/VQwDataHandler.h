@@ -32,7 +32,7 @@ class VQwDataHandler:  virtual public VQwCloneable<VQwDataHandler<T>>, public MQ
 
   public:
   
-    enum EQwHandleType {
+    enum class EQwHandleType : int {
       kHandleTypeUnknown=0, kHandleTypeMps, kHandleTypeAsym, kHandleTypeDiff, kHandleTypeYield
     };
     

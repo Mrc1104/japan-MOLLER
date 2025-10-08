@@ -160,7 +160,7 @@ template<typename T> Int_t VQwDataHandler<T>::ConnectChannels(QwSubsystemArrayPa
     string name = "";
     string cor = "cor_";
     
-    if (fDependentType.at(dv)==kHandleTypeMps) {
+    if (fDependentType.at(dv)==EQwHandleType::kHandleTypeMps) {
       //  Quietly ignore the MPS type when we're connecting the asym & diff
       continue;
     } else if(fDependentName.at(dv).at(0) == '@' ) {
@@ -169,17 +169,17 @@ template<typename T> Int_t VQwDataHandler<T>::ConnectChannels(QwSubsystemArrayPa
       dv_ptr = this->RequestExternalPointer(fDependentFull.at(dv));
       if (dv_ptr == NULL){
 	switch (fDependentType.at(dv)) {
-        case kHandleTypeAsym:
+        case EQwHandleType::kHandleTypeAsym:
           dv_ptr = asym.RequestExternalPointer(fDependentName.at(dv));
           break;
-        case kHandleTypeDiff:
+        case EQwHandleType::kHandleTypeDiff:
           dv_ptr = diff.RequestExternalPointer(fDependentName.at(dv));
           break;
         default:
           QwWarning << "QwCombiner::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff):  Dependent variable, "
 		    << fDependentName.at(dv)
 		    << ", for asym/diff processing does not have proper type, type=="
-		    << fDependentType.at(dv) << "."<< QwLog::endl;
+		    << static_cast<int>(fDependentType.at(dv)) << "."<< QwLog::endl;
           break;
 	}
       }
@@ -222,29 +222,29 @@ template<typename T> Int_t VQwDataHandler<T>::ConnectChannels(QwSubsystemArrayPa
   return 0;
 }
 
-
-pair<VQwDataHandler<T>::EQwHandleType,string> VQwDataHandler<T>::ParseHandledVariable(const string& variable) {
+template<typename T>
+pair<typename VQwDataHandler<T>::EQwHandleType,string> VQwDataHandler<T>::ParseHandledVariable(const string& variable) {
   
   pair<EQwHandleType,string> type_name;
   size_t len = variable.length();
   size_t pos1 = variable.find_first_of(ParseSeparator);
   size_t pos2 = variable.find_first_not_of(ParseSeparator,pos1);
   if (pos1 == string::npos) {
-    type_name.first  = kHandleTypeUnknown;
+    type_name.first  = EQwHandleType::kHandleTypeUnknown;
     type_name.second = variable;
   } else {
     string type = variable.substr(0,pos1);
     string name = variable.substr(pos2,len-pos2);
     if (type == "asym")
-      {type_name.first = kHandleTypeAsym;}
+      {type_name.first = EQwHandleType::kHandleTypeAsym;}
     else if (type == "diff")
-      {type_name.first = kHandleTypeDiff;}
+      {type_name.first = EQwHandleType::kHandleTypeDiff;}
     else if (type == "yield")
-      {type_name.first = kHandleTypeYield;} 
+      {type_name.first = EQwHandleType::kHandleTypeYield;} 
     else if (type == "mps")
-      {type_name.first = kHandleTypeMps;}
+      {type_name.first = EQwHandleType::kHandleTypeMps;}
     else
-      {type_name.first = kHandleTypeUnknown;}
+      {type_name.first = EQwHandleType::kHandleTypeUnknown;}
     type_name.second = name;
   }
   return type_name;
@@ -461,7 +461,7 @@ template<typename T> Bool_t VQwDataHandler<T>::PublishInternalValues() const
     } else {
       QwDebug << "VQwDataHandler::PublishInternalValues(): " << publish_name 
 	      << " found" << QwLog::endl;
-      status &= PublishInternalValue(publish_name, "published-value", tmp_channel);
+      status &= this->PublishInternalValue(publish_name, "published-value", tmp_channel);
     }
   }
   return status;
@@ -472,7 +472,7 @@ template<typename T> Bool_t VQwDataHandler<T>::PublishByRequest(TString device_n
   Bool_t status = kFALSE;
   for(size_t i=0;i<fOutputVar.size(); ++i) {
     if(device_name.CompareTo(fOutputVar.at(i)->GetElementName())==0){
-      status = PublishInternalValue(device_name, "published-by-request",
+      status = this->PublishInternalValue(device_name, "published-by-request",
 				    fOutputVar.at(i));
       break;
     }

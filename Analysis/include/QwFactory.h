@@ -243,7 +243,7 @@ class MQwDataElementCloneable: public MQwCloneable<VQwDataElement,dataelement_t>
 
 /// Macros to create and register the subsystem factory of type A
 /// Note: a call to this macro should be followed by a semi-colon!
-#define RegisterHandlerFactory(A,B) template<> const VQwDataHandlerFactory* MQwCloneable<VQwDataHandler<B>,A>::fFactory = new QwFactory<VQwDataHandler,A>(#A)
+#define RegisterHandlerFactory(A,B) template<> const VQwDataHandlerFactory<B>* MQwCloneable<VQwDataHandler<B>,A>::fFactory = new QwFactory<VQwDataHandler<B>,A>(#A)
 
 /// Macros to create and register the subsystem factory of type A
 /// Note: a call to this macro should be followed by a semi-colon!

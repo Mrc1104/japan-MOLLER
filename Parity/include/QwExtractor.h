@@ -12,7 +12,7 @@
 // Parent Class
 #include "VQwDataHandler.h"
 
-class QwExtractor:public VQwDataHandler, public MQwDataHandlerCloneable<QwExtractor>
+class QwExtractor:public VQwDataHandler<QwSubsystemArrayParity>, public MQwDataHandlerCloneable<QwSubsystemArrayParity, QwExtractor>
 {
  public:
     /// \brief Constructor with name

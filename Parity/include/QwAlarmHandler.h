@@ -14,7 +14,7 @@
 // Parent Class
 #include "VQwDataHandler.h"
 
-class QwAlarmHandler:public VQwDataHandler, public MQwDataHandlerCloneable<QwAlarmHandler>
+class QwAlarmHandler:public VQwDataHandler<QwHelicityPattern>, public MQwDataHandlerCloneable<QwHelicityPattern, QwAlarmHandler>
 {
  public:
     typedef std::vector< VQwHardwareChannel* >::iterator Iterator_HdwChan;
@@ -73,30 +73,27 @@ class QwAlarmHandler:public VQwDataHandler, public MQwDataHandlerCloneable<QwAla
       std::string alarmStatus;
       int Nviolated; // Vector of 0's for history tracking
       int NsinceLastViolation; // Vector of 0's for history tracking
-      /*
-      std::string type;
-      std::string channel;
-      std::string ana;
-      std::string tree;
-      std::string analysisName;
-      std::string highHigh;
-      std::string high;
-      std::string low;
-      std::string lowLow;
-      std::string ringLength;
-      std::string tolerance;   */
     };
 
     std::vector<alarmObject> fAlarmObjectList; // Vector pointer of objects
+
+
+	/* This is the ideal way to access the enum class
+	   but it is a c++20 feature
+	using VQwDataHandler<QwHelicityPattern>::EQwHandleType  ;
+	using VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeMps ;
+	using VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeAsym;
+	using VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeDiff;
+	*/
 
 }; // class QwAlarmHandler
 
 inline std::ostream& operator<< (std::ostream& stream, const QwAlarmHandler::EQwHandleType& i) {
   switch (i){
-  case QwAlarmHandler::kHandleTypeMps:  stream << "mps"; break;
-  case QwAlarmHandler::kHandleTypeAsym: stream << "asym"; break;
-  case QwAlarmHandler::kHandleTypeYield: stream << "yield"; break;
-  case QwAlarmHandler::kHandleTypeDiff: stream << "diff"; break;
+  case VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeMps:  stream << "mps"; break;
+  case VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeAsym: stream << "asym"; break;
+  case VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeYield: stream << "yield"; break;
+  case VQwDataHandler<QwHelicityPattern>::EQwHandleType::kHandleTypeDiff: stream << "diff"; break;
   default:           stream << "Unknown";
   }
   return stream;

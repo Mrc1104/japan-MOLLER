@@ -29,7 +29,7 @@ class TH1D;
 class TH2D;
 class QwRootFile;
 
-class QwCorrelator : public VQwDataHandler, public MQwDataHandlerCloneable<QwCorrelator>
+class QwCorrelator : public VQwDataHandler<QwHelicityPattern>, public MQwDataHandlerCloneable<QwHelicityPattern,QwCorrelator>
 {
  public:
   /// \brief Constructor with name

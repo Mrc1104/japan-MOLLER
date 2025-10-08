@@ -40,7 +40,7 @@ void DefineOptionsParity(QwOptions& options)
   QwEventRing::DefineOptions(options);
   QwHelicity::DefineOptions(options);
   QwHelicityPattern::DefineOptions(options);
-  QwDataHandlerArray::DefineOptions(options);
+  QwDataHandlerArray<QwHelicityPattern>::DefineOptions(options);
   QwCorrelator::DefineOptions(options);
   #ifdef __USE_DATABASE__
   QwParityDB::DefineAdditionalOptions(options);

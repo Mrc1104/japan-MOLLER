@@ -40,12 +40,14 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
 
   public:
 
+	/* why are these friends?
     friend class VQwDataHandler;
     friend class QwAlarmHandler;
     friend class QwCombiner;
     friend class QwCorrelator;
     friend class LRBCorrector;
     friend class QwExtractor;
+	*/
 
     /// Constructor with options
     QwSubsystemArrayParity(QwOptions& options);

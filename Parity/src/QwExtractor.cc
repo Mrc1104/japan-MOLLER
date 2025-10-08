@@ -30,7 +30,7 @@
 
 
 // Register this handler with the factory
-RegisterHandlerFactory(QwExtractor);
+RegisterHandlerFactory(QwExtractor, QwSubsystemArrayParity);
 
 
 /// \brief Constructor with name

@@ -39,7 +39,7 @@ Last Modified: August 1, 2018 1:41 PM
 #include <TMatrixD.h>
 
 // Register this handler with the factory
-RegisterHandlerFactory(LRBCorrector);
+RegisterHandlerFactory(LRBCorrector, QwHelicityPattern);
 
 /// \brief Constructor with name
 LRBCorrector::LRBCorrector(const TString& name):VQwDataHandler(name),
@@ -206,10 +206,10 @@ Int_t LRBCorrector::ConnectChannels(
     iv_ptr = this->RequestExternalPointer(fIndependentFull.at(iv));
     if (iv_ptr==NULL){
       switch (fIndependentType.at(iv)) {
-      case kHandleTypeAsym:
+      case EQwHandleType::kHandleTypeAsym:
         iv_ptr = asym.RequestExternalPointer(fIndependentName.at(iv));
         break;
-      case kHandleTypeDiff:
+      case EQwHandleType::kHandleTypeDiff:
         iv_ptr = diff.RequestExternalPointer(fIndependentName.at(iv));
         break;
       default:
