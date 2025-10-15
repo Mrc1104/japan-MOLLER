@@ -205,13 +205,6 @@ void QwRootFile::DefineOptions(QwOptions &options)
     ("disable-slow-tree", po::value<bool>()->default_bool_value(false),
      "disable slow control tree");
 
-#ifdef HAS_RNTUPLE_SUPPORT
-  // Define the RNTuple options
-  options.AddOptions("ROOT output options")
-    ("enable-rntuples", po::value<bool>()->default_bool_value(false),
-     "enable RNTuple output");
-#endif // HAS_RNTUPLE_SUPPORT
-
   // Define the tree output prescaling options
   options.AddOptions("ROOT output options")
     ("num-mps-accepted-events", po::value<int>()->default_value(0),
