@@ -14,7 +14,7 @@ void QwRootFileHandler::DefineOptions(QwOptions &options)
 {
   gQwOptions.AddOptions()("single-output-file", po::value<bool>()->default_bool_value(false), "Write a single output file");
 #ifdef HAS_RNTUPLE_SUPPORT
-  gQwOptions.AddOptions()("enable_rntuples", po::value<bool>()->default_bool_value(false), "Enable RNTuple Output");
+  gQwOptions.AddOptions()("enable-rntuples", po::value<bool>()->default_bool_value(false), "Enable RNTuple Output");
 #endif
 }
 
