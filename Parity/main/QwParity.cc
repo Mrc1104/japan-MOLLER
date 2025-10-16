@@ -383,7 +383,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
               // Fill helicity tree branches
 			  rootfilehandler.FillTreeBranches(QwRootFileHandler::TYPE::TREE, helicitypattern);
-			  // rootfilehandler.FillTree(QwRootFileHandler::TYPE::TREE, "mul");
+			  rootfilehandler.FillTree(QwRootFileHandler::TYPE::TREE, "mul");
 
               // Process data handlers
               datahandlerarray_mul.ProcessDataHandlerEntry();
