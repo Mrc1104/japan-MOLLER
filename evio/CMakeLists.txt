@@ -90,22 +90,13 @@ target_compile_options(eviowrapper
     ${${PROJECT_NAME_UC}_DIAG_FLAGS_LIST}
   )
 
-if(ET_FOUND)
 target_link_libraries(eviowrapper
   PUBLIC
-    ET::ET
+	$<$<BOOL:ET_FOUND>:ET::ET>
     ROOT::Core
   PRIVATE
     EVIO::EVIO
   )
-else()
-target_link_libraries(eviowrapper
-  PUBLIC
-    ROOT::Core
-  PRIVATE
-    EVIO::EVIO
-  )
-endif()
 
 install(TARGETS eviowrapper
   EXPORT ${MAIN_PROJECT_NAME_LC}-exports
