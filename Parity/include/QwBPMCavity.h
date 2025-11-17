@@ -1,12 +1,9 @@
-/**********************************************************\
-* File: QwBPMStripline.h                                  *
-*                                                         *
-* Author:                                                 *
-* Time-stamp:                                             *
-\**********************************************************/
+/*!
+ * \file   QwBPMCavity.h
+ * \brief  Cavity beam position monitor implementation
+ */
 
-#ifndef __QwVQWK_CAVITY__
-#define __QwVQWK_CAVITY__
+#pragma once
 
 // System headers
 #include <vector>
@@ -30,9 +27,14 @@ class QwErrDBInterface;
 /*****************************************************************
 *  Class:
 ******************************************************************/
-///
-/// \ingroup QwAnalysis_BL
-
+/**
+ * \class QwBPMCavity
+ * \ingroup QwAnalysis_BL
+ * \brief Cavity-style BPM using VQWK channels
+ *
+ * Provides X/Y position and effective charge from cavity readouts, with
+ * utilities for cuts, histograms, and tree/NTuple output.
+ */
 class QwBPMCavity : public VQwBPM {
   template <typename TT> friend class QwCombinedBPM;
   friend class QwEnergyCalculator;
@@ -90,14 +92,14 @@ class QwBPMCavity : public VQwBPM {
   TString GetSubElementName(Int_t subindex) override;
   void    GetAbsolutePosition() override;
 
-  Bool_t  ApplyHWChecks();//Check for harware errors in the devices
-  Bool_t  ApplySingleEventCuts() override;//Check for good events by stting limits on the devices readings
+  Bool_t  ApplyHWChecks();//Check for hardware errors in the devices
+  Bool_t  ApplySingleEventCuts() override;//Check for good events by setting limits on the devices readings
   //void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability, Double_t burplevel);
   void    SetEventCutMode(Int_t bcuts) override;
   void IncrementErrorCounters() override;
-  void PrintErrorCounters() const override;// report number of events failed due to HW and event cut faliure
+  void PrintErrorCounters() const override;// report number of events failed due to HW and event cut failure
   UInt_t  GetEventcutErrorFlag() override;
   UInt_t  UpdateErrorFlag() override;
   void UpdateErrorFlag(const VQwBPM *ev_error) override;
@@ -112,6 +114,7 @@ class QwBPMCavity : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value) override;
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value) override;
 
+  void    Ratio(VQwBPM &numer, VQwBPM &denom) override;
   void    Ratio(QwBPMCavity &numer, QwBPMCavity &denom);
   void    Scale(Double_t factor) override;
 
@@ -132,8 +135,8 @@ class QwBPMCavity : public VQwBPM {
   void    ConstructHistograms(TDirectory *folder, TString &prefix) override;
   void    FillHistograms() override;
 
-  void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values) override;
-  void    FillTreeVector(std::vector<Double_t> &values) const override;
+  void    ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
+  void    FillTreeVector(QwRootTreeBranchVector &values) const override;
   void    ConstructBranch(TTree *tree, TString &prefix) override;
   void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) override;
 #ifdef HAS_RNTUPLE_SUPPORT
@@ -141,9 +144,10 @@ class QwBPMCavity : public VQwBPM {
   void    FillNTupleVector(std::vector<Double_t>& values) const override;
 #endif
 
-
-  std::vector<QwDBInterface> GetDBEntry();
-  std::vector<QwErrDBInterface> GetErrDBEntry();
+#ifdef __USE_DATABASE__
+  std::vector<QwDBInterface> GetDBEntry() override;
+  std::vector<QwErrDBInterface> GetErrDBEntry() override;
+#endif
 
   protected:
   VQwHardwareChannel* GetSubelementByName(TString ch_name) override;
@@ -171,6 +175,3 @@ class QwBPMCavity : public VQwBPM {
   std::vector<QwVQWK_Channel> fBPMElementList;
 
 };
-
-
-#endif

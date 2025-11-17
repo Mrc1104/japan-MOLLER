@@ -1,12 +1,12 @@
-/**********************************************************\
-* File: QwScaler_Channel.h                                 *
-*                                                          *
-* Author: J. Pan                                           *
-* Date:   Thu Sep 16 18:08:33 CDT 2009                     *
-\**********************************************************/
+/*!
+ * \file   QwScaler_Channel.h
+ * \brief  Base and derived classes for scaler channel data handling
+ *
+ * \author J. Pan
+ * \date   Thu Sep 16 18:08:33 CDT 2009
+ */
 
-#ifndef __QWSCALER_CHANNEL__
-#define __QWSCALER_CHANNEL__
+#pragma once
 
 // System headers
 #include <vector>
@@ -21,10 +21,16 @@
 // Forward declarations
 class QwParameterFile;
 
-///
-/// \ingroup QwAnalysis_ADC
-///
-/// \ingroup QwAnalysis_BL
+/**
+ * \class VQwScaler_Channel
+ * \ingroup QwAnalysis_ADC
+ * \brief Abstract base class for scaler channels
+ *
+ * Provides common infrastructure for scaler-based hardware channels,
+ * including differential scaler support, external clock normalization,
+ * and mock data generation. Concrete implementations handle the
+ * hardware-specific details of scaler decoding.
+ */
 class VQwScaler_Channel: public VQwHardwareChannel, public MQwMockable {
 
 public:
@@ -47,7 +53,7 @@ public:
   VQwScaler_Channel(): MQwMockable() {
     InitializeChannel("","");
   }
-    
+
   VQwScaler_Channel(TString name, TString datatosave = "raw"): MQwMockable() {
     InitializeChannel(name,datatosave);
   };
@@ -162,9 +168,9 @@ public:
   void AddChannelOffset(Double_t Offset);
   void Scale(Double_t Offset) override;
   void DivideBy(const VQwScaler_Channel &denom);
-  
 
-  Int_t ApplyHWChecks() override; //Check for harware errors in the devices. This will return the device error code.
+
+  Int_t ApplyHWChecks() override; //Check for hardware errors in the devices. This will return the device error code.
 
   Bool_t ApplySingleEventCuts() override;//check values read from modules are at desired level
 
@@ -182,8 +188,8 @@ public:
   void  ConstructHistograms(TDirectory *folder, TString &prefix) override;
   void  FillHistograms() override;
 
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values) override = 0;
-  void  FillTreeVector(std::vector<Double_t> &values) const override = 0;
+  void  ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override = 0;
+  void  FillTreeVector(QwRootTreeBranchVector &values) const override = 0;
   void  ConstructBranch(TTree *tree, TString &prefix) override;
 #ifdef HAS_RNTUPLE_SUPPORT
   void  ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString& prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs) override = 0;
@@ -194,12 +200,16 @@ public:
   void AccumulateRunningSum(const VQwScaler_Channel &value, Int_t count=0, Int_t ErrorMask=0xFFFFFFF);
   void AccumulateRunningSum(const VQwHardwareChannel *value, Int_t count=0, Int_t ErrorMask=0xFFFFFFF) override{
     const VQwScaler_Channel *tmp_ptr = dynamic_cast<const VQwScaler_Channel*>(value);
-    if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr, count, ErrorMask);
+    if (tmp_ptr != NULL) {
+      AccumulateRunningSum(*tmp_ptr, count, ErrorMask);
+    } else {
+      throw std::invalid_argument("Standard exception from VQwScaler_Channel::AccumulateRunningSum: incompatible hardware channel type");
+    }
   };
   inline void DeaccumulateRunningSum(const VQwScaler_Channel& value, Int_t ErrorMask){
     AccumulateRunningSum(value, -1, ErrorMask);
   };
-  
+
   void PrintValue() const override;
   void PrintInfo() const override;
   void CalculateRunningAverage() override;
@@ -220,7 +230,7 @@ public:
 
 protected:
   VQwScaler_Channel& operator/=(const VQwScaler_Channel&);
-  
+
 protected:
   static const Bool_t kDEBUG;
 
@@ -244,6 +254,15 @@ protected:
 
 
 //  Derived templated class
+/**
+ * \class QwScaler_Channel
+ * \ingroup QwAnalysis_ADC
+ * \brief Templated concrete scaler channel with configurable data masking
+ *
+ * Template specialization of VQwScaler_Channel that applies data_mask
+ * and data_shift to the raw scaler values during processing. Commonly
+ * used to handle different scaler module types with varying data formats.
+ */
 template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
 class QwScaler_Channel: public VQwScaler_Channel
 {
@@ -268,8 +287,8 @@ class QwScaler_Channel: public VQwScaler_Channel
   void  EncodeEventData(std::vector<UInt_t> &buffer) override;
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index = 0) override;
 
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values) override;
-  void  FillTreeVector(std::vector<Double_t> &values) const override;
+  void  ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
+  void  FillTreeVector(QwRootTreeBranchVector &values) const override;
 #ifdef HAS_RNTUPLE_SUPPORT
   void  ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString& prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs) override;
   void  FillNTupleVector(std::vector<Double_t>& values) const override;
@@ -285,6 +304,3 @@ typedef class QwScaler_Channel<0x00ffffff,0> QwSIS3801D24_Channel;
 typedef class QwScaler_Channel<0xffffffff,0> QwSIS3801D32_Channel;
 typedef class QwScaler_Channel<0xffffffff,0>    QwSIS3801_Channel;
 typedef class QwScaler_Channel<0xffffffff,0>    QwSTR7200_Channel;
-
-
-#endif

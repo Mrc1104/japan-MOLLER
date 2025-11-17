@@ -1,18 +1,11 @@
-/**********************************************************\
-* File: QwBeamMod.h                                       *
-*                                                         *
-* Author: Joshua Hoskins                                  *
-* Time-stamp: 052510                                      *
-***********************************************************
-*                                                         *
-* Time-Stamp: 101910                                      *
-*                                                         *
-* Added support of QwWord                                 *
-*                                                         *
-\**********************************************************/
+/*!
+ * \file   QwBeamMod.h
+ * \brief  Beam modulation subsystem for parity analysis
+ * \author Joshua Hoskins
+ * \date   2010-05-25
+ */
 
-#ifndef __QwBEAMMOD__
-#define __QwBEAMMOD__
+#pragma once
 
 // System headers
 #include <vector>
@@ -43,6 +36,11 @@ class QwBeamMod;
 /*****************************************************************
 *  Class:
 ******************************************************************/
+/**
+ * \class QwModChannelID
+ * \ingroup QwAnalysis_BL
+ * \brief Mapping information for beam modulation channels
+ */
 class QwModChannelID
 {
  public:
@@ -58,10 +56,10 @@ class QwModChannelID
 /*     fSubelement(999999),fmoduletype(""),fmodulename("") */
 /*     {}; */
 
-  Int_t fSubbankIndex;        //Generated from ROCID(readout CPU) & BankID(corespondes to internal headers to ID differnt types of data)
+  Int_t fSubbankIndex;        //Generated from ROCID(readout CPU) & BankID(corresponds to internal headers to ID different types of data)
   Int_t fWordInSubbank;
   //first word reported for this channel in the subbank
-  //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
+  //(eg VQWK channel report 6 words for each event, scalers only report one word per event)
 
   // The first word of the subbank gets fWordInSubbank=0
 
@@ -85,6 +83,14 @@ class QwModChannelID
 /*****************************************************************
 *  Class:
 ******************************************************************/
+/**
+ * \class QwBeamMod
+ * \ingroup QwAnalysis_BL
+ * \brief Subsystem for beam modulation studies and FFB handling
+ *
+ * Decodes modulation ramp and pattern words, maintains channels affected
+ * by modulation, and computes relevant summaries for regression.
+ */
 class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamMod> {
 
  private:
@@ -110,7 +116,7 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
   QwBeamMod(const QwBeamMod& source)
   : VQwSubsystem(source),VQwSubsystemParity(source),
     fWord(source.fWord)
-  { 
+  {
     // std::cout<< "Here in the copy constructor" << std::endl;
     this->fModChannel.reserve(source.fModChannel.size());
     for(size_t i=0;i< source.fModChannel.size();i++) {
@@ -141,7 +147,7 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
 
   Bool_t ApplySingleEventCuts() override;//derived from VQwSubsystemParity
   void IncrementErrorCounters() override;
-  void PrintErrorCounters() const override;// report number of events failed due to HW and event cut faliures
+  void PrintErrorCounters() const override;// report number of events failed due to HW and event cut failures
   UInt_t GetEventcutErrorFlag() override;//return the error flag
 
   Bool_t CheckForBurpFail(const VQwSubsystem *subsys) override;
@@ -175,19 +181,19 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
   void FillHistograms() override;
 
   using VQwSubsystem::ConstructBranchAndVector;
-  void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values) override;
+  void ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
   void ConstructBranch(TTree *tree, TString& prefix) override { };
   void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) override { };
-  void FillTreeVector(std::vector<Double_t> &values) const override;
+  void FillTreeVector(QwRootTreeBranchVector &values) const override;
 #ifdef HAS_RNTUPLE_SUPPORT
   void ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString& prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs) override;
   void FillNTupleVector(std::vector<Double_t>& values) const override;
 #endif // HAS_RNTUPLE_SUPPORT
 
 #ifdef __USE_DATABASE__
-  void FillDB_MPS(QwParityDB *db, TString datatype);
-  void FillDB(QwParityDB *db, TString datatype);
-  void FillErrDB(QwParityDB *db, TString datatype);
+  void FillDB_MPS(QwParityDB *db, TString datatype) override;
+  void FillDB(QwParityDB *db, TString datatype) override;
+  void FillErrDB(QwParityDB *db, TString datatype) override;
 #endif // __USE_DATABASE__
   void WritePromptSummary(QwPromptSummary *ps, TString type) override;
 
@@ -224,4 +230,5 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
 
 };
 
-#endif
+// Register this subsystem with the factory
+REGISTER_SUBSYSTEM_FACTORY(QwBeamMod);

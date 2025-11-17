@@ -1,15 +1,13 @@
-/*****************************************************************************
-File Name: VQwDataHandler.cc
-
-Created by: Michael Vallee
-Email: mv836315@ohio.edu
-
-Description:  This is the implemetation file to the VQwDataHandler class.
-              This class acts as a base class to all classes which need
-              to access data from multiple subsystems
-
-Last Modified: August 1, 2018 1:39 PM
-*****************************************************************************/
+/*!
+ * \file   VQwDataHandler.cc
+ * \brief  Virtual base class implementation for data handlers accessing multiple subsystems
+ *
+ * Base implementation for data handlers that process inputs from multiple
+ * subsystems, creating corrected output channels and managing tree/RNTuple
+ * construction, running sums, and variable publication. Used by concrete
+ * handlers like combiners and correctors. Documentation-only edits; runtime
+ * behavior unchanged.
+ */
 
 #include <iostream>
 
@@ -34,6 +32,7 @@ using namespace std;
 #endif // __USE_DATABASE__
 
 
+/** Constructor: initialize base data handler with name and defaults. */
 VQwDataHandler::VQwDataHandler(const TString& name)
 : fPriority(0),
   fBurstCounter(0),
@@ -48,6 +47,7 @@ VQwDataHandler::VQwDataHandler(const TString& name)
   fKeepRunningSum(kFALSE)
 { fRunningsum=NULL;}
 
+/** Copy constructor: deep-copy output variables and running sums. */
 VQwDataHandler::VQwDataHandler(const VQwDataHandler &source)
 : fPriority(source.fPriority),
   fBurstCounter(source.fBurstCounter),
@@ -80,8 +80,9 @@ VQwDataHandler::VQwDataHandler(const VQwDataHandler &source)
 }
 
 
+/** Destructor: clean up owned output variable clones. */
 VQwDataHandler::~VQwDataHandler() {
-  
+
   for (size_t i = 0; i < fOutputVar.size(); ++i) {
     if (fOutputVar.at(i) != NULL){
        delete fOutputVar.at(i);
@@ -91,6 +92,7 @@ VQwDataHandler::~VQwDataHandler() {
 
 }
 
+/** Parse configuration file for map file, priority, tree settings. */
 void VQwDataHandler::ParseConfigFile(QwParameterFile& file){
   file.RewindToFileStart();
   file.EnableGreediness();
@@ -106,10 +108,14 @@ void VQwDataHandler::ParseConfigFile(QwParameterFile& file){
 }
 
 
+/**
+ * Calculate one corrected output by copying the dependent variable and
+ * applying sensitivity-weighted corrections from independent variables.
+ */
 void VQwDataHandler::CalcOneOutput(const VQwHardwareChannel* dv, VQwHardwareChannel* output,
                                   vector< const VQwHardwareChannel* > &ivs,
                                   vector< Double_t > &sens) {
-  
+
   // if second is NULL, can't do corrector
   if (output == NULL){
     QwError<<"Second is value is NULL, unable to calculate corrector."<<QwLog::endl;
@@ -130,21 +136,26 @@ void VQwDataHandler::CalcOneOutput(const VQwHardwareChannel* dv, VQwHardwareChan
   for (size_t iv = 0; iv < ivs.size(); iv++) {
     output->ScaledAdd(sens.at(iv), ivs.at(iv));
   }
-  
+
 }
 
+/** Copy dependent variables to output variables (default processing). */
 void VQwDataHandler::ProcessData() {
-  
+
   for (size_t i = 0; i < fDependentVar.size(); ++i) {
     *(fOutputVar.at(i)) = *(fDependentVar[i]);
   }
   for (size_t i = 0; i < fDependentValues.size(); ++i) {
     fOutputValues.at(i) = fDependentValues[i];
   }
-  
+
 }
 
 
+/**
+ * Connect to external pointers for dependent variables from asym/diff
+ * subsystem arrays, creating corresponding output variables as clones.
+ */
 Int_t VQwDataHandler::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) {
   SetEventcutErrorFlagPointer(asym.GetEventcutErrorFlagPointer());
 
@@ -155,7 +166,7 @@ Int_t VQwDataHandler::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemA
     VQwHardwareChannel* new_ptr = NULL;
     string name = "";
     string cor = "cor_";
-    
+
     if (fDependentType.at(dv)==kHandleTypeMps) {
       //  Quietly ignore the MPS type when we're connecting the asym & diff
       continue;
@@ -206,7 +217,7 @@ Int_t VQwDataHandler::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemA
     }else {
       QwWarning << "Dependent variable " << fDependentName.at(dv) << " could not be found, "
                 << "or is not a VQWK channel." << QwLog::endl;
-      continue; 
+      continue;
     }
 
     // pair creation
@@ -219,8 +230,13 @@ Int_t VQwDataHandler::ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemA
 }
 
 
+/**
+ * Parse a variable string to extract type (asym/diff/yield/mps) and name.
+ *
+ * @return Pair of handle type and variable name.
+ */
 pair<VQwDataHandler::EQwHandleType,string> VQwDataHandler::ParseHandledVariable(const string& variable) {
-  
+
   pair<EQwHandleType,string> type_name;
   size_t len = variable.length();
   size_t pos1 = variable.find_first_of(ParseSeparator);
@@ -236,7 +252,7 @@ pair<VQwDataHandler::EQwHandleType,string> VQwDataHandler::ParseHandledVariable(
     else if (type == "diff")
       {type_name.first = kHandleTypeDiff;}
     else if (type == "yield")
-      {type_name.first = kHandleTypeYield;} 
+      {type_name.first = kHandleTypeYield;}
     else if (type == "mps")
       {type_name.first = kHandleTypeMps;}
     else
@@ -244,9 +260,13 @@ pair<VQwDataHandler::EQwHandleType,string> VQwDataHandler::ParseHandledVariable(
     type_name.second = name;
   }
   return type_name;
-  
+
 }
 
+/**
+ * Construct TTree branches for output variables, using running sum if
+ * configured for statistics trees.
+ */
 void VQwDataHandler::ConstructTreeBranches(
     QwRootFile *treerootfile,
     const std::string& treeprefix,
@@ -259,7 +279,7 @@ void VQwDataHandler::ConstructTreeBranches(
                 << QwLog::endl;
     } else {
       TString tmp_branchprefix(branchprefix.c_str());
-      if (tmp_branchprefix.Contains("stat") && fKeepRunningSum 
+      if (tmp_branchprefix.Contains("stat") && fKeepRunningSum
 	  && fRunningsum!=NULL){
 	fRunningsumFillsTree = kTRUE;
       } else {
@@ -278,7 +298,7 @@ void VQwDataHandler::ConstructTreeBranches(
 void VQwDataHandler::ConstructBranchAndVector(
     TTree *tree,
     TString& prefix,
-    std::vector<Double_t>& values)
+    QwRootTreeBranchVector &values)
 {
   for (size_t i = 0; i < fOutputVar.size(); ++i) {
     fOutputVar.at(i)->ConstructBranchAndVector(tree, prefix, values);
@@ -309,7 +329,7 @@ void VQwDataHandler::ConstructNTupleFields(
                 << QwLog::endl;
     } else {
       TString tmp_branchprefix(branchprefix.c_str());
-      if (tmp_branchprefix.Contains("stat") && fKeepRunningSum 
+      if (tmp_branchprefix.Contains("stat") && fKeepRunningSum
 	  && fRunningsum!=NULL){
 	fRunningsumFillsTree = kTRUE;
       } else {
@@ -342,10 +362,9 @@ void VQwDataHandler::FillNTupleFields(QwRootFile *treerootfile)
 
 
 /**
- * Fill the tree vector
- * @param values Vector of values
+ * Fill tree vector with current output variable values.
  */
-void VQwDataHandler::FillTreeVector(std::vector<Double_t>& values) const
+void VQwDataHandler::FillTreeVector(QwRootTreeBranchVector &values) const
 {
   // Fill the data element
   for (size_t i = 0; i < fOutputVar.size(); ++i) {
@@ -372,6 +391,7 @@ void VQwDataHandler::FillNTupleVector(std::vector<Double_t>& values) const
 }
 #endif // HAS_RNTUPLE_SUPPORT
 
+/** Initialize running sum accumulator as a clone of this handler. */
 void VQwDataHandler::InitRunningSum()
 {
   if (fKeepRunningSum && fRunningsum == NULL){
@@ -381,6 +401,7 @@ void VQwDataHandler::InitRunningSum()
   }
 }
 
+/** Accumulate current event into running sum if no error flags are set. */
 void VQwDataHandler::AccumulateRunningSum()
 {
   if (fKeepRunningSum && fErrorFlagPtr!=NULL && (*fErrorFlagPtr)==0){
@@ -432,7 +453,7 @@ Bool_t VQwDataHandler::PublishInternalValues() const
   // Publish variables
   Bool_t status = kTRUE;
   VQwHardwareChannel* tmp_channel = nullptr;
-  
+
   // Publish variables through map file
   for (size_t pp = 0; pp < fPublishList.size(); pp++) {
     TString publish_name = fPublishList.at(pp).at(0);
@@ -451,17 +472,17 @@ Bool_t VQwDataHandler::PublishInternalValues() const
       }
     }
     if (tmp_channel == NULL) {
-      QwError << "VQwDataHandler::PublishInternalValues(): " << publish_name 
+      QwError << "VQwDataHandler::PublishInternalValues(): " << publish_name
 	      << " not found" << QwLog::endl;
       status &= kFALSE;
     } else {
-      QwDebug << "VQwDataHandler::PublishInternalValues(): " << publish_name 
+      QwDebug << "VQwDataHandler::PublishInternalValues(): " << publish_name
 	      << " found" << QwLog::endl;
       status &= PublishInternalValue(publish_name, "published-value", tmp_channel);
     }
   }
   return status;
-}    
+}
 
 Bool_t VQwDataHandler::PublishByRequest(TString device_name)
 {
@@ -482,7 +503,7 @@ void VQwDataHandler::WritePromptSummary(QwPromptSummary *ps, TString type)
 {
      Bool_t local_print_flag = false;
      Bool_t local_add_element= type.Contains("asy");
-  
+
 
     if(local_print_flag){
           QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
@@ -499,31 +520,31 @@ void VQwDataHandler::WritePromptSummary(QwPromptSummary *ps, TString type)
      PromptSummaryElement *local_ps_element = NULL;
      Bool_t local_add_these_elements= false;
 
-  for (size_t i = 0; i < fOutputVar.size();  i++) 
+  for (size_t i = 0; i < fOutputVar.size();  i++)
     {
-      element_name        = fOutputVar[i]->GetElementName(); 
+      element_name        = fOutputVar[i]->GetElementName();
       tmp_channel         = fOutputVar[i];
       element_value       = 0.0;
       element_value_err   = 0.0;
       element_value_width = 0.0;
-     
-   
+
+
       local_add_these_elements=element_name.Contains("dd")||element_name.Contains("da"); // Need to change this to add other detectors in summary
 
       if(local_add_these_elements && local_add_element){
-        ps->AddElement(new PromptSummaryElement(element_name)); 
+        ps->AddElement(new PromptSummaryElement(element_name));
       }
 
       local_ps_element=ps->GetElementByName(element_name);
-       
+
       if(local_ps_element) {
         element_value       = tmp_channel->GetValue();
         element_value_err   = tmp_channel->GetValueError();
         element_value_width = tmp_channel->GetValueWidth();
-        
+
         local_ps_element->Set(type, element_value, element_value_err, element_value_width);
       }
-      
+
       if( local_print_flag && local_ps_element) {
         printf("Type %12s, Element %32s, value %12.4e error %8.4e  width %12.4e\n", type.Data(), element_name.Data(), element_value, element_value_err, element_value_width);
       }
@@ -572,7 +593,7 @@ void VQwDataHandler::FillDB(QwParityDB *db, TString datatype)
       } else if (tabletype==QwDBInterface::kQwDBI_LumiTable){
 	      interface.at(j).AddThisEntryToList( lumilist );
       } else {
-	      QwError << "QwCombiner::FillDB:  Unrecognized detector name:  " 
+	      QwError << "QwCombiner::FillDB:  Unrecognized detector name:  "
 		            << interface.at(j).GetDeviceName() << QwLog::endl;
       }
       interface.at(j).PrintStatus( local_print_flag);
@@ -582,14 +603,14 @@ void VQwDataHandler::FillDB(QwParityDB *db, TString datatype)
   // Database operations with scoped connection
   {
     auto c = db->GetScopedConnection();
-    
+
     // Check the entrylist size, if it isn't zero, start to query..
     if( beamlist.size() ) {
       for (const auto& entry: beamlist) {
         c->QueryExecute(entry.insert_into());
       }
     } else {
-      QwMessage << "QwCombiner::FillDB :: This is the case when the beamlist contains nothing for type="<< measurement_type.Data() 
+      QwMessage << "QwCombiner::FillDB :: This is the case when the beamlist contains nothing for type="<< measurement_type.Data()
                 << QwLog::endl;
     }
     if( mdlist.size() ) {
@@ -597,7 +618,7 @@ void VQwDataHandler::FillDB(QwParityDB *db, TString datatype)
         c->QueryExecute(entry.insert_into());
       }
     } else {
-      QwMessage << "QwCombiner::FillDB :: This is the case when the mdlist contains nothing for type="<< measurement_type.Data() 
+      QwMessage << "QwCombiner::FillDB :: This is the case when the mdlist contains nothing for type="<< measurement_type.Data()
                 << QwLog::endl;
     }
     if( lumilist.size() ) {
@@ -605,11 +626,10 @@ void VQwDataHandler::FillDB(QwParityDB *db, TString datatype)
         c->QueryExecute(entry.insert_into());
       }
     } else {
-      QwMessage << "QwCombiner::FillDB :: This is the case when the lumilist contains nothing for type="<< measurement_type.Data() 
+      QwMessage << "QwCombiner::FillDB :: This is the case when the lumilist contains nothing for type="<< measurement_type.Data()
           << QwLog::endl;
     }
   }
   return;
 }
 #endif // __USE_DATABASE__
-

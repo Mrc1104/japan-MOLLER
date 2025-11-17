@@ -1,18 +1,11 @@
-/*****************************************************************************
-File Name: VQwDataHandler.h
+/*!
+ * \file   VQwDataHandler.h
+ * \brief  Virtual base class for data handlers accessing multiple subsystems
+ * \author Michael Vallee
+ * \date   2018-08-01
+ */
 
-Created by: Michael Vallee
-Email: mv836315@ohio.edu
-
-Description:  This is the header file to the VQwDataHandler class.  This
-              class acts as a base class to all classes which need
-              to access data from multiple subsystems
-
-Last Modified: August 1, 2018 1:39 PM
-*****************************************************************************/
-
-#ifndef VQWDATAHANDLER_H_
-#define VQWDATAHANDLER_H_
+#pragma once
 
 // Qweak headers
 #include "QwHelicityPattern.h"
@@ -26,14 +19,35 @@ class QwRootFile;
 class QwPromptSummary;
 class QwDataHandlerArray;
 
+/**
+ * \class VQwDataHandler
+ * \ingroup QwAnalysis
+ * \brief Abstract base for handlers that consume multiple subsystems and produce derived outputs
+ *
+ * A data handler observes one or more subsystem arrays (yields, asymmetries,
+ * differences) and computes derived channels or diagnostics. Typical examples
+ * include linear regression, correlation studies, and alarm/quality handlers.
+ *
+ * Key responsibilities:
+ * - Establish connections to required input channels via ConnectChannels.
+ * - ProcessData once per event to update derived quantities.
+ * - Maintain running sums/averages and optionally publish variables to trees,
+ *   histograms, or RNTuples.
+ *
+ * Design notes:
+ * - Uses container-delegation at the system level; underlying arithmetic is
+ *   performed by the concrete channel classes.
+ * - Handlers participate in the MQwPublishable pattern for on-demand output
+ *   publication, and in cloneable factories for configuration-driven creation.
+ */
 class VQwDataHandler:  virtual public VQwDataHandlerCloneable, public MQwPublishable_child<QwDataHandlerArray,VQwDataHandler> {
 
   public:
-  
+
     enum EQwHandleType {
       kHandleTypeUnknown=0, kHandleTypeMps, kHandleTypeAsym, kHandleTypeDiff, kHandleTypeYield
     };
-    
+
     typedef std::vector< VQwHardwareChannel* >::iterator Iterator_HdwChan;
     typedef std::vector< VQwHardwareChannel* >::const_iterator ConstIterator_HdwChan;
 
@@ -110,9 +124,9 @@ class VQwDataHandler:  virtual public VQwDataHandlerCloneable, public MQwPublish
     virtual void  FillHistograms() { };
 
     // Fill the vector for this subsystem
-    void FillTreeVector(std::vector<Double_t> &values) const;
+    void FillTreeVector(QwRootTreeBranchVector &values) const;
 
-    void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values);
+    void ConstructBranchAndVector(TTree *tree, TString& prefix, QwRootTreeBranchVector &values);
 #ifdef HAS_RNTUPLE_SUPPORT
     void ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString& prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs);
     void FillNTupleVector(std::vector<Double_t>& values) const;
@@ -131,11 +145,11 @@ class VQwDataHandler:  virtual public VQwDataHandlerCloneable, public MQwPublish
     Bool_t PublishByRequest(TString device_name) override;
 
   protected:
-    
+
     VQwDataHandler() { }
-    
+
     virtual Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff);
-    
+
     void SetEventcutErrorFlagPointer(const UInt_t* errorflagptr) {
       fErrorFlagPtr = errorflagptr;
     }
@@ -195,5 +209,3 @@ class VQwDataHandler:  virtual public VQwDataHandlerCloneable, public MQwPublish
    Bool_t fRunningsumFillsTree;
    VQwDataHandler *fRunningsum;
 };
-
-#endif // VQWDATAHANDLER_H_

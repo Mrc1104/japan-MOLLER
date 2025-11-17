@@ -1,12 +1,12 @@
-/*
- * QwDBInterface.h
- *
- *  Created on: Dec 14, 2010
- *      Author: jhlee
+
+/*!
+ * \file   QwDBInterface.h
+ * \brief  Database interface for QwIntegrationPMT and subsystems
+ * \author jhlee
+ * \date   2010-12-14
  */
 
-#ifndef QWDBINTERFACE_H_
-#define QWDBINTERFACE_H_
+#pragma once
 
 // System headers
 #include <iostream>
@@ -42,7 +42,7 @@ class QwParityDB;
 
 class QwDBInterface {
  public:
-  enum EQwDBIDataTableType{kQwDBI_OtherTable, kQwDBI_BeamTable, 
+  enum EQwDBIDataTableType{kQwDBI_OtherTable, kQwDBI_BeamTable,
 			   kQwDBI_MDTable, kQwDBI_LumiTable};
  private:
   static std::map<TString, TString> fPrefix;
@@ -245,5 +245,3 @@ inline void QwErrDBInterface::AddThisEntryToList(std::vector<T> &list)
     PrintStatus(kTRUE);
   };
 }
-
-#endif /* QWDBINTERFACE_H_ */

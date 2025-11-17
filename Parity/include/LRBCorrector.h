@@ -1,24 +1,25 @@
-/********************************************************************
-File Name: LRBCorrector.h
+/*!
+ * \file   LRBCorrector.h
+ * \brief  Linear regression blue corrector data handler class
+ * \author Michael Vallee
+ * \date   2018-08-01
+ */
 
-Created by: Michael Vallee
-Email: mv836315@ohio.edu
-
-Description:  This is the header file of the LRBCorrector class,
-              which is a child of the VQwDataHandler class.  The
-              functionality of this class is derived from
-              LinRegBlue.
-
-Last Modified: August 1, 2018 1:41 PM
-********************************************************************/
-
-#ifndef LRBCORRECTOR_H_
-#define LRBCORRECTOR_H_
+#pragma once
 
 // Parent Class
 #include "VQwDataHandler.h"
 
 
+/**
+ * \class LRBCorrector
+ * \ingroup QwAnalysis_BL
+ * \brief Linear-regression corrector applying per-burst slopes to data
+ *
+ * Loads cycle-dependent sensitivities and applies linear regression
+ * corrections to monitored channels, selecting the appropriate set
+ * based on the current burst counter.
+ */
 class LRBCorrector : public VQwDataHandler, public MQwDataHandlerCloneable<LRBCorrector>{
  public:
     /// \brief Constructor with name
@@ -29,7 +30,7 @@ class LRBCorrector : public VQwDataHandler, public MQwDataHandlerCloneable<LRBCo
     Int_t LoadChannelMap(const std::string& mapfile) override;
 
     Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override;
-    
+
     void ProcessData() override;
 
     void UpdateBurstCounter(Short_t burstcounter) override{
@@ -40,7 +41,7 @@ class LRBCorrector : public VQwDataHandler, public MQwDataHandlerCloneable<LRBCo
 	fBurstCounter = 0;
       } else {
 	fBurstCounter = fLastCycle-1;
-	QwWarning << "LRBCorrector, " << GetName() 
+	QwWarning << "LRBCorrector, " << GetName()
 		  << ": Burst counter, " << burstcounter
 		  << ", is greater than the stored number of sets of slopes.  "
 		  << "Using the last set of slopes (cycle=" << fLastCycle
@@ -64,8 +65,8 @@ class LRBCorrector : public VQwDataHandler, public MQwDataHandlerCloneable<LRBCo
 
     Short_t fLastCycle;
     std::map<Short_t,std::vector<std::vector<Double_t>>> fSensitivity;
-    
+
 };
 
-
-#endif // LRBCORRECTOR_H_
+// Register this handler with the factory
+REGISTER_DATA_HANDLER_FACTORY(LRBCorrector);

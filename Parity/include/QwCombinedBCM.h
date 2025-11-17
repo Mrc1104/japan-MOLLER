@@ -1,19 +1,14 @@
-/**********************************************************\
-* File: QwCombinedBCM.h                                  *
-* File: QwBCM.h                                           *
-*                                                         *
-* Author:                                                 *
-* Time-stamp:                                             *
-\**********************************************************/
+/*!
+ * \file   QwCombinedBCM.h
+ * \brief  Combined beam current monitor using weighted average of multiple BCMs
+ */
 
-#ifndef __Qw_COMBINEDBCM__
-#define __Qw_COMBINEDBCM__
+#pragma once
 
 // System headers
+#include <functional>
+#include <random>
 #include <vector>
-
-// Boost math library for random number generation
-#include "boost/random.hpp"
 
 // ROOT headers
 #include <TTree.h>
@@ -28,9 +23,15 @@
 class QwDBInterface;
 #endif // __USE_DATABASE__
 
-/*****************************************************************
-*  Class:
-******************************************************************/
+/**
+ * \class QwCombinedBCM
+ * \ingroup QwAnalysis_BL
+ * \brief Template for a combined beam current monitor using weighted inputs
+ *
+ * Aggregates multiple BCMs into a single effective current channel by
+ * applying user-provided weights. Provides event processing hooks and
+ * error propagation consistent with VQwBCM.
+ */
 
 template<typename T>
 class QwCombinedBCM : public QwBCM<T> {
@@ -78,7 +79,10 @@ class QwCombinedBCM : public QwBCM<T> {
     return kTRUE;
   };
 
-  Bool_t ApplySingleEventCuts() override;//Check for good events by stting limits on the devices readings
+  Bool_t ApplySingleEventCuts() override;//Check for good events by setting limits on the devices readings
+
+  using QwBCM<T>::UpdateErrorFlag; // avoid hiding UpdateErrorFlag(const VQwBCM*)
+  //void UpdateErrorFlag(const VQwBCM *ev_error) override;
 
   UInt_t UpdateErrorFlag() override;
 
@@ -124,15 +128,12 @@ class QwCombinedBCM : public QwBCM<T> {
   /// \name Parity mock data generation
   // @{
   /// Internal randomness generator
-  static boost::mt19937 fRandomnessGenerator;
-  /// Internal normal probability distribution
-  static boost::random::uniform_real_distribution<double> fDistribution;
+  static std::mt19937 fRandomnessGenerator;
+  /// Internal uniform probability distribution
+  static std::uniform_real_distribution<double> fDistribution;
   /// Internal normal random variable
-  static boost::variate_generator
-    < boost::mt19937, boost::random::uniform_real_distribution<double> > fRandomVariable;
+  static std::function<double()> fRandomVariable;
 public: 
   static void SetTripSeed(uint seedval);
   // @}
 };
-
-#endif

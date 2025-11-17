@@ -1,16 +1,9 @@
-/********************************************************************
-File Name: LRBCorrector.cc
-
-Created by: Michael Vallee
-Email: mv836315@ohio.edu
-
-Description:  This is the implementaion file of the LRBCorrector
-              class, which is a child of the VQwDataHandler class.
-              The functionality of this class is derived from
-              LinRegBlue.
-
-Last Modified: August 1, 2018 1:41 PM
-********************************************************************/
+/*!
+ * \file   LRBCorrector.cc
+ * \brief  Implementation of linear regression blue corrector data handler
+ * \author Michael Vallee
+ * \date   2018-08-01
+ */
 
 #include <iostream>
 
@@ -26,15 +19,13 @@ Last Modified: August 1, 2018 1:41 PM
 #include <TFile.h>
 #include <TH2.h>
 #include <TKey.h>
-#include <TTree.h> 
+#include <TTree.h>
 #include <TChain.h>
 #include <TObjArray.h>
-#include <TEventList.h> 
+#include <TEventList.h>
 
 #include <TMatrixD.h>
 
-// Register this handler with the factory
-RegisterHandlerFactory(LRBCorrector);
 
 /// \brief Constructor with name
 LRBCorrector::LRBCorrector(const TString& name):VQwDataHandler(name),

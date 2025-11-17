@@ -1,12 +1,10 @@
-/**********************************************************\
-* File: QwCombinedBPM.h                                   *
-*                                                         *
-* Author:B. Waidyawansa                                   *
-* Time-stamp:                                             *
-\**********************************************************/
+/*!
+ * \file   QwCombinedBPM.h
+ * \brief  Combined beam position monitor using weighted average
+ * \author B. Waidyawansa
+ */
 
-#ifndef __QwCOMBINEDBPM__
-#define __QwCOMBINEDBPM__
+#pragma once
 
 // System headers
 #include <vector>
@@ -29,11 +27,15 @@ class QwDBInterface;
 #endif // __USE_DATABASE__
 class QwParameterFile;
 
-/*****************************************************************
-*  Class:
-******************************************************************/
-///
-/// \ingroup QwAnalysis_BL
+/**
+ * \class QwCombinedBPM
+ * \ingroup QwAnalysis_BL
+ * \brief Template for combined beam position monitor using multiple BPMs
+ *
+ * Maintains a weighted combination of individual BPMs to estimate
+ * position and angle at a virtual location, supporting fits and
+ * effective charge computation.
+ */
 template<typename T>
 class QwCombinedBPM : public VQwBPM {
   friend class QwEnergyCalculator;
@@ -109,20 +111,20 @@ class QwCombinedBPM : public VQwBPM {
   }
 
 
-  Bool_t  ApplyHWChecks();//Check for harware errors in the devices
-  Bool_t  ApplySingleEventCuts() override;//Check for good events by stting limits on the devices readings
+  Bool_t  ApplyHWChecks();//Check for hardware errors in the devices
+  Bool_t  ApplySingleEventCuts() override;//Check for good events by setting limits on the devices readings
   //void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   //void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts) override;
   void IncrementErrorCounters() override;
-  void PrintErrorCounters() const override;// report number of events failed due to HW and event cut faliure
+  void PrintErrorCounters() const override;// report number of events failed due to HW and event cut failure
   UInt_t  GetEventcutErrorFlag() override;
   UInt_t  UpdateErrorFlag() override;
   void UpdateErrorFlag(const VQwBPM *ev_error) override;
 
   // Polymorphic burp-failure check when called via VQwBPM*
-  Bool_t  CheckForBurpFail(const VQwDataElement *ev_error);
+  Bool_t  CheckForBurpFail(const VQwDataElement *ev_error) override;
 
 
   void    SetBPMForCombo(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw) override;
@@ -148,10 +150,10 @@ class QwCombinedBPM : public VQwBPM {
   void    ConstructHistograms(TDirectory *folder, TString &prefix) override;
   void    FillHistograms() override;
 
-  void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values) override;
+  void    ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
   void    ConstructBranch(TTree *tree, TString &prefix) override;
   void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) override;
-  void    FillTreeVector(std::vector<Double_t> &values) const override;
+  void    FillTreeVector(QwRootTreeBranchVector &values) const override;
 
 #ifdef HAS_RNTUPLE_SUPPORT
   // RNTuple methods
@@ -185,8 +187,8 @@ class QwCombinedBPM : public VQwBPM {
 
 
 #ifdef __USE_DATABASE__
-  std::vector<QwDBInterface> GetDBEntry();
-  std::vector<QwErrDBInterface> GetErrDBEntry();
+  std::vector<QwDBInterface> GetDBEntry() override;
+  std::vector<QwErrDBInterface> GetErrDBEntry() override;
 #endif // __USE_DATABASE__
 
  protected:
@@ -236,7 +238,3 @@ private:
   std::vector<T> fBPMComboElementList;
 
 };
-
-
-
-#endif

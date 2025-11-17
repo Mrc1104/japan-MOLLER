@@ -1,6 +1,9 @@
+/*!
+ * \file   QwScaler.h
+ * \brief  Scaler subsystem for counting and rate measurements
+ */
 
-#ifndef __QWSCALER__
-#define __QWSCALER__
+#pragma once
 
 // System headers
 #include <vector>
@@ -16,6 +19,14 @@
 #include "QwScaler_Channel.h"
 
 
+/**
+ * \class QwScaler
+ * \ingroup QwAnalysis_BL
+ * \brief Subsystem managing scaler modules and derived rates
+ *
+ * Wraps hardware scaler channels, provides per-MPS processing, histogram
+ * and tree output, and utilities for normalization and cuts.
+ */
 class QwScaler: public VQwSubsystemParity, public MQwSubsystemCloneable<QwScaler>
 {
   private:
@@ -63,10 +74,10 @@ class QwScaler: public VQwSubsystemParity, public MQwSubsystemCloneable<QwScaler
     void  FillHistograms() override;
 
     using VQwSubsystem::ConstructBranchAndVector;
-    void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values) override;
+    void  ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
     void  ConstructBranch(TTree *tree, TString& prefix) override { };
     void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) override { };
-    void  FillTreeVector(std::vector<Double_t> &values) const override;
+    void  FillTreeVector(QwRootTreeBranchVector &values) const override;
 
     // RNTuple methods
 #ifdef HAS_RNTUPLE_SUPPORT
@@ -103,7 +114,7 @@ class QwScaler: public VQwSubsystemParity, public MQwSubsystemCloneable<QwScaler
     //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
     void UpdateErrorFlag(const VQwSubsystem *ev_error) override{
     };
-    
+
     void PrintValue() const override;
     void PrintInfo() const override;
 
@@ -139,4 +150,5 @@ class QwScaler: public VQwSubsystemParity, public MQwSubsystemCloneable<QwScaler
     std::vector< std::pair< VQwScaler_Channel*, double > > fNorm;
 };
 
-#endif
+// Register this subsystem with the factory
+REGISTER_SUBSYSTEM_FACTORY(QwScaler);

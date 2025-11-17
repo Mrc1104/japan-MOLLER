@@ -1,12 +1,11 @@
-/**********************************************************\
-* File: QwPMT_Channel.h                                           *
-*                                                          *
-* Author: P. M. King                                       *
-* Time-stamp: <2007-05-08 15:40>                           *
-\**********************************************************/
+/*!
+ * \file   QwPMT_Channel.h
+ * \brief  PMT channel data element for tracking subsystem
+ * \author P. M. King
+ * \date   2007-05-08
+ */
 
-#ifndef __QwPMT_CHANNEL__
-#define __QwPMT_CHANNEL__
+#pragma once
 
 #include <vector>
 #include "TTree.h"
@@ -18,9 +17,15 @@
 #include "VQwDataElement.h"
 
 
-
-///
-/// \ingroup QwTracking
+/**
+ * \class QwPMT_Channel
+ * \ingroup QwTracking
+ * \brief PMT channel data element for photomultiplier tube readout
+ *
+ * Handles data from photomultiplier tube channels including raw values,
+ * calibration, and basic data element operations for PMT-based detectors
+ * in the tracking system.
+ */
 class QwPMT_Channel: public VQwDataElement {
   /******************************************************************
    *  Class: QwPMT_Channel
@@ -71,8 +76,8 @@ class QwPMT_Channel: public VQwDataElement {
   void  ConstructHistograms(TDirectory *folder, TString &prefix) override;
   void  FillHistograms() override;
 
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  FillTreeVector(std::vector<Double_t> &values) const;
+  void  ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values);
+  void  FillTreeVector(QwRootTreeBranchVector &values) const;
 
   void PrintValue() const override;
   void PrintInfo() const override;
@@ -101,7 +106,3 @@ class QwPMT_Channel: public VQwDataElement {
   Int_t fCrate;                      ///< ROC number
   Int_t fModule;                     ///< slot number
 };
-
-
-
-#endif

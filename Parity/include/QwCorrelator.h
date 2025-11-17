@@ -1,19 +1,11 @@
-/********************************************************************
-File Name: QwCorrelator.h
+/*!
+ * \file   QwCorrelator.h
+ * \brief  Correlator data handler using LinRegBlue algorithms
+ * \author Michael Vallee
+ * \date   2018-08-01
+ */
 
-Created by: Michael Vallee
-Email: mv836315@ohio.edu
-
-Description:  This is the header file of the QwCorrelator class,
-              which is a child of the VQwDataHandler class.  The
-              functionality of this class is derived from
-              LinRegBlue.
-
-Last Modified: August 1, 2018 1:43 PM
-********************************************************************/
-
-#ifndef QWCORRELATOR_H_
-#define QWCORRELATOR_H_
+#pragma once
 
 // Parent Class
 #include "VQwDataHandler.h"
@@ -29,6 +21,15 @@ class TH1D;
 class TH2D;
 class QwRootFile;
 
+/**
+ * \class QwCorrelator
+ * \ingroup QwAnalysis
+ * \brief Data handler computing correlations and linear-regression coefficients
+ *
+ * Uses Bevington/Pebay algorithms to estimate correlations between independent
+ * and dependent variables selected from subsystem arrays. Produces summary
+ * histograms and optional output trees/files for further analysis.
+ */
 class QwCorrelator : public VQwDataHandler, public MQwDataHandlerCloneable<QwCorrelator>
 {
  public:
@@ -48,6 +49,9 @@ class QwCorrelator : public VQwDataHandler, public MQwDataHandlerCloneable<QwCor
   Int_t LoadChannelMap(const std::string& mapfile) override;
 
   /// \brief Connect to Channels (asymmetry/difference only)
+  /// \param asym Subsystem array with asymmetries
+  /// \param diff Subsystem array with differences
+  /// \return 0 on success, non-zero on failure
   Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override;
 
   void ProcessData() override;
@@ -77,9 +81,9 @@ class QwCorrelator : public VQwDataHandler, public MQwDataHandlerCloneable<QwCor
   Int_t fBlock;
 
   bool fDisableHistos;
-  
+
   std::vector< std::string > fIndependentFull;
-    
+
   //  Using the fDependentType and fDependentName from base class, but override the IV arrays
   std::vector< EQwHandleType > fIndependentType;
   std::vector< std::string > fIndependentName;
@@ -99,7 +103,7 @@ class QwCorrelator : public VQwDataHandler, public MQwDataHandlerCloneable<QwCor
 
   std::string fAliasOutputFileBase;
   std::string fAliasOutputFileSuff;
-  std::string fAliasOutputPath;		
+  std::string fAliasOutputPath;
   std::ofstream fAliasOutputFile;
   void OpenAliasFile(const std::string& prefix);
   void WriteAliasFile();
@@ -115,7 +119,7 @@ class QwCorrelator : public VQwDataHandler, public MQwDataHandlerCloneable<QwCor
   unsigned int fGoodEvent;
 
  private:
-		
+
   TString fNameNoSpaces;
   int nP, nY;
 
@@ -135,5 +139,7 @@ class QwCorrelator : public VQwDataHandler, public MQwDataHandlerCloneable<QwCor
 
 };
 
+// Register this handler with the factory
+REGISTER_DATA_HANDLER_FACTORY(QwCorrelator);
 
-#endif //QWCORRELATOR_H_
+

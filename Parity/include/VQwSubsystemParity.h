@@ -1,13 +1,11 @@
-/**********************************************************\
-* File: VQwSubsystemParity.h                               *
-*                                                          *
-* Author: P. M. King, Rakitha Beminiwattha                 *
-* Time-stamp: <2007-05-08 15:40>                           *
-\**********************************************************/
+/*!
+ * \file   VQwSubsystemParity.h
+ * \brief  Virtual base class for parity analysis subsystems
+ * \author P. M. King, Rakitha Beminiwattha
+ * \date   2007-05-08
+ */
 
-
-#ifndef __VQWSUBSYSTEMPARITY__
-#define __VQWSUBSYSTEMPARITY__
+#pragma once
 
 // ROOT headers
 #include <TTree.h>
@@ -25,14 +23,12 @@ class QwPromptSummary;
 /**
  * \class VQwSubsystemParity
  * \ingroup QwAnalysis
+ * \brief Abstract base class for subsystems participating in parity analysis
  *
- * \brief Virtual base class for the parity subsystems
- *
- *   Virtual base class for the classes containing the
- *   event-based information from each parity subsystem.
- *   This will define the interfaces used in communicating
- *   with the CODA routines.
- *
+ * Extends VQwSubsystem with parity-specific capabilities including asymmetry
+ * formation, blinding support, database output, running sum accumulation,
+ * and event cuts. Provides the contract for subsystems that contribute to
+ * parity violation measurements and helicity-based analyses.
  */
 class VQwSubsystemParity: virtual public VQwSubsystem {
 
@@ -96,11 +92,11 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
       QwParameterFile mapstr(filename.Data());
       fDetectorMaps.insert(mapstr.GetParamFileNameContents());
       this->LoadEventCuts_Init();
-  
+
       while (mapstr.ReadNextLine()){
         mapstr.TrimComment('!');   // Remove everything after a '!' character.
         mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-        if (mapstr.LineIsEmpty())  
+        if (mapstr.LineIsEmpty())
           continue;
         TString varname, varvalue;
         if (mapstr.HasVariablePair("=",varname,varvalue)){
@@ -132,7 +128,7 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     /// \brief Return the error flag to the top level routines related to stability checks and ErrorFlag updates
     virtual UInt_t GetEventcutErrorFlag() = 0;
     /// \brief Uses the error flags of contained data elements to update
-    ///        Returns the error flag to the top level routines related 
+    ///        Returns the error flag to the top level routines related
     ///        to stability checks and ErrorFlag updates
     virtual UInt_t UpdateErrorFlag(){return GetEventcutErrorFlag();};
 
@@ -154,7 +150,5 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     virtual Bool_t CheckForEndOfBurst() const {return kFALSE;};
 
     virtual void LoadMockDataParameters(TString /*mapfile*/) {};
-	
-}; // class VQwSubsystemParity
 
-#endif // __VQWSUBSYSTEMPARITY__
+}; // class VQwSubsystemParity

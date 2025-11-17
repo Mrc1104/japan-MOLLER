@@ -5,8 +5,12 @@
 * Time-stamp:                                             *
 \**********************************************************/
 
-#ifndef __QwHELICITY__
-#define __QwHELICITY__
+/*!
+ * \file   QwHelicity.h
+ * \brief  Helicity state management and pattern recognition
+ */
+
+#pragma once
 
 // System headers
 #include <vector>
@@ -35,13 +39,16 @@ enum HelicityRootSavingType{kHelSaveMPS = 0,
 
 
 
-/*****************************************************************
-*  Class:
-******************************************************************/
-///
-/// \ingroup QwAnalysis_ADC
-///
-/// \ingroup QwAnalysis_BL
+/**
+ * \class QwHelicity
+ * \ingroup QwAnalysis_BeamLine
+ * \brief Subsystem for helicity state management and pattern recognition
+ *
+ * Manages helicity information from the polarized electron beam, including
+ * helicity state determination, pattern recognition, delayed helicity decoding,
+ * and helicity-correlated systematic checks. Supports multiple helicity
+ * encoding modes and provides helicity information to other subsystems.
+ */
 class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHelicity> {
 
  private:
@@ -138,20 +145,20 @@ class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHeli
   void  FillHistograms() override;
 
   using VQwSubsystem::ConstructBranchAndVector;
-  void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values) override;
+  void  ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
   void  ConstructBranch(TTree *tree, TString &prefix) override;
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file) override;
-  void  FillTreeVector(std::vector<Double_t> &values) const override;
+  void  FillTreeVector(QwRootTreeBranchVector &values) const override;
 
 #ifdef HAS_RNTUPLE_SUPPORT
   using VQwSubsystem::ConstructNTupleAndVector;
-  void  ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString &prefix, std::vector<Double_t> &values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs) override;
-  void  FillNTupleVector(std::vector<Double_t> &values) const override;
+  void  ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString &prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs) override;
+  void  FillNTupleVector(std::vector<Double_t>& values) const override;
 #endif // HAS_RNTUPLE_SUPPORT
 
 #ifdef __USE_DATABASE__
-  void  FillDB(QwParityDB *db, TString type);
-  void  FillErrDB(QwParityDB *db, TString datatype);
+  void  FillDB(QwParityDB *db, TString type) override;
+  void  FillErrDB(QwParityDB *db, TString datatype) override;
 #endif // __USE_DATABASE__
 
   void  Print() const;
@@ -164,7 +171,7 @@ class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHeli
  protected:
   void CheckPatternNum(VQwSubsystem *value);
   void MergeCounters(VQwSubsystem *value);
-  
+
   Bool_t CheckIORegisterMask(const UInt_t& ioregister, const UInt_t& mask) const {
     return ((mask != 0)&&((ioregister & mask) == mask));
   };
@@ -308,7 +315,7 @@ class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHeli
 
   UInt_t fErrorFlag;
 
-  /// Flag to disable the printing os missed MPS error messags during
+  /// Flag to disable the printing os missed MPS error messages during
   /// online running
   Bool_t fSuppressMPSErrorMsgs;
 
@@ -327,7 +334,5 @@ class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHeli
 
 };
 
-
-#endif
-
-
+// Register this subsystem with the factory
+REGISTER_SUBSYSTEM_FACTORY(QwHelicity);

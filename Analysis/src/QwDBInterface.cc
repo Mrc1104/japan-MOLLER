@@ -1,9 +1,8 @@
-/*
- * QwDBInterface.cc
- *
- *  Created on: Dec 14, 2010
- *      Author: wdconinc
- *      Author: jhlee
+/*!
+ * \file   QwDBInterface.cc
+ * \brief  Database interface implementation for QwIntegrationPMT and subsystems
+ * \author wdconinc, jhlee
+ * \date   2010-12-14
  */
 
 #include "QwDBInterface.h"
@@ -30,9 +29,9 @@ TString QwDBInterface::DetermineMeasurementTypeID(TString type, TString suffix,
   TString measurement_type("");
   if (fPrefix.count(type)==1){
     measurement_type = fPrefix[type];
-    if (measurement_type[0] == 'a' && 
+    if (measurement_type[0] == 'a' &&
 	(forcediffs
-	 || (suffix == "p" || suffix == "a" 
+	 || (suffix == "p" || suffix == "a"
 	     || suffix == "m"))	){
       //  Change the type to difference for position,
       //  angle, or slope asymmetry variables.
@@ -132,7 +131,7 @@ QwDBInterface::TypedDBClone<QwParitySchema::beam_row>() {
 
 
 
-// QwErrDBInterface 
+// QwErrDBInterface
 
 #ifdef __USE_DATABASE__
 void QwErrDBInterface::SetMonitorID(QwParityDB *db)
@@ -201,5 +200,3 @@ QwErrDBInterface::TypedDBClone<QwParitySchema::general_errors_row>() {
   return row;
 }
 #endif // __USE_DATABASE__
-
-

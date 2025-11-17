@@ -1,13 +1,11 @@
-/*
- * QwCombinerSubsystem.h
- *
- *  Created on: Aug 11, 2011
- *      Author: meeker
+/*!
+ * \file   QwCombinerSubsystem.h
+ * \brief  Combiner subsystem for parity analysis data handling
+ * \author meeker
+ * \date   2011-08-11
  */
 
-
-#ifndef __QWCOMBINERSUBSYSTEM__
-#define __QWCOMBINERSUBSYSTEM__
+#pragma once
 
 // headers
 #include "VQwSubsystemParity.h"
@@ -23,11 +21,11 @@ class QwParameterFile;
  *
  */
 
-class QwCombinerSubsystem: public VQwSubsystemParity, 
+class QwCombinerSubsystem: public VQwSubsystemParity,
   public MQwSubsystemCloneable<QwCombinerSubsystem>,
   public QwCombiner
 {
-  
+
   public:
       // Constructors
       /// \brief Constructor with just name.
@@ -37,8 +35,8 @@ class QwCombinerSubsystem: public VQwSubsystemParity,
       // Copy Constructor
       QwCombinerSubsystem(const QwCombinerSubsystem &source)
       : VQwSubsystem(source), VQwSubsystemParity(source), QwCombiner(source) { }
-	
-      // Destructor 
+
+      // Destructor
       ~QwCombinerSubsystem() override;
 
       std::shared_ptr<VQwSubsystem> GetSharedPointerToStaticObject();
@@ -64,10 +62,10 @@ class QwCombinerSubsystem: public VQwSubsystemParity,
       void Ratio(VQwSubsystem* value1, VQwSubsystem* value2) override;
       void Scale(Double_t value) override;
 
-      void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector <Double_t> &values) override{
+      void ConstructBranchAndVector(TTree *tree, TString& prefix, QwRootTreeBranchVector &values) override{
         QwCombiner::ConstructBranchAndVector(tree,prefix,values);
       }
-      void FillTreeVector(std::vector<Double_t> &values) const override{
+      void FillTreeVector(QwRootTreeBranchVector &values) const override{
         QwCombiner::FillTreeVector(values);
       }
 #ifdef HAS_RNTUPLE_SUPPORT
@@ -94,7 +92,7 @@ class QwCombinerSubsystem: public VQwSubsystemParity,
 
 
       /// \brief Derived functions
-      // not sure if there should be empty definition, no definition or defined 
+      // not sure if there should be empty definition, no definition or defined
       Int_t LoadChannelMap(TString) override;
       Int_t LoadInputParameters(TString) override;
       Int_t LoadEventCuts(TString) override;
@@ -128,19 +126,18 @@ class QwCombinerSubsystem: public VQwSubsystemParity,
       UInt_t GetEventcutErrorFlag() override;
 
 
-  private: 
-       
+  private:
+
      /**
-      * Default Constructor 
-      * 
-      * Error: tries to call default constructors of base class, 
+      * Default Constructor
+      *
+      * Error: tries to call default constructors of base class,
       * 	QwCombiner() is private
       */
-   //   QwCombinerSubsystem() {};     
+   //   QwCombinerSubsystem() {};
 
-      
+
 }; // class QwCombinerSubsystem
 
-
-#endif // __QWCOMBINERSUBSYSTEM__
-
+// Register this subsystem with the factory
+REGISTER_SUBSYSTEM_FACTORY(QwCombinerSubsystem);
