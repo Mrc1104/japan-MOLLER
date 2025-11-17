@@ -50,7 +50,6 @@
 #include "QwFakeHelicity.h"
 #include "QwBeamLine.h"
 #include "QwBeamMod.h"
-#include "QwIntegratedRaster.h"
 
 // Valgrind headers
 #if __has_include(<valgrind/callgrind.h>)
@@ -143,13 +142,13 @@ Int_t main(Int_t argc, Char_t* argv[])
     //    TString name = "EvtCorrector";
     //    QwCombinerSubsystem corrector_sub(gQwOptions, detectors, name);
     //    detectors.push_back(corrector_sub.GetSharedPointerToStaticObject());
-    
+
     /// Create the helicity pattern
     //    Instead of having run_label in the constructor of helicitypattern, it might
     //    make since to have it be an option for use globally
     QwHelicityPattern helicitypattern(detectors,run_label);
     helicitypattern.ProcessOptions(gQwOptions);
-    
+
     ///  Create the event ring with the subsystem array
     QwEventRing eventring(gQwOptions,detectors);
     //  Make a copy of the detectors object to hold the
@@ -250,7 +249,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       helicitypattern.UpdateBlinder(&database);
 #endif // __USE_DATABASE__      
     }
-    
+
 
     //  Find the first EPICS event and try to initialize
     //  the blinder, but only for disk files, not online.
