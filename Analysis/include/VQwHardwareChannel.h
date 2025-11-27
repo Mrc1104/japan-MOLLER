@@ -256,6 +256,15 @@ public:
 
   virtual void ConstructBranchAndVector(TTree *tree, TString& prefix, QwRootTreeBranchVector& values) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
+  const QwRootTreeBranchVector* GetField(const std::string selection)
+  {
+	if(fField.empty()) GenerateField();
+	return &fField;
+  }
+private:
+  virtual void GenerateField(const std::string selection) = 0;
+  QwRootTreeBranchVector fField;
+public:
   void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   virtual void FillTreeVector(QwRootTreeBranchVector& values) const = 0;
 #ifdef HAS_RNTUPLE_SUPPORT
