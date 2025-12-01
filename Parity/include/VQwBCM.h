@@ -103,6 +103,16 @@ public:
   virtual void CalculateRunningAverage() = 0;
   virtual void AccumulateRunningSum(const VQwBCM& value, Int_t count=0, Int_t ErrorMask=0xFFFFFFF) = 0;
   virtual void DeaccumulateRunningSum(VQwBCM& value, Int_t ErrorMask=0xFFFFFFF) = 0;
+private:
+  virtual void GenerateField(const TString& selection) = 0;
+protected:
+  QwRootTreeBranchVector fField;
+public:
+  QwRootTreeBranchVector* GetField(const TString& selection)
+  {
+	if(fField.empty()) GenerateField(selection);
+	return &fField;
+  }
   virtual void ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) = 0;

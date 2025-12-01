@@ -798,6 +798,30 @@ void  QwBPMCavity::FillHistograms()
   return;
 }
 
+const std::vector<QwRootTreeBranchVector*> QwBPMCavity::GetFields(const TString& selection)
+{
+  std::vector<QwRootTreeBranchVector*> fieldptrs;
+  if (GetElementName()==""){
+    //  This channel is not used, so skip constructing trees.
+  }
+  else {
+    TString thisprefix=selection;
+    SetRootSaveStatus(thisprefix);
+    if(thisprefix.Contains("asym_"))
+      thisprefix.ReplaceAll("asym_","diff_");
+
+    fieldptrs.emplace_back( fElement[kQElem].GetField(selection) );
+    size_t i = 0;
+    for(i=kXAxis;i<kNumAxes;i++) {
+      if (bFullSave) 
+	  	fieldptrs.emplace_back( fElement[i].GetField(selection) );
+      //      fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
+      fieldptrs.emplace_back( fAbsPos[i].GetField(selection) );
+    }
+
+  }
+  return fieldptrs;
+}
 /**
  * Define TTree branches and attach backing vectors for output variables.
  * The prefix "asym_" is converted to "diff_" for positions.

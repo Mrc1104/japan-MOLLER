@@ -140,6 +140,7 @@ class QwClock : public VQwClock {
   void  ConstructHistograms(TDirectory *folder, TString &prefix) override;
   void  FillHistograms() override;
 
+  void  GenerateField(const TString& selection) override;
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
   void  ConstructBranch(TTree *tree, TString &prefix) override;
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) override;

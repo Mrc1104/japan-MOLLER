@@ -739,6 +739,75 @@ void  QwVQWK_Channel::FillHistograms()
     }
 }
 
+void QwVQWK_Channel::GenerateField(const TString& selection)
+{
+	//  This channel is not used, so skip setting up the tree.
+	if (IsNameEmpty()) return;
+
+	//  Decide what to store based on prefix
+	SetDataToSaveByPrefix(selection);
+
+	TString basename = selection(0, (selection.First("|") >= 0)? selection.First("|"): selection.Length()) + GetElementName();
+	fTreeArrayIndex  = fField.size();
+
+	bHw_sum =     gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "hw_sum");
+	bHw_sum_raw = gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "hw_sum_raw");
+	bBlock =     gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "block");
+	bBlock_raw = gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "block_raw");
+	bNum_samples = gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "num_samples");
+	bDevice_Error_Code = gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "Device_Error_Code");
+	bSequence_number = gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "sequence_number");
+
+	if (gQwHists.MatchDeviceParamsFromList(basename.Data())) {
+		if (bHw_sum) {
+			fField.push_back("hw_sum", 'I');
+			if (fDataToSave == kMoments) {
+				fField.push_back("hw_sum_m2", 'D');
+				fField.push_back("hw_sum_err", 'D');
+			}
+		 }
+
+		if (bBlock) {
+			fField.push_back("block0", 'D');
+			fField.push_back("block1", 'D');
+			fField.push_back("block2", 'D');
+			fField.push_back("block3", 'D');
+		}
+
+		if (bNum_samples) {
+			fField.push_back("num_samples", 'I');
+		}
+
+		if (bDevice_Error_Code) {
+			fField.push_back("Device_Error_Code", 'i');
+		}
+
+		if (fDataToSave == kRaw) {
+			if (bHw_sum_raw) {
+				fField.push_back("hw_sum_raw", 'I');
+			}
+			if (bBlock_raw) {
+				fField.push_back("block0_raw", 'I');
+				fField.push_back("block1_raw", 'I');
+				fField.push_back("block2_raw", 'I');
+				fField.push_back("block3_raw", 'I');
+			}
+			if (bSequence_number) {
+				fField.push_back("sequence_number", 'i');
+			}
+		}
+	}
+	fTreeArrayNumEntries = fField.size() - fTreeArrayIndex;
+	std::string leaf_list = fField.LeafList();
+	if (kDEBUG) {
+		std::cerr << "QwVQWK_Channel::ConstructBranchAndVector: fTreeArrayIndex==" << fTreeArrayIndex
+			<< "; fTreeArrayNumEntries==" << fTreeArrayNumEntries
+			<< "; fField.size()==" << fField.size()
+			<< "; list==" << leaf_list
+			<< std::endl;
+	}
+}
+
 void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
 {
   //  This channel is not used, so skip setting up the tree.

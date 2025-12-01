@@ -582,6 +582,18 @@ void QwBCM<T>::FillHistograms()
     }
 }
 
+template<typename T>
+void QwBCM<T>::GenerateField(const TString& selection)
+{
+  if (this->GetElementName()==""){
+    //  This channel is not used, so skip
+  } else
+    {
+      fField = *(fBeamCurrent.GetField(selection));
+    }
+}
+
+
 /**
  * \brief Construct ROOT branches and value vector entries.
  * \param tree Output tree.

@@ -566,6 +566,20 @@ void  QwIntegrationPMT::FillHistograms()
   return;
 }
 
+
+QwRootTreeBranchVector* QwIntegrationPMT::GetField(const TString& selection)
+{
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  } else
+    {
+      return fTriumf_ADC.GetField(selection);
+    }
+  return nullptr;
+}
+
+
+
 void  QwIntegrationPMT::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
 {
   if (GetElementName()==""){

@@ -443,6 +443,22 @@ void  QwCombinedPMT::FillHistograms()
   return;
 }
 
+QwRootTreeBranchVector* QwCombinedPMT::GetField(const TString& selection)
+{
+  if (GetElementName()=="")
+    {
+      //  This channel is not used, so skip
+    }
+  else
+    {
+      TString sumprefix =  selection+"";
+      return fSumADC.GetField(selection);
+
+    }
+  return nullptr;
+}
+
+
 void  QwCombinedPMT::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
 {
   if (GetElementName()=="")

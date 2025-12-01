@@ -222,6 +222,20 @@ void  QwHaloMonitor::FillHistograms()
   }
 }
 
+
+QwRootTreeBranchVector* QwHaloMonitor::GetField(const TString& selection)
+{
+  QwRootTreeBranchVector* field_ptr = nullptr;
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  }
+  else{
+    field_ptr = fHalo_Counter.GetField(selection);
+    // this functions doesn't do anything yet
+  }
+  return field_ptr;
+}
+
 /**
  * \brief Construct ROOT branches and value vector entries.
  * \param tree Output tree.

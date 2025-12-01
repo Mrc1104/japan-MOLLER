@@ -170,6 +170,8 @@ void RandomizeMollerEvent(int helicity, const QwBeamCharge& charge, const QwBeam
   void SetCoefficientCyp(Double_t value){fCoeff_yp  = value;};
   void SetCoefficientCe(Double_t value) {fCoeff_e   = value;};
 
+
+  QwRootTreeBranchVector* GetField(const TString& selection = "");
   void  ConstructHistograms(TDirectory *folder, TString &prefix) override;
   void  FillHistograms() override;
 

@@ -550,6 +550,24 @@ void  QwEnergyCalculator::FillHistograms(){
   return;
 }
 
+QwRootTreeBranchVector* QwEnergyCalculator::GetField(const TString& selection)
+{
+  QwRootTreeBranchVector* fieldptr = nullptr;
+  if (GetElementName()==""){
+    //  This channel is not used, so skip filling the histograms.
+  }
+  else{
+    TString thisprefix=selection;
+    SetRootSaveStatus(thisprefix);
+    if(selection.Contains("asym_"))
+      thisprefix.ReplaceAll("asym_","diff_");
+
+
+    fieldptr = fEnergyChange.GetField(selection);
+  }
+    return fieldptr;
+}
+
 /**
  * \brief Construct ROOT branches and value vector entries.
  * \param tree    Output tree.

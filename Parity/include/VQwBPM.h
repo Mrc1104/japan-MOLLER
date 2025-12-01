@@ -183,7 +183,7 @@ public:
 
   void ConstructHistograms(TDirectory *folder, TString &prefix) override = 0;
   void FillHistograms() override = 0;
-
+  virtual const std::vector<QwRootTreeBranchVector*> GetFields(const TString& selection = "") = 0;
   virtual void ConstructBranchAndVector(TTree *tree, TString &prefix,
       QwRootTreeBranchVector &values) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;

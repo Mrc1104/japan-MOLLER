@@ -2526,6 +2526,46 @@ void  QwBeamLine::FillHistograms()
   return;
 }
 
+const std::vector<QwRootTreeBranchVector*> QwBeamLine::GetFields(const TString& selection)
+{
+  std::vector<QwRootTreeBranchVector*> fieldptrs;
+  for(size_t i = 0; i < fClock.size(); i++) {
+	fieldptrs.emplace_back(fClock[i].get()->GetField(selection));
+  }
+  for(size_t i = 0; i < fStripline.size(); i++) {
+    auto field = fStripline[i].get()->GetFields(selection);
+    fieldptrs.insert(std::end(fieldptrs), std::begin(field), std::end(field));
+  }
+  for(size_t i = 0; i < fQPD.size(); i++) {
+    auto field = fQPD[i].GetFields(selection);
+    fieldptrs.insert(std::end(fieldptrs), std::begin(field), std::end(field));
+  }
+  for(size_t i = 0; i < fLinearArray.size(); i++) {
+    auto field = fLinearArray[i].GetFields(selection);
+    fieldptrs.insert(std::end(fieldptrs), std::begin(field), std::end(field));
+  }
+  for(size_t i = 0; i < fCavity.size(); i++) {
+    auto field = fCavity[i].GetFields(selection);
+    fieldptrs.insert(std::end(fieldptrs), std::begin(field), std::end(field));
+  }
+  for(size_t i = 0; i < fBCM.size(); i++) {
+	fieldptrs.emplace_back(fBCM[i].get()->GetField(selection));
+  }
+  for(size_t i = 0; i < fHaloMonitor.size(); i++) {
+	fieldptrs.emplace_back(fHaloMonitor[i].GetField(selection));
+  }
+  for(size_t i = 0; i <fBCMCombo.size();i++) {
+	fieldptrs.emplace_back(fBCMCombo[i]->GetField(selection));
+  }
+  for(size_t i = 0; i <fBPMCombo.size();i++) {
+    auto field = fBPMCombo[i].get()->GetFields(selection);
+    fieldptrs.insert(std::end(fieldptrs), std::begin(field), std::end(field));
+  }
+  for(size_t i = 0; i <fECalculator.size();i++) {
+	fieldptrs.emplace_back(fECalculator[i].GetField(selection));
+  }
+  return fieldptrs;
+}	
 
 //*****************************************************************//
 void QwBeamLine::ConstructBranchAndVector(TTree *tree, TString & prefix, QwRootTreeBranchVector &values)

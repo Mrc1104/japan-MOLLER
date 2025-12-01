@@ -569,6 +569,36 @@ void  QwADC18_Channel::FillHistograms()
     }
 }
 
+void QwADC18_Channel::GenerateField(const TString& selection)
+{
+  if (IsNameEmpty()){
+    //  This channel is not used, so skip setting up the tree.
+  } else {
+    //  Decide what to store based on prefix
+    SetDataToSaveByPrefix(selection);
+
+    TString basename = selection(0, (selection.First("|") >= 0)? selection.First("|"): selection.Length()) + GetElementName();
+	fTreeArrayIndex  = fField.size();
+	if (gQwHists.MatchDeviceParamsFromList(basename.Data())) {
+
+		fField.push_back("value", 'D');
+		if (fDataToSave == kMoments) {
+			fField.push_back("value_m2", 'D');
+			fField.push_back("value_err", 'D');
+		}
+
+		fField.push_back("Device_Error_Code", 'i');
+		if (fDataToSave == kRaw){
+			fField.push_back("raw", 'I');
+			fField.push_back("diff", 'I');
+			fField.push_back("peak", 'I');
+			fField.push_back("base", 'I');
+		}
+	}
+    fTreeArrayNumEntries = fField.size() - fTreeArrayIndex;
+  }
+}
+
 void  QwADC18_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
 {
   if (IsNameEmpty()){

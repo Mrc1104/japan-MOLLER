@@ -92,6 +92,16 @@ public:
   virtual void ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString& prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs) = 0;
   virtual void FillNTupleVector(std::vector<Double_t>& values) const = 0;
 #endif // HAS_RNTUPLE_SUPPORT
+private:
+  virtual void GenerateField(const TString& selection) = 0;
+protected:
+  QwRootTreeBranchVector fField;
+public:
+  QwRootTreeBranchVector* GetField(const TString& selection)
+  {
+	if(fField.empty()) GenerateField(selection);
+	return &fField;
+  }
 
 #ifdef __USE_DATABASE__
   virtual std::vector<QwDBInterface> GetDBEntry() = 0;

@@ -149,7 +149,10 @@ class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHeli
   void  ConstructBranch(TTree *tree, TString &prefix) override;
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file) override;
   void  FillTreeVector(QwRootTreeBranchVector &values) const override;
-
+  const std::vector<QwRootTreeBranchVector*> GetFields(const TString& selection = "") override;
+private:
+  std::vector<QwRootTreeBranchVector> fFields;
+public:
 #ifdef HAS_RNTUPLE_SUPPORT
   using VQwSubsystem::ConstructNTupleAndVector;
   void  ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString &prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs) override;

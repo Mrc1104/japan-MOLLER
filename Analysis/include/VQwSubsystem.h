@@ -319,10 +319,7 @@ class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms, 
    * @param trim_file Trim file describing which branches to construct.
    */
   virtual void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) = 0;
-  virtual const std::vector<QwRootTreeBranchVector*> GetFields(const std::string& selection = "") = 0;
-private:
-	std::vector<QwRootTreeBranchVector*> fFieldPtrs;
-public:
+  virtual const std::vector<QwRootTreeBranchVector*> GetFields(const TString& selection = "") = 0;
 
   /// \brief Fill the tree vector
   /**

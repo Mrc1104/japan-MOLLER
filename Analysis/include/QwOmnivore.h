@@ -120,6 +120,9 @@ class QwOmnivore: public VQwSubsystem_t {
     /// Construct branch
     void ConstructBranch(TTree*, TString&, QwParameterFile&) override { };
 
+  	const std::vector<QwRootTreeBranchVector*> GetFields(const TString& selection = "") {
+		return std::vector<QwRootTreeBranchVector*>();
+	}
     /// \brief Update the running sums for devices
     void AccumulateRunningSum(VQwSubsystem* value, Int_t count=0, Int_t ErrorMask=0xFFFFFFF) override { };
     void DeaccumulateRunningSum(VQwSubsystem* value, Int_t ErrorMask=0xFFFFFFF) override { };

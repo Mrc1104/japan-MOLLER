@@ -125,6 +125,7 @@ class QwEnergyCalculator : public VQwDataElement{
     void    ConstructHistograms(TDirectory *folder, TString &prefix) override;
     void    FillHistograms() override;
 
+  	QwRootTreeBranchVector* GetField(const TString& selection);
     void    ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values);
     void    ConstructBranch(TTree *tree, TString &prefix);
     void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);

@@ -62,6 +62,10 @@ class QwCombinerSubsystem: public VQwSubsystemParity,
       void Ratio(VQwSubsystem* value1, VQwSubsystem* value2) override;
       void Scale(Double_t value) override;
 
+  	  const std::vector<QwRootTreeBranchVector*> GetFields(const TString& selection = "") override
+	  {
+        return std::vector<QwRootTreeBranchVector*>();
+	  }
       void ConstructBranchAndVector(TTree *tree, TString& prefix, QwRootTreeBranchVector &values) override{
         QwCombiner::ConstructBranchAndVector(tree,prefix,values);
       }

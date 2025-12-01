@@ -217,6 +217,17 @@ void QwMollerDetector::FillHistograms(){
   }
 }
 
+const std::vector<QwRootTreeBranchVector*> QwMollerDetector::GetFields(const TString& selection)
+{
+  std::vector<QwRootTreeBranchVector*> fieldptrs;
+  for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
+    for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
+      fieldptrs.emplace_back( fSTR7200_Channel[i][j].GetField(selection) );
+    }
+  }
+  return fieldptrs;
+}
+
 void QwMollerDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, QwRootTreeBranchVector &values){
   for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
     for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){

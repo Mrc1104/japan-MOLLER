@@ -1290,6 +1290,94 @@ void  QwHelicity::FillHistograms()
   return;
 }
 
+const std::vector<QwRootTreeBranchVector*> QwHelicity::GetFields(const TString& selection)
+{
+  SetHistoTreeSave(selection);
+
+  fTreeArrayIndex  = 0;
+  TString basename;
+  if(fHistoType==kHelNoSave)
+    {
+      //do nothing
+    }
+  else if(fHistoType==kHelSaveMPS)
+    {
+      // basename = "actual_helicity";    //predicted actual helicity before being delayed.
+      // values.push_back(0.0);
+      // tree->Branch(basename, &(values.back<Double_t>()), basename+"/D");
+      //
+	  auto field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+      basename = "delayed_helicity";   //predicted delayed helicity
+      field->push_back(basename, 'I');
+      //
+	  field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+      basename = "reported_helicity";  //delayed helicity reported by the input register.
+      field->push_back(basename, 'I');
+      //
+	  field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+      basename = "pattern_phase";
+      field->push_back(basename, 'I');
+      //
+	  field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+      basename = "pattern_number";
+      field->push_back(basename, 'I');
+      //
+	  field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+      basename = "pattern_seed";
+      field->push_back(basename, 'I');
+      //
+	  field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+      basename = "event_number";
+      field->push_back(basename, 'I');
+      //
+      for (size_t i=0; i<fWord.size(); i++)
+	{
+	  field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+	  basename = fWord[i].fWordName;
+	  field->push_back(basename, 'I');
+	}
+    }
+  else if(fHistoType==kHelSavePattern)
+    {
+	  auto field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+      basename = "actual_helicity";    //predicted actual helicity before being delayed.
+      field->push_back(basename, 'I');
+      //
+	  field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+      basename = "actual_pattern_polarity";
+      field->push_back(basename, 'I');
+      //
+	  field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+      basename = "actual_previous_pattern_polarity";
+      field->push_back(basename, 'I');
+      //
+	  field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+      basename = "delayed_pattern_polarity";
+      field->push_back(basename, 'I');
+      //
+	  field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+      basename = "pattern_number";
+      field->push_back(basename, 'I');
+      //
+	  field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+      basename = "pattern_seed";
+      field->push_back(basename, 'I');
+      //
+      for (size_t i=0; i<fWord.size(); i++)
+        {
+	  	  field = fFields.emplace(std::end(fFields), QwRootTreeBranchVector());
+          basename = fWord[i].fWordName;
+          field->push_back(basename, 'I');
+        }
+    }
+	
+	std::vector<QwRootTreeBranchVector*> fieldptrs;
+	fieldptrs.reserve(fFields.size());
+	for( auto& f : fFields )
+		fieldptrs.push_back(&f);
+
+  return fieldptrs;
+}
 
 void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
 {

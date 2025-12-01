@@ -65,8 +65,6 @@ class QwCombiner:public VQwDataHandler, public MQwDataHandlerCloneable<QwCombine
     std::vector< std::vector< std::string > > fIndependentName;
     std::vector< std::vector< const VQwHardwareChannel* > > fIndependentVar;
     std::vector< std::vector< Double_t > > fSensitivity;
-
-
 }; // class QwCombiner
 
 // Register this handler with the factory

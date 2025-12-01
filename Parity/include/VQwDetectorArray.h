@@ -171,6 +171,7 @@ class VQwDetectorArray: virtual public VQwSubsystemParity {
     void  FillHistograms() override;
 
     using VQwSubsystem::ConstructBranchAndVector;
+  	const std::vector<QwRootTreeBranchVector*> GetFields(const TString& selection = "") override;
     void ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
     void ConstructBranch(TTree *tree, TString &prefix) override;
     void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file ) override;

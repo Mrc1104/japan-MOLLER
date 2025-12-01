@@ -239,6 +239,9 @@ class QwMollerADC_Channel: public VQwHardwareChannel, public MQwMockable {
   void  ConstructHistograms(TDirectory *folder, TString &prefix) override;
   void  FillHistograms() override;
 
+private:
+  void GenerateField(const TString& selection) override;
+public:
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
   void  ConstructBranch(TTree *tree, TString &prefix) override;
   void  FillTreeVector(QwRootTreeBranchVector &values) const override;

@@ -1093,6 +1093,34 @@ void  QwCombinedBPM<T>::FillHistograms()
   return;
 }
 
+
+template<typename T>
+const std::vector<QwRootTreeBranchVector*> QwCombinedBPM<T>::GetFields(const TString& selection)
+{
+  std::vector<QwRootTreeBranchVector*> fields;
+  if (this->GetElementName()==""){
+    //  This channel is not used, so skip constructing trees.
+  } else
+    {
+      TString thisprefix=selection;
+      SetRootSaveStatus(thisprefix);
+      if(selection.Contains("asym_"))
+	  thisprefix.ReplaceAll("asym_","diff_");
+
+
+      fields.emplace_back( fEffectiveCharge.GetField(selection) );
+	  for(Short_t axis=kXAxis;axis<kNumAxes;axis++){
+		  fields.emplace_back( fSlope[axis].GetField(selection)     );
+		  fields.emplace_back( fIntercept[axis].GetField(selection) );
+		  fields.emplace_back( fAbsPos[axis].GetField(selection)    );
+		  fields.emplace_back( fMinimumChiSquare[axis].GetField(selection) );
+	  }
+
+    }
+
+  return fields;
+}
+
 template<typename T>
 void  QwCombinedBPM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
 {

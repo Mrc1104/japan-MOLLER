@@ -362,6 +362,18 @@ void QwClock<T>::FillHistograms()
 }
 
 template<typename T>
+void QwClock<T>::GenerateField(const TString& selection)
+{
+  if (this->GetElementName()==""){
+    //  This channel is not used, so skip
+  } else
+    {
+      fField = *( fClock.GetField(selection) );
+    }
+  return;
+}
+
+template<typename T>
 void QwClock<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
 {
   if (this->GetElementName()==""){

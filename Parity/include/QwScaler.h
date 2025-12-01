@@ -78,6 +78,7 @@ class QwScaler: public VQwSubsystemParity, public MQwSubsystemCloneable<QwScaler
     void  ConstructBranch(TTree *tree, TString& prefix) override { };
     void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) override { };
     void  FillTreeVector(QwRootTreeBranchVector &values) const override;
+  	const std::vector<QwRootTreeBranchVector*> GetFields(const TString& selection = "") override;
 
     // RNTuple methods
 #ifdef HAS_RNTUPLE_SUPPORT

@@ -132,7 +132,7 @@ class QwQPD : public VQwBPM {
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix) override;
   void    FillHistograms() override;
-
+  const std::vector<QwRootTreeBranchVector*> GetFields(const TString& selection = "") override;
   void    ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
   void    ConstructBranch(TTree *tree, TString &prefix) override;
   void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) override;

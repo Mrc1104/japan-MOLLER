@@ -792,6 +792,26 @@ void  QwBeamMod::FillHistograms()
 }
 
 
+const std::vector<QwRootTreeBranchVector*> QwBeamMod::GetFields(const TString& selection)
+{
+  TString basename;
+  std::vector<QwRootTreeBranchVector*> fields;
+  for(size_t i = 0; i < fModChannel.size(); i++){
+    fields.emplace_back( fModChannel[i]->GetField(selection) );
+  }
+  //   for (size_t i=0;i<fWord.size();i++)
+  //     fWord[i].ConstructBranchAndVector(tree, prefix, values);
+  fTreeArrayIndex  = fField.size();
+  for (size_t i=0; i<fWord.size(); i++) {
+    // 	  basename = fWord[i].fWordName;
+    basename = selection(0, (selection.First("|") >= 0)? selection.First("|"): selection.Length());
+    basename += fWord[i].fWordName;
+    fField.push_back(basename.Data(), 'D');
+  }
+  fields.emplace_back( &fField );
+}
+
+
 void QwBeamMod::ConstructBranchAndVector(TTree *tree, TString & prefix, QwRootTreeBranchVector &values)
 {
   TString basename;

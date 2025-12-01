@@ -670,6 +670,34 @@ void  QwLinearDiodeArray::FillHistograms()
   return;
 }
 
+const std::vector<QwRootTreeBranchVector*> QwLinearDiodeArray::GetFields(const TString& selection)
+{
+  std::vector<QwRootTreeBranchVector*> fieldptrs;
+  if (GetElementName()==""){
+    //  This channel is not used, so skip constructing trees.
+  }
+  else {
+    TString thisprefix=selection;
+    SetRootSaveStatus(thisprefix);
+    if(selection.Contains("asym_"))
+      thisprefix.ReplaceAll("asym_","diff_");
+
+
+    fieldptrs.emplace_back( fEffectiveCharge.GetField(selection) );
+    size_t i = 0;
+    if(bFullSave) {
+      for(i=0;i<8;i++)
+	   fieldptrs.emplace_back( fPhotodiode[i].GetField(selection) );
+    }
+    for(i=kXAxis;i<kNumAxes;i++) {
+	  fieldptrs.emplace_back( fRelPos[i].GetField(selection) );
+    }
+
+  }
+  return fieldptrs;
+}
+
+
 void  QwLinearDiodeArray::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
 {
   if (GetElementName()==""){

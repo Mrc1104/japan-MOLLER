@@ -1294,6 +1294,22 @@ void  VQwDetectorArray::FillHistograms() {
 
 }
 
+const std::vector<QwRootTreeBranchVector*> VQwDetectorArray::GetFields(const TString& selection)
+{
+	std::vector<QwRootTreeBranchVector*> fieldptrs;
+    for (size_t i=0;i<fIntegrationPMT.size();i++) {
+	 auto fieldptr =  fIntegrationPMT[i].GetField(selection);
+	 if(fieldptr)
+     	fieldptrs.push_back(fieldptr);
+	}
+
+    for (size_t i=0;i<fCombinedPMT.size();i++) {
+	 auto fieldptr =  fCombinedPMT[i].GetField(selection);
+	 if(fieldptr)
+     	fieldptrs.push_back(fieldptr);
+	}
+	return fieldptrs;
+}
 
 void VQwDetectorArray::ConstructBranchAndVector(TTree *tree, TString & prefix, QwRootTreeBranchVector &values) {
 

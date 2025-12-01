@@ -132,6 +132,7 @@ class QwMollerDetector:
     };
 
     using VQwSubsystem::ConstructBranchAndVector;
+  	const std::vector<QwRootTreeBranchVector*> GetFields(const TString& selection = "") override;
     void ConstructBranchAndVector(TTree*, TString&, QwRootTreeBranchVector&) override;
     void ConstructBranch(TTree *tree, TString& prefix) override { };
     void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) override { };

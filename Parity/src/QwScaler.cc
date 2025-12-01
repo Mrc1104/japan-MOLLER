@@ -369,6 +369,15 @@ void QwScaler::FillHistograms()
   }
 }
 
+const std::vector<QwRootTreeBranchVector*> QwScaler::GetFields(const TString& selection)
+{
+  std::vector<QwRootTreeBranchVector*> fieldptrs;
+  for (auto& scaler : fScaler ) {
+	fieldptrs.emplace_back( scaler->GetField(selection) );
+  }
+  return fieldptrs;
+}
+
 /** Construct TTree branches and backing vectors for all scaler channels. */
 void QwScaler::ConstructBranchAndVector(TTree *tree, TString & prefix, QwRootTreeBranchVector &values)
 {

@@ -136,6 +136,7 @@ class QwBPMCavity : public VQwBPM {
   void    FillHistograms() override;
 
   void    ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
+  const std::vector<QwRootTreeBranchVector*> GetFields(const TString& selection = "") override;
   void    FillTreeVector(QwRootTreeBranchVector &values) const override;
   void    ConstructBranch(TTree *tree, TString &prefix) override;
   void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) override;

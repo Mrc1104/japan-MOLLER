@@ -187,7 +187,9 @@ public:
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix) override;
   void  FillHistograms() override;
-
+private:
+  void GenerateField(const TString& selection) override = 0;
+public:
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override = 0;
   void  FillTreeVector(QwRootTreeBranchVector &values) const override = 0;
   void  ConstructBranch(TTree *tree, TString &prefix) override;
@@ -286,6 +288,9 @@ class QwScaler_Channel: public VQwScaler_Channel
   // Implement the templated methods
   void  EncodeEventData(std::vector<UInt_t> &buffer) override;
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index = 0) override;
+private:
+  void GenerateField(const TString& selection) override;
+public:
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
   void  FillTreeVector(QwRootTreeBranchVector &values) const override;

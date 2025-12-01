@@ -874,6 +874,36 @@ void  QwBPMStripline<T>::FillHistograms()
 }
 
 template<typename T>
+const std::vector<QwRootTreeBranchVector*> QwBPMStripline<T>::GetFields(const TString& selection)
+{
+  std::vector<QwRootTreeBranchVector*> fields;
+  if (GetElementName()==""){
+    //  This channel is not used, so skip constructing trees.
+  }
+  else {
+    TString thisprefix=selection;
+    SetRootSaveStatus(thisprefix);
+    if(selection.Contains("asym_"))
+      thisprefix.ReplaceAll("asym_","diff_");
+
+
+    fields.emplace_back( fEffectiveCharge.GetField(selection) );
+    fields.emplace_back( fEllipticity.GetField(selection) );
+    Short_t i = 0;
+    if(bFullSave) {
+      for(i=0;i<4;i++)
+	  	fields.emplace_back( fWire[i].GetField(selection) );
+    }
+    for(i=kXAxis;i<kNumAxes;i++) {
+      //  2018dec20, pking:  Do not output the relative positions to Trees
+      //      fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
+      fields.emplace_back( fAbsPos[i].GetField(selection) );
+    }
+  }
+  return fields;
+}
+
+template<typename T>
 void  QwBPMStripline<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
 {
   if (GetElementName()==""){

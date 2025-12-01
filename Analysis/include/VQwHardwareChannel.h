@@ -14,6 +14,7 @@
 
 // Qweak headers
 #include "VQwDataElement.h"
+#include "QwRootTreeBranchVector.h"
 
 // ROOT headers
 #ifdef HAS_RNTUPLE_SUPPORT
@@ -256,14 +257,16 @@ public:
 
   virtual void ConstructBranchAndVector(TTree *tree, TString& prefix, QwRootTreeBranchVector& values) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
-  const QwRootTreeBranchVector* GetField(const std::string selection)
+private:
+  virtual void GenerateField(const TString& selection) = 0;
+protected:
+  QwRootTreeBranchVector fField;
+public:
+  QwRootTreeBranchVector* GetField(const TString& selection)
   {
-	if(fField.empty()) GenerateField();
+	if(fField.empty()) GenerateField(selection);
 	return &fField;
   }
-private:
-  virtual void GenerateField(const std::string selection) = 0;
-  QwRootTreeBranchVector fField;
 public:
   void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   virtual void FillTreeVector(QwRootTreeBranchVector& values) const = 0;

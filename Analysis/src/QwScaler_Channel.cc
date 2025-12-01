@@ -257,6 +257,37 @@ void  VQwScaler_Channel::FillHistograms()
   }
 }
 
+template<unsigned int data_mask, unsigned int data_shift>
+void QwScaler_Channel<data_mask,data_shift>::GenerateField(const TString& selection)
+{
+  if (IsNameEmpty()){
+    //  This channel is not used, so skip setting up the tree.
+  } else {
+    //  Decide what to store based on prefix
+    SetDataToSaveByPrefix(selection);
+
+    TString basename = selection(0, (selection.First("|") >= 0)? selection.First("|"): selection.Length()) + GetElementName();
+    fTreeArrayIndex  = fField.size();
+
+	if (gQwHists.MatchDeviceParamsFromList(basename.Data())) {
+		fField.push_back("value", 'D');
+		if (fDataToSave == kMoments) {
+			fField.push_back("value_m2", 'D');
+			fField.push_back("value_err", 'D');
+			fField.push_back("num_samples", 'I');
+		}
+		fField.push_back("Device_Error_Code", 'i');
+		if(fDataToSave==kRaw){
+			fField.push_back("raw", 'I');
+			if ((~data_mask) != 0){
+				fField.push_back("header", 'I');
+			}
+		}
+	}
+    //std::cout << basename <<": first==" << fTreeArrayIndex << ", last==" << fField.size() << std::endl;
+    fTreeArrayNumEntries = fField.size() - fTreeArrayIndex;
+  }
+}
 
 template<unsigned int data_mask, unsigned int data_shift>
 void QwScaler_Channel<data_mask,data_shift>::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
