@@ -54,6 +54,9 @@ Int_t QwScanData::LoadChannelMap(TString mapfile)
 			SetCleanDataIndex(fWords.size()-1);
 		}
 	}
+	if(CheckCleanDataIndex() == false) {
+		QwError << "fCleanDataIndex is not set inside QwScanData Subsystem" << QwLog::endl;
+	}
 	return 0;
 }
 
@@ -68,24 +71,42 @@ VQwSubsystem&  QwScanData::operator=  (VQwSubsystem *value)
 	return *this;
 }
 
+// Goal: If any of the scan data values changed during a pattern,
+//       mark the whole pattern as not clean
 VQwSubsystem&  QwScanData::operator+= (VQwSubsystem *value)
 {
 	if(Compare(value)){
 		QwScanData* input = dynamic_cast<QwScanData*>(value);
-		std::transform(fWords.cbegin(), fWords.cend(),
-					   input->fWords.cbegin(), fWords.begin(), 
-					   std::plus<>{});
+		if( !std::equal(
+				fWords.cbegin(),
+				fWords.cend(),
+				input->fWords.cbegin(),
+				input->fWords.cend(),
+				[](QwWord const& q1, QwWord const& q2){
+					return q1.fValue == q2.fValue;
+				})) {
+			SetCleanData(CleanDataVal::UNCLEAN);
+		}
 	}
 	return *this;
 }
 
+// Goal: If any of the scan data values changed during a pattern,
+//       mark the whole pattern as not clean
 VQwSubsystem&  QwScanData::operator-= (VQwSubsystem *value)
 {
 	if(Compare(value)){
 		QwScanData* input = dynamic_cast<QwScanData*>(value);
-		std::transform(fWords.cbegin(), fWords.cend(),
-					   input->fWords.cbegin(), fWords.begin(),
-					   std::minus<>{});
+		if( !std::equal(
+				fWords.cbegin(),
+				fWords.cend(),
+				input->fWords.cbegin(),
+				input->fWords.cend(),
+				[](QwWord const& q1, QwWord const& q2){
+					return q1.fValue == q2.fValue;
+				})) {
+			SetCleanData(CleanDataVal::UNCLEAN);
+		}
 	}
 	return *this;
 }
@@ -239,14 +260,27 @@ bool QwScanData::CleanDataIndex::operator==(CleanDataIndex const& other) const
  */
 void QwScanData::SetCleanDataIndex(Int_t index)
 {
-	if(fCleanDataIndex == CleanDataIndex{}) {
+	if(CheckCleanDataIndex() == false) {
 		 fCleanDataIndex.fIndex= fWords.size()-1;
 	} else {
 		QwWarning << "ScanData Word already Set! " << '\n';
 		QwWarning << "\tCurrent:  " << fCleanDataIndex.fIndex << '\n';
-		QwWarning << "\tFound:  "   << index   << '\n';
+		QwWarning << "\tFound:  "   << index   << QwLog::endl;
 	}
 
 }
+bool QwScanData::CheckCleanDataIndex() const
+{
+	return !(fCleanDataIndex == CleanDataIndex{});
+}
 
+bool QwScanData::SetCleanData(CleanDataVal clean_flag)
+{
+	bool status = false;
+	if(CheckCleanDataIndex()) {
+		fWords[fCleanDataIndex.fIndex].fValue = static_cast<int>(clean_flag);
+		status = true;
+	}
+	return status;
+}
 #endif // HAS_RNTUPLE_SUPPORT

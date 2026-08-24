@@ -19,9 +19,11 @@ class QwScanData : public VQwSubsystemParity, public MQwSubsystemCloneable<QwSca
 		static char const* const fCleanWordName;
 		bool operator==(CleanDataIndex const& other) const;
 	};
+	enum class CleanDataVal : bool { UNCLEAN = false, CLEAN   = true };
 	std::vector<QwWord> fWords;
 	CleanDataIndex fCleanDataIndex{};
 	Int_t fTreeArrayIndex{-1};
+
 public:
 	QwScanData(TString const& name);
 	QwScanData(QwScanData const& other);
@@ -77,7 +79,10 @@ public:
 	UInt_t GetEventcutErrorFlag() override;
 	void UpdateErrorFlag(const VQwSubsystem *ev_error) override;
 private:
+	// Clean Data Utility Functions
+	bool CheckCleanDataIndex() const;
 	void SetCleanDataIndex(Int_t index);
+	bool SetCleanData(CleanDataVal clean_flag);
 };
 // Register this subsystem with the factory
 REGISTER_SUBSYSTEM_FACTORY(QwScanData);
