@@ -12,7 +12,8 @@ QwScanData::QwScanData(QwScanData const& other)
 , VQwSubsystemParity(other)
 , fWords(other.fWords)
 , fCleanDataIndex(other.fCleanDataIndex)
-, fTreeArrayIndex(other.fTreeArrayIndex) {}
+, fTreeArrayIndex(other.fTreeArrayIndex)
+, fSaveType(other.fSaveType) {}
 
 Int_t QwScanData::LoadChannelMap(TString mapfile)
 {
@@ -205,47 +206,65 @@ void QwScanData::PrintErrorCounters() const
 	// No-op
 	return;
 }
+
+void QwScanData::SetSaveType(TString const& prefix)
+{
+	Ssiz_t len;
+	if (TRegexp("diff_").Index(prefix,&len) == 0
+			|| TRegexp("asym[1-9]+_").Index(prefix,&len) == 0
+		    || TRegexp("yield_").Index(prefix,&len) == 0)
+		fSaveType = RootSaveType::kNO_SAVE;
+	else if (TRegexp("asym").Index(prefix,&len) == 0)
+		fSaveType = RootSaveType::kSAVE_ASYM;
+	else
+		fSaveType = RootSaveType::kSAVE_EVT;
+}
 void QwScanData::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
 {
-	TString basename;
-	fTreeArrayIndex  = values.size();
-	for (size_t i=0; i<fWords.size(); i++) {
-		basename = prefix(0, (prefix.First("|") >= 0)? prefix.First("|"): prefix.Length());
-		basename += fWords[i].fWordName;
-		values.push_back(basename.Data(), 'I');
-		tree->Branch(basename, &(values[fTreeArrayIndex + i]), values.LeafList(fTreeArrayIndex + i).c_str());
+	SetSaveType(prefix);
+	if(fSaveType == RootSaveType::kSAVE_EVT || fSaveType == RootSaveType::kSAVE_ASYM) {
+		fTreeArrayIndex  = values.size();
+		for (size_t i=0; i<fWords.size(); i++) {
+			TString basename = fWords[i].fWordName;
+			values.push_back(basename.Data(), 'I');
+			tree->Branch(basename, &(values[fTreeArrayIndex + i]), values.LeafList(fTreeArrayIndex + i).c_str());
+		}
 	}
-
 }
 
 void QwScanData::FillTreeVector(QwRootTreeBranchVector &values) const 
 {
 
-	int index = fTreeArrayIndex;
-	for (auto& word : fWords){
-		values.SetValue(index++, word.fValue);
+	if(fSaveType == RootSaveType::kSAVE_EVT || fSaveType == RootSaveType::kSAVE_ASYM) {
+		int index = fTreeArrayIndex;
+		for (auto& word : fWords){
+			values.SetValue(index++, word.fValue);
+		}
 	}
 }
 
 #ifdef HAS_RNTUPLE_SUPPORT
 void QwScanData::ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString& prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs)
 {
-	TString basename;
-	fTreeArrayIndex  = values.size();
-	for (auto const& word : fWords) {
-		basename = prefix(0, (prefix.First("|") >= 0)? prefix.First("|"): prefix.Length());
-		basename += word.fWordName;
-		values.push_back(0.0);
-		fieldPtrs.push_back(model->MakeField<Double_t>(basename.Data()));
+	SetSaveType(prefix);
+	if(fSaveType == RootSaveType::kSAVE_EVT || fSaveType == RootSaveType::kSAVE_ASYM) {
+		fTreeArrayIndex  = values.size();
+		for (auto const& word : fWords) {
+			TString basename = word.fWordName;
+			values.push_back(0.0);
+			fieldPtrs.push_back(model->MakeField<Double_t>(basename.Data()));
+		}
 	}
 }
 
 void QwScanData::FillNTupleVector(std::vector<Double_t>& values) const
 {
-  int index = fTreeArrayIndex;
-  for (auto& word : fWords){
-    values[index++] = word.fValue;
-  }
+	if(fSaveType == RootSaveType::kSAVE_EVT || fSaveType == RootSaveType::kSAVE_ASYM) {
+		int index = fTreeArrayIndex;
+		for (auto& word : fWords){
+			values[index++] = word.fValue;
+		}
+	}
 }
 
 bool QwScanData::CleanDataIndex::operator==(CleanDataIndex const& other) const

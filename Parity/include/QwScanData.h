@@ -60,7 +60,12 @@ public:
     void ConstructHistograms(TDirectory *folder, TString &prefix) override { std::runtime_error("QwScanData::ConstructHistograms() is not supported"); }
 	void FillHistograms() override { std::runtime_error("QwScanData::FillHistograms() is not supported"); }
 
+private:
+	enum class RootSaveType { kSAVE_EVT, kSAVE_ASYM, kSAVE_YIELD, kNO_SAVE };
+	void SetSaveType(TString const& prefix);
+	RootSaveType fSaveType{RootSaveType::kNO_SAVE};
 
+public:
     void ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values) override;
 	void FillTreeVector(QwRootTreeBranchVector &values) const override;
 	void ConstructBranch(TTree *tree, TString& prefix) override { throw std::runtime_error("QwScanData::ConstructBranch() is not supported"); };
