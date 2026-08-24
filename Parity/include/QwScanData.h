@@ -19,7 +19,7 @@ class QwScanData : public VQwSubsystemParity, public MQwSubsystemCloneable<QwSca
 		static char const* const fCleanWordName;
 		bool operator==(CleanDataIndex const& other) const;
 	};
-	enum class CleanDataVal : bool { UNCLEAN = false, CLEAN   = true };
+	enum class CleanDataVal : bool { kUNCLEAN = false, kCLEAN   = true };
 	std::vector<QwWord> fWords;
 	CleanDataIndex fCleanDataIndex{};
 	Int_t fTreeArrayIndex{-1};

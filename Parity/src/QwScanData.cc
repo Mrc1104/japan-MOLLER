@@ -86,7 +86,7 @@ VQwSubsystem&  QwScanData::operator+= (VQwSubsystem *value)
 				[](QwWord const& q1, QwWord const& q2){
 					return q1.fValue == q2.fValue;
 				})) {
-			SetCleanData(CleanDataVal::UNCLEAN);
+			SetCleanData(CleanDataVal::kUNCLEAN);
 		}
 	}
 	return *this;
@@ -106,7 +106,7 @@ VQwSubsystem&  QwScanData::operator-= (VQwSubsystem *value)
 				[](QwWord const& q1, QwWord const& q2){
 					return q1.fValue == q2.fValue;
 				})) {
-			SetCleanData(CleanDataVal::UNCLEAN);
+			SetCleanData(CleanDataVal::kUNCLEAN);
 		}
 	}
 	return *this;
@@ -288,11 +288,22 @@ void QwScanData::SetCleanDataIndex(Int_t index)
 	}
 
 }
+/*
+ * \brief Checks to see if CleanDataIndex is set
+ *
+ * Returns true if set, false otherwise
+ */
 bool QwScanData::CheckCleanDataIndex() const
 {
 	return !(fCleanDataIndex == CleanDataIndex{});
 }
 
+/* \brief Sets Clean data word value
+ * \param clean_flag -- clean data enum value {0, 1}
+ *
+ * Sets the CleanData value and returns true if CleanDataIndex is set.
+ * Will return false if CleanDataIndex is not set
+ */
 bool QwScanData::SetCleanData(CleanDataVal clean_flag)
 {
 	bool status = false;
