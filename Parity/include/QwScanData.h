@@ -13,7 +13,14 @@ class QwRootTreeBranchVector;
 
 class QwScanData : public VQwSubsystemParity, public MQwSubsystemCloneable<QwScanData>
 {
+	struct CleanDataIndex
+	{
+		Int_t fIndex{-1};
+		static char const* const fCleanWordName;
+		bool operator==(CleanDataIndex const& other) const;
+	};
 	std::vector<QwWord> fWords;
+	CleanDataIndex fCleanDataIndex{};
 	Int_t fTreeArrayIndex{-1};
 public:
 	QwScanData(TString const& name);
@@ -69,6 +76,8 @@ public:
 	void IncrementErrorCounters() override;
 	UInt_t GetEventcutErrorFlag() override;
 	void UpdateErrorFlag(const VQwSubsystem *ev_error) override;
+private:
+	void SetCleanDataIndex(Int_t index);
 };
 // Register this subsystem with the factory
 REGISTER_SUBSYSTEM_FACTORY(QwScanData);

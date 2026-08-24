@@ -2,6 +2,7 @@
 #include "QwRootFile.h"
 #include <algorithm>
 
+char const* const QwScanData::CleanDataIndex::fCleanWordName = "cleandata";
 QwScanData::QwScanData(TString const& name)
 : VQwSubsystem(name)
 , VQwSubsystemParity(name) {}
@@ -10,6 +11,7 @@ QwScanData::QwScanData(QwScanData const& other)
 : VQwSubsystem(other)
 , VQwSubsystemParity(other)
 , fWords(other.fWords)
+, fCleanDataIndex(other.fCleanDataIndex)
 , fTreeArrayIndex(other.fTreeArrayIndex) {}
 
 Int_t QwScanData::LoadChannelMap(TString mapfile)
@@ -48,6 +50,9 @@ Int_t QwScanData::LoadChannelMap(TString mapfile)
                   << " at mod " << modnum << ", chan " << channum
                   << QwLog::endl;
 		fWords.emplace_back( QwWord{subbank, 0, modtype, name, "", -1} );
+		if(name == CleanDataIndex::fCleanWordName) {
+			SetCleanDataIndex(fWords.size()-1);
+		}
 	}
 	return 0;
 }
@@ -221,4 +226,27 @@ void QwScanData::FillNTupleVector(std::vector<Double_t>& values) const
     values[index++] = word.fValue;
   }
 }
+
+bool QwScanData::CleanDataIndex::operator==(CleanDataIndex const& other) const
+{
+	return fIndex == other.fIndex;
+}
+
+/* \brief Sets Clean data word index
+ * \param index -- index to set
+ *
+ * Sets the CleanData index. Will return if already set and print an error
+ */
+void QwScanData::SetCleanDataIndex(Int_t index)
+{
+	if(fCleanDataIndex == CleanDataIndex{}) {
+		 fCleanDataIndex.fIndex= fWords.size()-1;
+	} else {
+		QwWarning << "ScanData Word already Set! " << '\n';
+		QwWarning << "\tCurrent:  " << fCleanDataIndex.fIndex << '\n';
+		QwWarning << "\tFound:  "   << index   << '\n';
+	}
+
+}
+
 #endif // HAS_RNTUPLE_SUPPORT
