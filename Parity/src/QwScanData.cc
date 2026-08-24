@@ -1,18 +1,18 @@
-#include "QwWords.h"
+#include "QwScanData.h"
 #include "QwRootFile.h"
 #include <algorithm>
 
-QwWords::QwWords(TString const& name)
+QwScanData::QwScanData(TString const& name)
 : VQwSubsystem(name)
 , VQwSubsystemParity(name) {}
 
-QwWords::QwWords(QwWords const& other)
+QwScanData::QwScanData(QwScanData const& other)
 : VQwSubsystem(other)
 , VQwSubsystemParity(other)
 , fWords(other.fWords)
 , fTreeArrayIndex(other.fTreeArrayIndex) {}
 
-Int_t QwWords::LoadChannelMap(TString mapfile)
+Int_t QwScanData::LoadChannelMap(TString mapfile)
 {
 	// Open the Param file
 	QwParameterFile mapstr(mapfile.Data());
@@ -52,21 +52,21 @@ Int_t QwWords::LoadChannelMap(TString mapfile)
 	return 0;
 }
 
-VQwSubsystem&  QwWords::operator=  (VQwSubsystem *value) 
+VQwSubsystem&  QwScanData::operator=  (VQwSubsystem *value) 
 {
 	if(Compare(value))
 	{
 		VQwSubsystem::operator=(value);
-		QwWords* input = dynamic_cast<QwWords*>(value);
+		QwScanData* input = dynamic_cast<QwScanData*>(value);
 		fWords = input->fWords;
 	}
 	return *this;
 }
 
-VQwSubsystem&  QwWords::operator+= (VQwSubsystem *value)
+VQwSubsystem&  QwScanData::operator+= (VQwSubsystem *value)
 {
 	if(Compare(value)){
-		QwWords* input = dynamic_cast<QwWords*>(value);
+		QwScanData* input = dynamic_cast<QwScanData*>(value);
 		std::transform(fWords.cbegin(), fWords.cend(),
 					   input->fWords.cbegin(), fWords.begin(), 
 					   std::plus<>{});
@@ -74,10 +74,10 @@ VQwSubsystem&  QwWords::operator+= (VQwSubsystem *value)
 	return *this;
 }
 
-VQwSubsystem&  QwWords::operator-= (VQwSubsystem *value)
+VQwSubsystem&  QwScanData::operator-= (VQwSubsystem *value)
 {
 	if(Compare(value)){
-		QwWords* input = dynamic_cast<QwWords*>(value);
+		QwScanData* input = dynamic_cast<QwScanData*>(value);
 		std::transform(fWords.cbegin(), fWords.cend(),
 					   input->fWords.cbegin(), fWords.begin(),
 					   std::minus<>{});
@@ -86,12 +86,12 @@ VQwSubsystem&  QwWords::operator-= (VQwSubsystem *value)
 }
 
 
-void  QwWords::ClearEventData()
+void  QwScanData::ClearEventData()
 {
 	for(auto & word : fWords) word.ClearEventData();
 }
 
-Int_t QwWords::ProcessEvBuffer(const ROCID_t roc_id, const BankID_t bank_id, UInt_t *buffer, UInt_t num_words)
+Int_t QwScanData::ProcessEvBuffer(const ROCID_t roc_id, const BankID_t bank_id, UInt_t *buffer, UInt_t num_words)
 {
 	UInt_t words_read = 0;
 
@@ -107,79 +107,79 @@ Int_t QwWords::ProcessEvBuffer(const ROCID_t roc_id, const BankID_t bank_id, UIn
 	return words_read;
 }
 
-void QwWords::ProcessEvent()
+void QwScanData::ProcessEvent()
 {
 	// Do post-processing here
 	// By Default, we have none
 	return;
 }
 
-Bool_t QwWords::ApplySingleEventCuts()
+Bool_t QwScanData::ApplySingleEventCuts()
 {
 	// Apply cuts here
 	// By Default, we have none
 	return true;
 }
 
-UInt_t QwWords::GetEventcutErrorFlag()
+UInt_t QwScanData::GetEventcutErrorFlag()
 {
 	// Return errors here
 	// By default, we have none
 	return 0;
 }
-void QwWords::AccumulateRunningSum(VQwSubsystem* value, Int_t count, Int_t ErrorMask)
+void QwScanData::AccumulateRunningSum(VQwSubsystem* value, Int_t count, Int_t ErrorMask)
 {
 	// No-op
 	return;
 }
-Bool_t QwWords::CheckForBurpFail(const VQwSubsystem *subsys)
+Bool_t QwScanData::CheckForBurpFail(const VQwSubsystem *subsys)
 {
 	// Check for Burb failure
 	// By default, we succeed
 	return kFALSE;
 }
 
-void QwWords::DeaccumulateRunningSum(VQwSubsystem* value, Int_t ErrorMask)
+void QwScanData::DeaccumulateRunningSum(VQwSubsystem* value, Int_t ErrorMask)
 {
 	// No-op
 	return;
 }
 
-void QwWords::IncrementErrorCounters()
+void QwScanData::IncrementErrorCounters()
 {
 	// No-op
 	return;
 }
-void QwWords::Scale(Double_t factor)
-{
-	// No-op
-	return;
-}
-
-void QwWords::UpdateErrorFlag(const VQwSubsystem *ev_error)
+void QwScanData::Scale(Double_t factor)
 {
 	// No-op
 	return;
 }
 
-void QwWords::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
+void QwScanData::UpdateErrorFlag(const VQwSubsystem *ev_error)
 {
 	// No-op
 	return;
 }
 
-void QwWords::CalculateRunningAverage()
+void QwScanData::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
 {
 	// No-op
 	return;
 }
 
-void QwWords::PrintErrorCounters() const
+void QwScanData::CalculateRunningAverage()
 {
 	// No-op
 	return;
 }
-void QwWords::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
+
+void QwScanData::PrintErrorCounters() const
+{
+	// No-op
+	return;
+}
+void QwScanData::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeBranchVector &values)
 {
 	TString basename;
 	fTreeArrayIndex  = values.size();
@@ -192,7 +192,7 @@ void QwWords::ConstructBranchAndVector(TTree *tree, TString &prefix, QwRootTreeB
 
 }
 
-void QwWords::FillTreeVector(QwRootTreeBranchVector &values) const 
+void QwScanData::FillTreeVector(QwRootTreeBranchVector &values) const 
 {
 
 	int index = fTreeArrayIndex;
@@ -202,7 +202,7 @@ void QwWords::FillTreeVector(QwRootTreeBranchVector &values) const
 }
 
 #ifdef HAS_RNTUPLE_SUPPORT
-void QwWords::ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString& prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs)
+void QwScanData::ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& model, TString& prefix, std::vector<Double_t>& values, std::vector<std::shared_ptr<Double_t>>& fieldPtrs)
 {
 	TString basename;
 	fTreeArrayIndex  = values.size();
@@ -214,7 +214,7 @@ void QwWords::ConstructNTupleAndVector(std::unique_ptr<ROOT::RNTupleModel>& mode
 	}
 }
 
-void QwWords::FillNTupleVector(std::vector<Double_t>& values) const
+void QwScanData::FillNTupleVector(std::vector<Double_t>& values) const
 {
   int index = fTreeArrayIndex;
   for (auto& word : fWords){
