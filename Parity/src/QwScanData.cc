@@ -266,6 +266,7 @@ void QwScanData::FillNTupleVector(std::vector<Double_t>& values) const
 		}
 	}
 }
+#endif // HAS_RNTUPLE_SUPPORT
 
 bool QwScanData::CleanDataIndex::operator==(CleanDataIndex const& other) const
 {
@@ -313,4 +314,3 @@ bool QwScanData::SetCleanData(CleanDataVal clean_flag)
 	}
 	return status;
 }
-#endif // HAS_RNTUPLE_SUPPORT
