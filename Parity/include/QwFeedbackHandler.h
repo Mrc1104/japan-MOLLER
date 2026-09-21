@@ -1,7 +1,9 @@
 #pragma once
 #include "VQwDataHandler.h"
+#include "QwParameterFile.h"
 #include <source_location>
 #include <string>
+#include <ostream>
 
 
 [[noreturn]] inline void throw_with_location(
@@ -47,13 +49,37 @@ protected:
     Int_t LoadChannelMap(const std::string&) override;
     Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override { THROW_ERROR("NOT SUPPORTED"); }
 private:
-	struct configuration
+	class configuration
 	{
-		enum class TYPE	{ TARGET, IOC };
-		TYPE type;
+		enum class TYPE	{ kTARGET, kIOC, kUNKNOWN };
+		TYPE type{TYPE::kUNKNOWN};
 		std::string name;
-		std::string desc;
+		std::string descr;
+	private:
+		std::string_view parse_pair_impl(std::string_view token, std::string_view target);
+	public:
+		bool parse_pair(std::string_view token);
+		[[nodiscard]] bool isValid() const;
+		friend std::ostream& operator<<(std::ostream& out, QwFeedbackHandler::configuration const& config)
+		{
+			std::string_view type_sv{};
+			switch (config.type) {
+				case QwFeedbackHandler::configuration::TYPE::kTARGET:
+					type_sv = "target";
+					break;
+				case QwFeedbackHandler::configuration::TYPE::kIOC:
+					type_sv = "ioc";
+					break;
+				default:
+					type_sv = "unknown";
+					break;
+			}
+			out << "Type: " << type_sv << ", Name: " << config.name << ", Descr: " << config.descr << '\n';
+			return out;
+		}
+		config target_config{};
 	};
+
 	enum class IHWP {
 		kIN = 0,
 		kOUT
