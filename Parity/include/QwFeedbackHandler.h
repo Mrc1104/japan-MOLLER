@@ -46,6 +46,30 @@ public:
 protected:
     Int_t LoadChannelMap(const std::string&) override;
     Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override { THROW_ERROR("NOT SUPPORTED"); }
+private:
+	struct configuration
+	{
+		enum class TYPE	{ TARGET, IOC };
+		TYPE type;
+		std::string name;
+		std::string desc;
+	};
+	enum class IHWP {
+		kIN = 0,
+		kOUT
+	};
+	class Slope
+	{
+		static_assert( static_cast<int>(IHWP::kIN) == 0
+				       && static_cast<int>(IHWP::kOUT) == 1,
+					   "Expected: enum IHWP is used for indexing!\n");
+		std::array<double, 2> slopes;
+	public:
+		Slope() : slopes{1.0, 1.0} {}
+		double& operator[](IHWP state)       { return slopes[static_cast<int>(state)]; }
+		double  operator[](IHWP state) const { return slopes[static_cast<int>(state)]; }
+	};
+	Slope fSlope;
 };
 
 // Register this handler with the factory
