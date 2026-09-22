@@ -1,6 +1,7 @@
 #pragma once
 #include "VQwDataHandler.h"
 #include "QwParameterFile.h"
+#include <QwFeedback.h>
 #include <source_location>
 #include <string>
 #include <ostream>
@@ -48,54 +49,7 @@ public:
 protected:
     Int_t LoadChannelMap(const std::string&) override;
     Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override { THROW_ERROR("NOT SUPPORTED"); }
-private:
-	class configuration
-	{
-		enum class TYPE	{ kTARGET, kIOC, kUNKNOWN };
-		TYPE type{TYPE::kUNKNOWN};
-		std::string name;
-		std::string descr;
-	private:
-		std::string_view parse_pair_impl(std::string_view token, std::string_view target);
-	public:
-		bool parse_pair(std::string_view token);
-		[[nodiscard]] bool isValid() const;
-		friend std::ostream& operator<<(std::ostream& out, QwFeedbackHandler::configuration const& config)
-		{
-			std::string_view type_sv{};
-			switch (config.type) {
-				case QwFeedbackHandler::configuration::TYPE::kTARGET:
-					type_sv = "target";
-					break;
-				case QwFeedbackHandler::configuration::TYPE::kIOC:
-					type_sv = "ioc";
-					break;
-				default:
-					type_sv = "unknown";
-					break;
-			}
-			out << "Type: " << type_sv << ", Name: " << config.name << ", Descr: " << config.descr << '\n';
-			return out;
-		}
-		config target_config{};
-	};
-
-	enum class IHWP {
-		kIN = 0,
-		kOUT
-	};
-	class Slope
-	{
-		static_assert( static_cast<int>(IHWP::kIN) == 0
-				       && static_cast<int>(IHWP::kOUT) == 1,
-					   "Expected: enum IHWP is used for indexing!\n");
-		std::array<double, 2> slopes;
-	public:
-		Slope() : slopes{1.0, 1.0} {}
-		double& operator[](IHWP state)       { return slopes[static_cast<int>(state)]; }
-		double  operator[](IHWP state) const { return slopes[static_cast<int>(state)]; }
-	};
-	Slope fSlope;
+	std::unique_ptr<QwFeedback> fFeedback;
 };
 
 // Register this handler with the factory
