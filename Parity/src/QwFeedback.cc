@@ -121,9 +121,13 @@ void QwFeedback::ApplyCorrection(double const running_average)
 	if(fPimpl) fPimpl->ApplyCorrectionImpl(running_average / GetSlope());
 }
 
-std::string_view const QwFeedback::RequestTargetDevice() const
+
+std::pair<VQwDataHandler::EQwHandleType, std::string_view>
+QwFeedback::RequestTargetDevice() const
 {
-	return fPimpl ? fPimpl->RequestTargetDeviceImpl() : std::string_view{};
+	return fPimpl
+		   ? fPimpl->RequestTargetDeviceImpl()
+		   : std::pair{VQwDataHandler::kHandleTypeUnknown, std::string_view{}};
 }
 
 
@@ -163,6 +167,13 @@ void QwPITAFeedback::ApplyCorrectionImpl(double const correction)
 		// TODO: LOGGING
 	}
 }
+
+std::pair<VQwDataHandler::EQwHandleType, std::string_view>
+QwPITAFeedback::RequestTargetDeviceImpl() const
+{
+	return {VQwDataHandler::EQwHandleType::kHandleTypeAsym, fDevice};
+}
+
 
 bool QwPITAFeedback::SetDeviceName(std::string&& name)
 {

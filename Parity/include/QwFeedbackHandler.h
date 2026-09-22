@@ -18,7 +18,7 @@
 }
 #define THROW_ERROR(msg) throw_with_location(msg)
 
-class QwFeedbackHandler : public VQwDataHandler
+class QwFeedbackHandler : public VQwDataHandler, public MQwDataHandlerCloneable<QwFeedbackHandler>
 {
 public:
 	QwFeedbackHandler(TString const& name);
@@ -27,7 +27,7 @@ public:
 public:
 	// All inherited functions
 	void ParseConfigFile(QwParameterFile& file) override;
-	Int_t ConnectChannels(QwSubsystemArrayParity& /*yield*/, QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override { THROW_ERROR("NOT SUPPORTED"); }
+	Int_t ConnectChannels(QwSubsystemArrayParity& yield, QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override;
     // Subsystems with support for subsystem arrays should override this
     Int_t ConnectChannels(QwSubsystemArrayParity& /*detectors*/) override { THROW_ERROR("NOT SUPPORTED"); }
     void ProcessData() override { THROW_ERROR("NOT SUPPORTED"); }

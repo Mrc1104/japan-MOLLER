@@ -53,8 +53,44 @@ Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)
 	return 0;
 }
 
-Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& /*yield*/, QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff)
+Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff)
 {
+    const VQwHardwareChannel* device_ptr{nullptr};
+	auto [data_type, device] = fFeedback->RequestTargetDevice();
+	std::cout << "Requesting channel: " << device << '\n';
+ 	// which one do we want to use?
+	// ReturnInternalValue or
+	// RequestExternalPointer
+    // channel = asym.ReturnInternalValue(TString(device));
+    // channel = RequestExternalPointer(TString(device));
+    switch (data_type) {
+      case kHandleTypeYield:
+        SetEventcutErrorFlagPointer(yield.GetEventcutErrorFlagPointer());
+        device_ptr = yield.ReturnInternalValue(TString(device));
+        break;
+      case kHandleTypeAsym:
+        SetEventcutErrorFlagPointer(asym.GetEventcutErrorFlagPointer());
+        device_ptr = asym.ReturnInternalValue(TString(device));
+        break;
+      case kHandleTypeDiff:
+        SetEventcutErrorFlagPointer(diff.GetEventcutErrorFlagPointer());
+        device_ptr = diff.ReturnInternalValue(TString(device));
+        break;
+      default:
+        QwWarning << "Warning: QwFeedbackHander::ConnectChannels():\n";
+		QwWarning << "Unknown data type (" << data_type << ") for device (" << device << ")";
+        QwWarning << QwLog::endl;
+        break;
+    }
+
+	if(device_ptr) {
+		std::cout << "not null!\n";
+		fDependentVar.push_back(device_ptr);
+		fOutputVar.push_back(device_ptr->Clone(VQwDataElement::kDerived));
+	}
+	else std::cout << "null\n";
+
+
 	return 0;
 }
 

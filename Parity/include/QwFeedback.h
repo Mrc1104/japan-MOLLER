@@ -3,6 +3,7 @@
 #include <string_view>
 #include <functional>
 #include <ostream>
+#include <utility>
 #include "VQwDataHandler.h" // Access EQwHandleType
 
 class QwFeedbackConfig
@@ -90,7 +91,8 @@ class VQwFeedbackImpl
 public:
 	virtual void ConfigureImpl(QwFeedbackConfig&& config)        = 0;
 	virtual void ApplyCorrectionImpl(double const running_average) = 0;
-	virtual std::string_view const RequestTargetDeviceImpl() const    = 0;
+	virtual std::pair<VQwDataHandler::EQwHandleType, std::string_view>
+	RequestTargetDeviceImpl() const    = 0;
 	virtual std::unique_ptr<VQwFeedbackImpl> Clone() const = 0;
 	virtual void Print(std::ostream& out) const = 0;
 };
@@ -110,7 +112,8 @@ private:
 public:
 	void ConfigureImpl(QwFeedbackConfig&& config) override;
 	void ApplyCorrectionImpl(double const running_average) override;
-	std::string_view const RequestTargetDeviceImpl() const override {return std::string_view{};}
+	std::pair<VQwDataHandler::EQwHandleType, std::string_view>
+	RequestTargetDeviceImpl() const override;
 	std::unique_ptr<VQwFeedbackImpl> Clone() const override;
 	void Print(std::ostream& out) const override;
 
@@ -137,7 +140,8 @@ public:
 public:
 	void Configure(QwFeedbackConfig&& config);
 	void ApplyCorrection(double const running_average);
-	std::string_view const RequestTargetDevice() const;
+	std::pair<VQwDataHandler::EQwHandleType, std::string_view>
+	RequestTargetDevice() const;
 public:
 	void    SetSlope(IHWP state, double val);
 	double  GetSlope(IHWP state) const;
