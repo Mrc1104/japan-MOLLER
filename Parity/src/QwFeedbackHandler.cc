@@ -21,6 +21,7 @@ void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
   	file.PopValue("impl", feedback_type);
   	file.PopValue("slope_ihwp_in", fFeedback->GetSlope(IHWP::kIN));
   	file.PopValue("slope_ihwp_out",fFeedback->GetSlope(IHWP::kOUT));
+	fFeedback->ConfigureFeedbackType(feedback_type);
 	
 }
 Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)
@@ -41,11 +42,12 @@ Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)
 			config.parse_pair(token);
 			token = map.GetNextToken(" ");
 		}
-		if(config.isValid()) {
+		if(!config.isValid()) {
 			QwWarning << "Invalid Feedback Config:" << config << '\n';
 			continue;
 		}
 		std::cout << config << '\n';
+		fFeedback->Configure(std::move(config));
 	}
 
 	return 0;

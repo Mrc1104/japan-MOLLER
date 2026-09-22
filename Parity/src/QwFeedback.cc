@@ -3,9 +3,9 @@
 bool QwFeedbackConfig::parse_pair(std::string_view token) {
 	bool status = false;
 	if( auto sv = parse_pair_impl(token, "type" ); sv != std::string_view{} ) {
-		if(sv.compare("target"))   type = TYPE::kTARGET;
-		else if(sv.compare("ioc")) type = TYPE::kIOC;
-		else type = TYPE::kUNKNOWN;
+		if(sv == "target")   type = TYPE::kTARGET;
+		else if(sv == "ioc") type = TYPE::kIOC;
+		else                 type = TYPE::kUNKNOWN;
 		status = true;
 	}
 	else if( auto sv = parse_pair_impl(token, "name" ); sv != std::string_view{} ) {
@@ -41,8 +41,15 @@ bool QwFeedbackConfig::isValid() const
 	return valid;
 }
 
+QwFeedbackConfig::TYPE QwFeedbackConfig::getType() const
+{
+	return type;
+}
+std::string const& QwFeedbackConfig::getName() const& noexcept { return name; }
+std::string&& QwFeedbackConfig::getName() && noexcept { return std::move(name); }
+std::string const& QwFeedbackConfig::getDescr() const& noexcept { return descr; }
+std::string&& QwFeedbackConfig::getDescr() && noexcept { return std::move(descr); }
 
-QwFeedbackConfig::TYPE QwFeedbackConfig::getType() const { return type; }
 
 std::ostream& operator<<(std::ostream& out, QwFeedbackConfig const& config)
 {
@@ -97,10 +104,16 @@ double  QwFeedback::GetSlope(IHWP state) const       { return fSlope[state]; }
 double& QwFeedback::GetSlope(IHWP state)             { return fSlope[state]; }
 double  QwFeedback::GetSlope() const                 { return fSlope.GetSlope(); }
 
-
-void QwFeedback::Configure(QwFeedbackConfig const& config)
+std::ostream& operator<<(std::ostream& out, QwFeedback const& fb)
 {
-	if(fPimpl) fPimpl->ConfigureImpl(config);
+	fb.fPimpl->Print(out);
+	return out;
+}
+
+
+void QwFeedback::Configure(QwFeedbackConfig&& config)
+{
+	if(fPimpl) fPimpl->ConfigureImpl(std::move(config));
 }
 
 void QwFeedback::ApplyCorrection(double const running_average)
@@ -112,14 +125,32 @@ std::string_view const QwFeedback::RequestTargetDevice() const
 {
 	return fPimpl ? fPimpl->RequestTargetDeviceImpl() : std::string_view{};
 }
+
+
 std::unique_ptr<VQwFeedbackImpl> QwPITAFeedback::Clone() const
 {
 	return std::make_unique<QwPITAFeedback>( *this );
 }
 
-void QwPITAFeedback::ConfigureImpl(QwFeedbackConfig const& config)
+void QwPITAFeedback::Print(std::ostream& out) const
 {
+	out << "QwPITAFeedback Debug Dump:\n";
+	out << "\tfDevice = " << fDevice << '\n';
+	out << "\tfNumSetpoints = " << fNumSetpointsSet << '\n';
+}
 
+void QwPITAFeedback::ConfigureImpl(QwFeedbackConfig&& config)
+{
+	switch(config.getType()) {
+		case QwFeedbackConfig::TYPE::kTARGET:
+			SetDeviceName(std::move(config).getName());
+			break;
+		case QwFeedbackConfig::TYPE::kIOC:
+			AddSetpoint(std::move(config).getName());
+			break;
+		default:
+			break;
+	}
 }
 void QwPITAFeedback::ApplyCorrectionImpl(double const correction)
 {
@@ -131,5 +162,30 @@ void QwPITAFeedback::ApplyCorrectionImpl(double const correction)
 		auto val = hv.ApplyCorrection(correction);
 		// TODO: LOGGING
 	}
+}
+
+bool QwPITAFeedback::SetDeviceName(std::string&& name)
+{
+	if(!fDevice.empty()) {
+		std::cout << "Warning: PITA Feedback Device name already set!\n";
+		std::cout << "\tCurrent: " << fDevice << '\n';
+		std::cout << "\tGiven:   " << name    << '\n';
+		return false;
+	}
+	fDevice = std::move(name);
+	return true;
+}
+
+// Need to connect to an IOC
+bool QwPITAFeedback::AddSetpoint(std::string&& setp_name)
+{
+	if(fNumSetpointsSet >= fNumSetpointsExpected) {
+		std::cout << "Error: PITA Feedback Setpoints already set!\n";
+		return false;
+	}
+	std::cout << "Adding Setpoint: " << setp_name << '\n';
+	fNumSetpointsSet++;
+	return true;
+
 }
 
