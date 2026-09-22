@@ -23,28 +23,51 @@ enum class IHWP {
 	kIN = 0,
 	kOUT
 };
+
+// TO DO:
+// Make this connect to the IHWP IOC
+class IHWP_IOC
+{
+	IHWP ihwp{IHWP::kIN};	
+public:
+	IHWP GetState() const { return ihwp; }
+};
+
 class Slope
 {
 	static_assert( static_cast<int>(IHWP::kIN) == 0
 			&& static_cast<int>(IHWP::kOUT) == 1,
 			"Expected: enum IHWP is used for indexing!\n");
-	std::array<double, 2> slopes;
-	public:
-	Slope() : slopes{1.0, 1.0} {}
-	double& operator[](IHWP state)       { return slopes[static_cast<int>(state)]; }
-	double  operator[](IHWP state) const { return slopes[static_cast<int>(state)]; }
+	std::array<double, 2> fSlopes;
+	IHWP_IOC fIOC;
+public:
+	Slope() : fSlopes{1.0, 1.0} {}
+	double& operator[](IHWP state)       { return fSlopes[static_cast<int>(state)]; }
+	double  operator[](IHWP state) const { return fSlopes[static_cast<int>(state)]; }
+	double  GetSlope() const             { return this->operator[](fIOC.GetState());}
 };
 
 template<typename BinaryOp>
 class FeedbackSetpoint {
-	double fCurr;
-	double fPrev;
+	struct Setpoint
+	{
+		double fCurr;
+		double fPrev;
+	};
+	Setpoint fSetpoint;
 public:
-	FeedbackSetpoint() : fCurr{0.0}, fPrev{0.0} {}
-	void Set(double val) { fCurr = val; }
-	double ApplyCorrection(double corr) {
+	// Make this connect into the IOC
+	FeedbackSetpoint() : fSetpoint{.fCurr{0.0}, .fPrev{0.0}} {}
+	void Set(double val) {
+		auto& [fCurr, fPrev] = fSetpoint;
+		fPrev = fCurr;
+		fCurr = val;
+	}
+	Setpoint ApplyCorrection(double corr) {
+		auto& [fCurr, fPrev] = fSetpoint;
 		fPrev = fCurr;
 		fCurr = BinaryOp{}(corr, fPrev);
+		return {fCurr, fPrev};
 	}
 
 };
@@ -53,26 +76,21 @@ class VQwFeedbackImpl
 {
 public:
 	virtual void ConfigureImpl(QwFeedbackConfig const& config)        = 0;
-	virtual void CalculateCorectionImpl(double const running_average) = 0;
+	virtual void ApplyCorrectionImpl(double const running_average) = 0;
 	virtual std::string_view const RequestTargetDeviceImpl() const    = 0;
 	virtual std::unique_ptr<VQwFeedbackImpl> Clone() const = 0;
 };
 class QwPITAFeedback : public VQwFeedbackImpl
 {
+	// Maybe use std::variant?
 	using ADD = std::plus<double>;
 	using SUB = std::minus<double>;
-	FeedbackSetpoint<ADD> setpoint1;
-	FeedbackSetpoint<ADD> setpoint2;
-	FeedbackSetpoint<ADD> setpoint3;
-	FeedbackSetpoint<ADD> setpoint4;
-	FeedbackSetpoint<SUB> setpoint5;
-	FeedbackSetpoint<SUB> setpoint6;
-	FeedbackSetpoint<SUB> setpoint7;
-	FeedbackSetpoint<SUB> setpoint8;
-
+	std::array<FeedbackSetpoint<ADD>, 4> fPitaVoltages1_4;
+	std::array<FeedbackSetpoint<SUB>, 4> fPitaVoltages5_8;
+	std::size_t NHVs;
 public:
-	void ConfigureImpl(QwFeedbackConfig const& config) override {}
-	void CalculateCorectionImpl(double const running_average) override {}
+	void ConfigureImpl(QwFeedbackConfig const& config) override;
+	void ApplyCorrectionImpl(double const running_average) override;
 	std::string_view const RequestTargetDeviceImpl() const override {return std::string_view{};}
 	std::unique_ptr<VQwFeedbackImpl> Clone() const override;
 };
@@ -97,11 +115,12 @@ public:
 	void ConfigureFeedbackType(TYPE type);
 public:
 	void Configure(QwFeedbackConfig const& config);
-	void CalculateCorection(double const running_average);
+	void ApplyCorrection(double const running_average);
 	std::string_view const RequestTargetDevice() const;
 public:
 	void    SetSlope(IHWP state, double val);
 	double  GetSlope(IHWP state) const;
 	double& GetSlope(IHWP state);
+	double  GetSlope() const;
 };
 

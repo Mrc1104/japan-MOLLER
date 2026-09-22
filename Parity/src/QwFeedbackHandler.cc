@@ -2,7 +2,7 @@
 #include <string_view>
 QwFeedbackHandler::QwFeedbackHandler(TString const& name)
 : VQwDataHandler(name)
-, fFeedback{}
+, fFeedback{std::make_unique<QwFeedback>()}
 {
   	fKeepRunningSum = true;
 }

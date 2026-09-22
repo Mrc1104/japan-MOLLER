@@ -95,6 +95,7 @@ void QwFeedback::ConfigureFeedbackType(TYPE type)
 void    QwFeedback::SetSlope(IHWP state, double val) { fSlope[state] = val ; }
 double  QwFeedback::GetSlope(IHWP state) const       { return fSlope[state]; }
 double& QwFeedback::GetSlope(IHWP state)             { return fSlope[state]; }
+double  QwFeedback::GetSlope() const                 { return fSlope.GetSlope(); }
 
 
 void QwFeedback::Configure(QwFeedbackConfig const& config)
@@ -102,9 +103,9 @@ void QwFeedback::Configure(QwFeedbackConfig const& config)
 	if(fPimpl) fPimpl->ConfigureImpl(config);
 }
 
-void QwFeedback::CalculateCorection(double const running_average)
+void QwFeedback::ApplyCorrection(double const running_average)
 {
-	if(fPimpl) fPimpl->CalculateCorectionImpl(running_average);
+	if(fPimpl) fPimpl->ApplyCorrectionImpl(running_average / GetSlope());
 }
 
 std::string_view const QwFeedback::RequestTargetDevice() const
@@ -114,5 +115,21 @@ std::string_view const QwFeedback::RequestTargetDevice() const
 std::unique_ptr<VQwFeedbackImpl> QwPITAFeedback::Clone() const
 {
 	return std::make_unique<QwPITAFeedback>( *this );
+}
+
+void QwPITAFeedback::ConfigureImpl(QwFeedbackConfig const& config)
+{
+
+}
+void QwPITAFeedback::ApplyCorrectionImpl(double const correction)
+{
+	for( auto& hv : fPitaVoltages1_4 ) {
+		auto val = hv.ApplyCorrection(correction);
+		// TODO: LOGGING
+	}
+	for( auto& hv : fPitaVoltages5_8 ) {
+		auto val = hv.ApplyCorrection(correction);
+		// TODO: LOGGING
+	}
 }
 
