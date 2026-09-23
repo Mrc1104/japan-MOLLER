@@ -11,8 +11,6 @@ QwFeedbackHandler::QwFeedbackHandler(QwFeedbackHandler const& source)
 , fFeedback(std::make_unique<QwFeedback>(*source.fFeedback))
 { }
 
-QwFeedbackHandler::~QwFeedbackHandler() = default;
-
 
 void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
 {
