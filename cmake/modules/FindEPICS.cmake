@@ -1,38 +1,61 @@
-###  The path for EPICS is restricted to a single copy on the Hall A cluster
-###  which has been compiled for 64-bit architecture.
-###  In principle this could be generalized, but would need to have guards
-###  to verify the library has been compiled with the correct flag.
-
-
-find_library(EPICS_CA_LIBRARY ca
-  PATHS /adaqfs/apps/epics/lib/linux-x86_64
-  NO_DEFAULT_PATH
-  DOC "EPICS CA library"
-  )
-find_library(EPICS_CAS_LIBRARY cas
-  PATHS /adaqfs/apps/epics/lib/linux-x86_64
-  NO_DEFAULT_PATH
-  DOC "EPICS CAS library"
-  )
-find_library(EPICS_COM_LIBRARY Com
-  PATHS /adaqfs/apps/epics/lib/linux-x86_64
-  NO_DEFAULT_PATH
-  DOC "EPICS COM library"
-  )
-find_library(EPICS_GDD_LIBRARY gdd
-  PATHS /adaqfs/apps/epics/lib/linux-x86_64
-  NO_DEFAULT_PATH
-  DOC "EPICS GDD library"
-  )
-#  Needs to build this line: -L/adaqfs/apps/epics/lib/linux-x86_64 -lca -lcas -lCom -lgdd
-
 find_path(EPICS_INCLUDE_DIR
-  NAMES cadef.h
-  PATHS /adaqfs/apps/epics/include
-  #          $ENV{CODA}/common/include
-  DOC "EPICS header include base directory"
-  )
-#  Needs to get all three: -I /adaqfs/apps/epics/include -I /adaqfs/apps/epics/include/os/Linux -I /adaqfs/apps/epics/include/compiler/gcc
+    NAMES epicsexcept.h epicsTypes.h
+    HINTS ENV EPICS
+    PATH_SUFFIXES include
+)
 
+find_path(EPICS_OS_INCLUDE_DIR
+    NAMES osdSock.h osdTime.h
+    HINTS ENV EPICS
+    PATH_SUFFIXES include/os/Linux include/os/default
+)
+find_path(EPICS_GCC_INCLUDE_DIR
+    NAMES compilerSpecific.h epicsAtomicCD.h
+    HINTS ENV EPICS
+    PATH_SUFFIXES include/compiler include/compiler/gcc
+)
+
+if(NOT EPICS_FIND_COMPONENTS)
+    set(EPICS_FIND_COMPONENTS Com ca dbCore dbRecStd gdd cas Cap5)
+endif()
+foreach(comp ${EPICS_FIND_COMPONENTS})
+    # Search for the library on disk
+    find_library(EPICS_${comp}_LIBRARY
+        NAMES ${comp}
+        HINTS ENV EPICS
+        PATH_SUFFIXES lib/linux-x86_64 lib
+    )
+
+    # Check if this specific component was successfully found
+    if(EPICS_${comp}_LIBRARY)
+        set(EPICS_${comp}_FOUND TRUE)
+    else()
+        set(EPICS_${comp}_FOUND FALSE)
+    endif()
+endforeach()
+
+# Standardize status messaging (Found/Not Found) and error handling
 include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(EPICS "The EPICS libraries were not found; feedback analysis will be disabled."  EPICS_CA_LIBRARY EPICS_CAS_LIBRARY EPICS_COM_LIBRARY EPICS_GDD_LIBRARY EPICS_INCLUDE_DIR)
+find_package_handle_standard_args(EPICS
+    REQUIRED_VARS EPICS_Com_LIBRARY EPICS_INCLUDE_DIR EPICS_OS_INCLUDE_DIR EPICS_GCC_INCLUDE_DIR EPICS_GCC_INCLUDE_DIR
+	HANDLE_COMPONENTS
+)
+if(EPICS_FOUND)
+    foreach(comp ${EPICS_FIND_COMPONENTS})
+        if(EPICS_${comp}_FOUND AND NOT TARGET EPICS::${comp})
+            add_library(EPICS::${comp} UNKNOWN IMPORTED)
+            set_target_properties(EPICS::${comp} PROPERTIES
+                INTERFACE_INCLUDE_DIRECTORIES "${EPICS_INCLUDE_DIR};${EPICS_OS_INCLUDE_DIR};${EPICS_GCC_INCLUDE_DIR}"
+                IMPORTED_LOCATION "${EPICS_${comp}_LIBRARY}"
+            )
+
+            # Optional: Establish internal EPICS dependencies if applicable
+            # (e.g., Channel Access 'ca' requires 'Com')
+            if(comp STREQUAL "ca" AND TARGET EPICS::Com)
+                set_property(TARGET EPICS::ca APPEND PROPERTY
+                    INTERFACE_LINK_LIBRARIES EPICS::Com
+                )
+            endif()
+        endif()
+    endforeach()
+endif()

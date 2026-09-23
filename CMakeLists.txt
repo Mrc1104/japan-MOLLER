@@ -285,6 +285,14 @@ endforeach()
 
 
 #----------------------------------------------------------------------------
+# EPICS library
+# TODO: Move to subfolder with its own CMakeList
+#
+find_package(EPICS REQUIRED COMPONENTS
+	Com ca 
+)
+
+#----------------------------------------------------------------------------
 # main library
 #
 add_library(${PROJECT_NAME} SHARED ${my_project_sources} ${my_project_headers})
@@ -320,6 +328,8 @@ endif()
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     eviowrapper
+	EPICS::Com
+	EPICS::ca
   PUBLIC
     ROOT::Core ROOT::Tree ROOT::Hist ROOT::Rint ${LIBMAPFILE}
     $<TARGET_NAME_IF_EXISTS:ROOT::ROOTNTuple>
