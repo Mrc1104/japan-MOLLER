@@ -4,6 +4,7 @@
 #include <functional>
 #include <ostream>
 #include <utility>
+#include "IHWP.h"
 #include "VQwDataHandler.h" // Access EQwHandleType
 
 class QwFeedbackConfig
@@ -33,19 +34,6 @@ public:
 	friend std::ostream& operator<<(std::ostream& out, QwFeedbackConfig const& config);
 };
 
-enum class IHWP {
-	kIN = 0,
-	kOUT
-};
-
-// TO DO:
-// Make this connect to the IHWP IOC
-class IHWP_IOC
-{
-	IHWP ihwp{IHWP::kIN};	
-public:
-	IHWP GetState() const { return ihwp; }
-};
 
 class Slope
 {
@@ -53,12 +41,11 @@ class Slope
 			&& static_cast<int>(IHWP::kOUT) == 1,
 			"Expected: enum IHWP is used for indexing!\n");
 	std::array<double, 2> fSlopes;
-	IHWP_IOC fIOC;
 public:
-	Slope() : fSlopes{1.0, 1.0} {}
+	Slope() : fSlopes{1.0, 1.0}{}
 	double& operator[](IHWP state)       { return fSlopes[static_cast<int>(state)]; }
 	double  operator[](IHWP state) const { return fSlopes[static_cast<int>(state)]; }
-	double  GetSlope() const             { return this->operator[](fIOC.GetState());}
+	double  GetSlope() const             { return this->operator[](IHWP_IOC::getInstance().GetState());}
 };
 
 template<typename BinaryOp>
