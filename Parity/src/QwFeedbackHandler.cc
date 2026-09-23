@@ -1,13 +1,23 @@
 #include "QwFeedbackHandler.h"
 #include <string_view>
+#include <string>
+#include <limits>
 QwFeedbackHandler::QwFeedbackHandler(TString const& name)
 : VQwDataHandler(name)
+, fMaxPattern(std::numeric_limits<std::size_t>::max())
+, fPatternCounter(0)
+, fDeviceObserver{nullptr}
+, fDeviceAccum{nullptr}
 , fFeedback{std::make_unique<QwFeedback>()}
 {
   	fKeepRunningSum = true;
 }
 QwFeedbackHandler::QwFeedbackHandler(QwFeedbackHandler const& source)
 : VQwDataHandler(source)
+, fMaxPattern(source.fMaxPattern)
+, fPatternCounter(source.fPatternCounter)
+, fDeviceObserver(source.fDeviceObserver)
+, fDeviceAccum( fDeviceAccum->Clone(VQwDataElement::kDerived) )
 , fFeedback(std::make_unique<QwFeedback>(*source.fFeedback))
 { }
 
@@ -19,6 +29,7 @@ void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
   	file.PopValue("impl", feedback_type);
   	file.PopValue("slope_ihwp_in", fFeedback->GetSlope(IHWP::kIN));
   	file.PopValue("slope_ihwp_out",fFeedback->GetSlope(IHWP::kOUT));
+  	file.PopValue("patterns",fMaxPattern);
 	fFeedback->ConfigureFeedbackType(feedback_type);
 	
 }
@@ -53,7 +64,6 @@ Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)
 
 Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff)
 {
-    const VQwHardwareChannel* device_ptr{nullptr};
 	auto [data_type, device] = fFeedback->RequestTargetDevice();
 	std::cout << "Requesting channel: " << device << '\n';
  	// which one do we want to use?
@@ -64,15 +74,15 @@ Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsys
     switch (data_type) {
       case kHandleTypeYield:
         SetEventcutErrorFlagPointer(yield.GetEventcutErrorFlagPointer());
-        device_ptr = yield.ReturnInternalValue(TString(device));
+        fDeviceObserver = yield.ReturnInternalValue(TString(device));
         break;
       case kHandleTypeAsym:
         SetEventcutErrorFlagPointer(asym.GetEventcutErrorFlagPointer());
-        device_ptr = asym.ReturnInternalValue(TString(device));
+        fDeviceObserver = asym.ReturnInternalValue(TString(device));
         break;
       case kHandleTypeDiff:
         SetEventcutErrorFlagPointer(diff.GetEventcutErrorFlagPointer());
-        device_ptr = diff.ReturnInternalValue(TString(device));
+        fDeviceObserver = diff.ReturnInternalValue(TString(device));
         break;
       default:
         QwWarning << "Warning: QwFeedbackHander::ConnectChannels():\n";
@@ -81,12 +91,13 @@ Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsys
         break;
     }
 
-	if(device_ptr) {
-		std::cout << "not null!\n";
-		fDependentVar.push_back(device_ptr);
-		fOutputVar.push_back(device_ptr->Clone(VQwDataElement::kDerived));
+	if(fDeviceObserver == nullptr) {
+		std::string msg = "Feedback Target Device (" 
+					      + std::string(device)
+						  + ") Not Found";
+		throw std::runtime_error(std::move(msg));
 	}
-	else std::cout << "null\n";
+	fDeviceAccum =  fDeviceObserver->Clone(VQwDataElement::kDerived);
 
 
 	return 0;

@@ -39,6 +39,12 @@ public:
 protected:
     Int_t LoadChannelMap(const std::string&) override;
     Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override { THROW_ERROR("NOT SUPPORTED"); }
+
+private:
+	std::size_t fMaxPattern;
+	std::size_t fPatternCounter;
+   	VQwHardwareChannel const* fDeviceObserver;
+   	VQwHardwareChannel* fDeviceAccum;
 	std::unique_ptr<QwFeedback> fFeedback;
 };
 
