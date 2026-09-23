@@ -6,19 +6,18 @@
 #include "ErrorHandling.h"
 #include "EpicChannel.h"
 
-// Make this a singleton?
-
 class EpicHandler
 {
 	using ChanList = std::vector<std::unique_ptr<EpicChannel>>;
 	ChanList channels;
-public:
 	EpicHandler();
 	~EpicHandler();
 	EpicHandler(EpicHandler const&) = delete;
 	EpicHandler& operator=(EpicHandler const&) = delete;
-	EpicHandler(EpicHandler &&) noexcept = default;
-	EpicHandler& operator=(EpicHandler &&) noexcept = default;
+	EpicHandler(EpicHandler &&) noexcept = delete;
+	EpicHandler& operator=(EpicHandler &&) noexcept = delete;
+public:
+	static EpicHandler& getInstance();
 public:
 	EpicChannel* ConnectChannel(char const* pv_name, ::capri priority = CA_PRIORITY_DEFAULT);
 	void GetStatus(unsigned level=0);

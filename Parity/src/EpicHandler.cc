@@ -24,6 +24,12 @@ std::string_view stringify(::channel_state const state)
 	}
 	return sv;
 }
+EpicHandler& EpicHandler::getInstance()
+{
+	static EpicHandler singleton;
+	return singleton;
+}
+
 EpicHandler::EpicHandler()
 {
     int result = ::ca_context_create(::ca_enable_preemptive_callback);
