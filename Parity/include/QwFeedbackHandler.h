@@ -1,22 +1,12 @@
 #pragma once
 #include "VQwDataHandler.h"
 #include "QwParameterFile.h"
+#include "ErrorHandling.h"
 #include <QwFeedback.h>
 #include <source_location>
 #include <string>
 #include <ostream>
 
-
-[[noreturn]] inline void throw_with_location(
-    const std::string& message,
-    const std::source_location location = std::source_location::current())
-{
-    std::string full_msg = std::string(location.file_name()) + ":" 
-                         + std::to_string(location.line()) + " in " 
-                         + location.function_name() + " -> " + message;
-    throw std::runtime_error(full_msg);
-}
-#define THROW_ERROR(msg) throw_with_location(msg)
 
 class QwFeedbackHandler : public VQwDataHandler, public MQwDataHandlerCloneable<QwFeedbackHandler>
 {
