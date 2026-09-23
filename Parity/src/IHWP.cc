@@ -1,7 +1,10 @@
 #include "IHWP.h"
 
-IHWP_IOC::IHWP_IOC(EpicChannel *chan)
-: ioc(chan)
+const char* IHWP_IOC::IHWP_PV = "IGL1I00DI24_24M";
+
+IHWP_IOC::IHWP_IOC()
+: epics(EpicHandler::getInstance())
+, ioc(epics.ConnectChannel(IHWP_PV))
 , val{0}
 {
 	ioc->StartMonitoring(DBR_TIME_SHORT, monitor_callback, this);
@@ -36,3 +39,10 @@ IHWP IHWP_IOC::GetState() const
 	short state = val.load(std::memory_order_acquire);
 	return convert_to_ihwp(state);
 }
+
+IHWP_IOC& IHWP_IOC::getInstance()
+{
+	static IHWP_IOC singleton;
+	return singleton;
+}
+
