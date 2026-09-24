@@ -26,15 +26,15 @@ public:
     void ClearEventData() override { THROW_ERROR("NOT SUPPORTED"); }
     void AccumulateRunningSum(VQwDataHandler &value, Int_t count = 0, Int_t ErrorMask = 0xFFFFFFF) override { THROW_ERROR("NOT SUPPORTED"); }
 
-    void ConstructTreeBranches( QwRootFile *treerootfile, const std::string& treeprefix = "", const std::string& branchprefix = "") override { THROW_ERROR("NOT SUPPORTED"); }
-    void FillTreeBranches(QwRootFile *treerootfile) override { THROW_ERROR("NOT SUPPORTED"); }
-    void ConstructNTupleFields( QwRootFile *treerootfile, const std::string& treeprefix = "", const std::string& branchprefix = "") { THROW_ERROR("NOT SUPPORTED"); }
-    void FillNTupleFields(QwRootFile *treerootfile) override { THROW_ERROR("NOT SUPPORTED"); }
+    void ConstructTreeBranches( QwRootFile *treerootfile, const std::string& treeprefix = "", const std::string& branchprefix = "") override;
+    void FillTreeBranches(QwRootFile *treerootfile) override;
+    void ConstructNTupleFields( QwRootFile *treerootfile, const std::string& treeprefix = "", const std::string& branchprefix = "") override;
+    void FillNTupleFields(QwRootFile *treerootfile) override;
 
     /// \brief Construct the histograms in a folder with a prefix
-    void  ConstructHistograms(TDirectory * /*folder*/, TString & /*prefix*/) override { THROW_ERROR("NOT SUPPORTED"); }
+    void  ConstructHistograms(TDirectory * /*folder*/, TString & /*prefix*/) override;
     /// \brief Fill the histograms
-    void  FillHistograms() override { THROW_ERROR("NOT SUPPORTED"); }
+    void  FillHistograms() override;
 
 protected:
     Int_t LoadChannelMap(const std::string&) override;

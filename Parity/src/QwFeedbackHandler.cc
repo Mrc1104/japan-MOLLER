@@ -103,3 +103,35 @@ Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsys
 	return 0;
 }
 
+void QwFeedbackHandler::ConstructTreeBranches( QwRootFile *treerootfile, const std::string& treeprefix, const std::string& branchprefix)
+{
+	// No-op
+	return;
+}
+void QwFeedbackHandler::FillTreeBranches(QwRootFile *treerootfile)
+{
+	// No-op
+	return;
+}
+void QwFeedbackHandler::ConstructNTupleFields( QwRootFile *treerootfile, const std::string& treeprefix, const std::string& branchprefix)
+{
+	// No-op
+	return;
+}
+void QwFeedbackHandler::FillNTupleFields(QwRootFile *treerootfile)
+{
+	// No-op
+	return;
+}
+
+void  QwFeedbackHandler::ConstructHistograms(TDirectory * /*folder*/, TString & /*prefix*/)
+{
+	// No-op
+	return;
+}
+void  QwFeedbackHandler::FillHistograms()
+{
+	// No-op
+	return;
+}
+
