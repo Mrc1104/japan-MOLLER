@@ -127,6 +127,10 @@ void QwFeedbackHandler::ProcessData()
 		fPatternCounter = 0;
 	}
 }
+void QwFeedbackHandler::FinishDataHandler()
+{
+	ClearEventData();
+}
 
 void QwFeedbackHandler::ClearEventData()
 {

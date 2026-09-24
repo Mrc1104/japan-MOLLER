@@ -22,7 +22,7 @@ public:
     Int_t ConnectChannels(QwSubsystemArrayParity& /*detectors*/) override { THROW_ERROR("NOT SUPPORTED"); }
     void ProcessData() override;
     void UpdateBurstCounter(Short_t burstcounter) override { THROW_ERROR("NOT SUPPORTED"); }
-    void FinishDataHandler() override { THROW_ERROR("NOT SUPPORTED"); }
+    void FinishDataHandler() override;
     void ClearEventData() override;
     void AccumulateRunningSum(VQwDataHandler &value, Int_t count = 0, Int_t ErrorMask = 0xFFFFFFF) override { THROW_ERROR("NOT SUPPORTED"); }
 
