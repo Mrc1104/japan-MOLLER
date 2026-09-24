@@ -20,10 +20,10 @@ public:
 	Int_t ConnectChannels(QwSubsystemArrayParity& yield, QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override;
     // Subsystems with support for subsystem arrays should override this
     Int_t ConnectChannels(QwSubsystemArrayParity& /*detectors*/) override { THROW_ERROR("NOT SUPPORTED"); }
-    void ProcessData() override { THROW_ERROR("NOT SUPPORTED"); }
+    void ProcessData() override;
     void UpdateBurstCounter(Short_t burstcounter) override { THROW_ERROR("NOT SUPPORTED"); }
     void FinishDataHandler() override { THROW_ERROR("NOT SUPPORTED"); }
-    void ClearEventData() override { THROW_ERROR("NOT SUPPORTED"); }
+    void ClearEventData() override;
     void AccumulateRunningSum(VQwDataHandler &value, Int_t count = 0, Int_t ErrorMask = 0xFFFFFFF) override { THROW_ERROR("NOT SUPPORTED"); }
 
     void ConstructTreeBranches( QwRootFile *treerootfile, const std::string& treeprefix = "", const std::string& branchprefix = "") override;

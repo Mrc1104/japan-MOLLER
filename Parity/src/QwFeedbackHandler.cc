@@ -10,14 +10,14 @@ QwFeedbackHandler::QwFeedbackHandler(TString const& name)
 , fDeviceAccum{nullptr}
 , fFeedback{std::make_unique<QwFeedback>()}
 {
-  	fKeepRunningSum = true;
+	fKeepRunningSum = false;
 }
 QwFeedbackHandler::QwFeedbackHandler(QwFeedbackHandler const& source)
 : VQwDataHandler(source)
 , fMaxPattern(source.fMaxPattern)
 , fPatternCounter(source.fPatternCounter)
 , fDeviceObserver(source.fDeviceObserver)
-, fDeviceAccum( fDeviceAccum->Clone(VQwDataElement::kDerived) )
+, fDeviceAccum( source.fDeviceAccum->Clone(VQwDataElement::kDerived) )
 , fFeedback(std::make_unique<QwFeedback>(*source.fFeedback))
 { }
 
@@ -102,6 +102,37 @@ Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsys
 
 	return 0;
 }
+
+void QwFeedbackHandler::ProcessData()
+{
+	// Perform accumulation here
+	// VQwDataHandler::AccumulateRunningSum is
+	//    a) Not virtual and
+	//    b) unergonomic (nested class structure)
+	if(GetEventcutErrorFlag() == 0) {
+		fDeviceAccum->AccumulateRunningSum(fDeviceObserver);
+		std::cout << "Pattern " << fPatternCounter << ")\n";
+		std::cout << "\tValue = " << fDeviceAccum->GetValue() << '\n';
+		std::cout << "\tValueError = " << fDeviceAccum->GetValueError() << '\n';
+		std::cout << "\tValueWidth = " << fDeviceAccum->GetValueWidth() << '\n';
+		fPatternCounter++;
+	}
+	if(fPatternCounter >= fMaxPattern) {
+		// Apply correction
+		fDeviceAccum->CalculateRunningAverage();
+		std::cout << "Pattern " << fPatternCounter << ")\n";
+		std::cout << "\tValue = " << fDeviceAccum->GetValue() << '\n';
+		std::cout << "\tValueError = " << fDeviceAccum->GetValueError() << '\n';
+		std::cout << "\tValueWidth = " << fDeviceAccum->GetValueWidth() << '\n';
+		fPatternCounter = 0;
+	}
+}
+
+void QwFeedbackHandler::ClearEventData()
+{
+	fDeviceAccum->ClearEventData();
+}
+
 
 void QwFeedbackHandler::ConstructTreeBranches( QwRootFile *treerootfile, const std::string& treeprefix, const std::string& branchprefix)
 {
