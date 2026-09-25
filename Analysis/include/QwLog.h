@@ -13,11 +13,28 @@
 #include <iomanip>
 #include <string>
 #include <vector>
+#include <shared_mutex>
+#include <mutex>
+#include <optional>
 using std::string;
 
 // Qweak headers
 #include "QwTypes.h"
 #include "QwColor.h"
+
+
+template<typename Key, typename Value>
+class QwThreadSafeMap
+{
+private:
+	std::map<Key, Value> fMap;
+	mutable std::shared_mutex fRW_mutex;
+public:
+	void InsertOrAssign(Key const& key, Value const& value);
+	std::optional<Value> Get(Key const& key) const;
+	bool Find(Key const& key) const;
+	void Remove(Key const& key);
+};
 
 /*!
  * \note Because QwOptions depends on QwLog, and QwLog depends also on QwOptions,
@@ -184,7 +201,7 @@ class QwLog : public std::ostream {
     bool fPrintFunctionSignature;
 
     //! List of regular expressions for functions that will have increased log level
-    std::map<std::string,bool> fIsDebugFunction;
+    QwThreadSafeMap<std::string,bool> fIsDebugFunction;
     std::vector<std::string> fDebugFunctionRegexString;
 
     //! Flag to disable color
@@ -198,3 +215,32 @@ class QwLog : public std::ostream {
 };
 
 extern QwLog gQwLog;
+
+
+template<typename Key, typename Value>
+void QwThreadSafeMap<Key, Value>::InsertOrAssign(Key const& key, Value const& value)
+{
+	std::unique_lock<std::shared_mutex> lk(fRW_mutex);
+	fMap[key] = value;
+}
+template<typename Key, typename Value>
+std::optional<Value> QwThreadSafeMap<Key, Value>::Get(Key const& key) const
+{
+	std::shared_lock<std::shared_mutex> lk(fRW_mutex);
+	auto it = fMap.find(key);
+	return (it == fMap.end()) ? std::nullopt : std::optional(it->second);
+}
+template<typename Key, typename Value>
+bool QwThreadSafeMap<Key, Value>::Find(Key const& key) const
+{
+	std::shared_lock<std::shared_mutex> lk(fRW_mutex);
+	auto it = fMap.find(key);
+	return (it == fMap.end()) ? false : true;
+}
+template<typename Key, typename Value>
+void QwThreadSafeMap<Key, Value>::Remove(Key const& key)
+{
+	std::unique_lock<std::shared_mutex> lk(fRW_mutex);
+	fMap.erase(key);
+}
+

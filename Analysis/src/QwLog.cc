@@ -134,20 +134,25 @@ void QwLog::ProcessOptions(QwOptions* options)
  */
 bool QwLog::IsDebugFunction(const string func_sig)
 {
-  // If not in our cached list
-  if (fIsDebugFunction.find(func_sig) == fIsDebugFunction.end()) {
-    // Look through all regexes
-    fIsDebugFunction[func_sig] = false;
-    for (size_t i = 0; i < fDebugFunctionRegexString.size(); i++) {
-      // When we find a match, cache it and break out
-      std::regex regex(fDebugFunctionRegexString.at(i));
-      if (std::regex_match(func_sig, regex)) {
-        fIsDebugFunction[func_sig] = true;
-        break;
-      }
-    }
-  }
-  return fIsDebugFunction[func_sig];
+	// Using a temporary bool, we avoid acquiring the unique lock twice
+	// but risk of running this loop N times for N threads (unlikely)
+	bool is_debug_func = false;
+	auto opt = fIsDebugFunction.Get(func_sig);
+	if( !opt.has_value() ) {
+		for (size_t i = 0; i < fDebugFunctionRegexString.size(); i++) {
+			// When we find a match, break
+			std::regex regex(fDebugFunctionRegexString.at(i));
+			if (std::regex_match(func_sig, regex)) {
+				is_debug_func = true;
+				break;
+			}
+		}
+		// cache it for future lookups
+		fIsDebugFunction.InsertOrAssign(func_sig, is_debug_func);
+	} else {
+		is_debug_func = *opt;
+	}
+	return is_debug_func;
 }
 
 /*! Initialize the log file with name 'name'
