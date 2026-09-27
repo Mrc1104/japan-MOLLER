@@ -808,7 +808,7 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
             << "Found configuration event for ROC"
             << rocnum
             << QwLog::endl;
-        decoder->PrintDecoderInfo(QwMessage);
+        decoder->PrintDecoderInfo();
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
         decoder->DecodeEventIDBank(localbuff);
