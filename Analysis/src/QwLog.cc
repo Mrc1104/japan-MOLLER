@@ -83,7 +83,6 @@ QwLogProxy& QwLogProxy::operator<<(std::ostream& (*manip)(std::ostream&))
 
 QwLogProxy::~QwLogProxy()
 {
-	std::cout << "Dtor called\n";
 	FlushBuffer();
 }
 
@@ -121,8 +120,11 @@ void QwLog::Write(QwLogLevel level, std::string_view log)
 void QwLog::InitLogFile(std::string const& name, const std::ios_base::openmode mode)
 {
 	std::ios_base::openmode flags = std::ios::out | mode;
-	fFile.reset( new std::ofstream(name, flags) );
-	fFileThreshold = QwLogLevel::kMessage;
+	{
+		std::lock_guard lock(fFileMutex);
+		fFile.reset( new std::ofstream(name, flags) );
+		fFileThreshold = QwLogLevel::kMessage;
+	}
 }
 
 /*!
@@ -196,11 +198,13 @@ QwLogLevel QwLog::ConvertToEnum(int thr)
 }
 void QwLog::SetScreenThreshold(int thr)
 {
+	std::lock_guard lock(fScreenMutex);
 	fScreenThreshold = ConvertToEnum(thr);
 }
 
 void QwLog::SetFileThreshold(int thr)
 {
+	std::lock_guard lock(fFileMutex);
 	fFileThreshold = ConvertToEnum(thr);
 }
 
