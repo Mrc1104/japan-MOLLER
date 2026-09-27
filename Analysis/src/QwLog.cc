@@ -1,60 +1,214 @@
-/*!
- * \file   QwLog.cc
- * \brief  A logfile class, based on an identical class in the Hermes analyzer
- *
- * \author Wouter Deconinck
- * \date   2009-11-25
- */
-
-#include "QwLog.h"
-
-// System headers
 #include <fstream>
 #include <regex>
+#include <chrono>
+#include <algorithm>
 
-// Qweak headers
-#include "QwColor.h"
+// Qweak Headers
+#include "QwLog.h"
 #include "QwOptions.h"
 
-// Create the static logger object (with streams to screen and file)
-QwLog gQwLog;
+QwLogProxy QwLogProxy::Log(QwLogLevel level, std::string const& func_sig)
+{
+	QwLogProxy llog = QwLogProxy{level};
+	auto& glogger = QwLog::Instance();
 
-// Set the static flags
-bool QwLog::fScreenAtNewLine = true;
-bool QwLog::fScreenInColor = false;
-bool QwLog::fFileAtNewLine = true;
+  	// Override log level of this sink when in a debugged function
+  	if( glogger.IsDebugFunction(func_sig) ) { level = QwLogLevel::kAlways; }
+	if(glogger.PrintWithColor()) { llog << GetLevelColor(level); }
 
-// Log file open modes
-const std::ios_base::openmode QwLog::kTruncate = std::ios::trunc;
-const std::ios_base::openmode QwLog::kAppend = std::ios::app;
+	auto current_time = GetTime();
+	llog << '[' << level;
+	llog << " | " << std::put_time(std::localtime(&current_time), "%T") << "]: ";
 
-/*! The constructor initializes the screen stream and resets the file stream
- */
+	if(glogger.PrintFuncSignature()) {
+		llog << func_sig << "->";
+	}
+
+	return llog;
+}
+std::time_t const QwLogProxy::GetTime()
+{
+	using namespace std::chrono;
+	return system_clock::to_time_t(system_clock::now());
+}
+
+QwLogProxy::QwLogProxy(QwLogLevel level)
+: fLevel(level)
+{ }
+
+QwLogProxy::QwLogProxy(QwLogProxy&& other) noexcept
+: fLevel(other.fLevel)
+, fBuffer(std::move(other.fBuffer))
+{ }
+
+void QwLogProxy::FlushBuffer()
+{
+	if(fBuffer.tellp() <= 0 ) return;
+
+#if __cplusplus >= 202002L
+	QwLog::Instance().Write(fLevel, fBuffer.view());
+#else
+	// Pre-c++20 incurs a copy
+	QwLog::Instance().Write(fLevel, fBuffer.str());
+#endif
+
+	// Using an lvalue preserves the internal capacity
+	static const std::string kEmptyStr;
+	fBuffer.str(kEmptyStr);
+	fBuffer.clear();
+}
+
+#if (__GNUC__ >= 3)
+QwLogProxy& QwLogProxy::operator<<(std::ios_base& (*manip)(std::ios_base&))
+{
+	// Does not handle std::endl or std::flush properly
+	fBuffer << manip;
+    return *this;
+}
+#endif
+
+QwLogProxy& QwLogProxy::operator<<(std::ostream& (*manip)(std::ostream&))
+{
+	using io_manip = std::ostream&(*)(std::ostream&);
+	if( manip == static_cast<io_manip>(std::endl) ) {
+		fBuffer << '\n';
+		FlushBuffer();
+	} else if( manip == static_cast<io_manip>(std::flush) ) {
+		FlushBuffer();
+	} else {
+		fBuffer << manip;
+	}
+    return *this;
+}
+
+QwLogProxy::~QwLogProxy()
+{
+	std::cout << "Dtor called\n";
+	FlushBuffer();
+}
+
 QwLog::QwLog()
-: std::ostream(std::cout.rdbuf())
+: fScreenThreshold(QwLogLevel::kMessage)
+, fScreen(std::cout)
+, fFileThreshold(QwLogLevel::kMessage)
+, fFile{nullptr}
+, fPrintFunctionSignature{false}
+, fUseColor{true}
+{ }
+
+QwLog& QwLog::Instance()
 {
-  fScreenThreshold = kMessage;
-  fScreen = &std::cout;
-
-  fFileThreshold = kMessage;
-  fFile = 0;
-
-  fLogLevel = kMessage;
-
-  fUseColor = true;
-
-  fPrintFunctionSignature = false;
+	static QwLog instance;
+	return instance;
 }
 
-/*! The destructor destroys the log file, if it was present
+void QwLog::Write(QwLogLevel level, std::string_view log)
+{
+	{
+		std::lock_guard lk(fScreenMutex);
+		if(level >= fScreenThreshold) {
+    		fScreen << log;
+		}
+	}
+	{
+		std::lock_guard lk(fFileMutex);
+		if(fFile && level >= fFileThreshold) {
+			*fFile << log;
+		}
+	}
+}
+
+void QwLog::InitLogFile(std::string const& name, const std::ios_base::openmode mode)
+{
+	std::ios_base::openmode flags = std::ios::out | mode;
+	fFile.reset( new std::ofstream(name, flags) );
+	fFileThreshold = QwLogLevel::kMessage;
+}
+
+/*!
+ *  Determine whether the function name matches a specified list of regular expressions
  */
-QwLog::~QwLog()
+bool QwLog::IsDebugFunction(std::string const& func_sig)
 {
-  if (fFile) {
-    delete fFile;
-    fFile = 0;
-  }
+	// Using a temporary bool, we avoid acquiring the unique lock twice
+	// but risk of running this loop N times for N threads (unlikely)
+	bool is_debug_func = false;
+	auto opt = fIsDebugFunction.Get(func_sig);
+	if( !opt.has_value() ) {
+		for (size_t i = 0; i < fDebugFunctionRegexString.size(); i++) {
+			// When we find a match, break
+			std::regex regex(fDebugFunctionRegexString.at(i));
+			if (std::regex_match(func_sig, regex)) {
+				is_debug_func = true;
+				break;
+			}
+		}
+		// cache it for future lookups
+		fIsDebugFunction.InsertOrAssign(func_sig, is_debug_func);
+	} else {
+		is_debug_func = *opt;
+	}
+	return is_debug_func;
 }
+
+bool QwLog::PrintFuncSignature() const { return fPrintFunctionSignature; }
+bool QwLog::PrintWithColor()     const { return fUseColor; }
+
+QwColor GetLevelColor(QwLogLevel level) {
+	auto color = QwColor(Qw::kNormal);
+	switch (level) {
+		case QwLogLevel::kError:   color = QwColor(Qw::kRed); break;
+		case QwLogLevel::kWarning: color = QwColor(Qw::kMagenta); break;
+		case QwLogLevel::kDebug:   color = QwColor(Qw::kBlue); break;
+		default: break;
+	}
+	return color;
+}
+std::ostream& operator<<(std::ostream& stream, QwLogLevel level) {
+	switch (level) {
+		case QwLogLevel::kError:   stream << "ERROR"  ; break;
+		case QwLogLevel::kWarning: stream << "WARN"   ; break;
+		case QwLogLevel::kMessage: stream << "INFO"   ; break;
+		case QwLogLevel::kVerbose: stream << "VERBOSE"; break;
+		case QwLogLevel::kDebug:   stream << "DEBUG"  ; break;
+		default: break;
+	}
+	return stream;
+}
+
+void QwLog::SetScreenColor(bool flag)
+{
+	fUseColor = flag;
+}
+
+QwLogLevel QwLog::ConvertToEnum(int thr)
+{
+	auto level = QwLogLevel::kAlways;
+	switch(static_cast<QwLogLevel>(thr)) {
+		case QwLogLevel::kError:   level = QwLogLevel::kError  ; break; 
+		case QwLogLevel::kWarning: level = QwLogLevel::kWarning; break;
+		case QwLogLevel::kMessage: level = QwLogLevel::kMessage; break;
+		case QwLogLevel::kVerbose: level = QwLogLevel::kVerbose; break;
+		case QwLogLevel::kDebug:   level = QwLogLevel::kDebug  ; break;
+		default: level = QwLogLevel::kAlways; break;
+	}
+	return level;
+}
+void QwLog::SetScreenThreshold(int thr)
+{
+	fScreenThreshold = ConvertToEnum(thr);
+}
+
+void QwLog::SetFileThreshold(int thr)
+{
+	fFileThreshold = ConvertToEnum(thr);
+}
+
+QwLogLevel QwLog::GetLogLevel() const {
+	return std::max(fScreenThreshold, fFileThreshold);
+};
+
+std::ostream& QwLog::endl(std::ostream& stream) { return std::endl(stream); }
 
 
 /**
@@ -70,27 +224,26 @@ QwLog::~QwLog()
  */
 void QwLog::DefineOptions(QwOptions* options)
 {
-  // Define the logging options
-  options->AddOptions("Logging options")("QwLog.color",
-                po::value<bool>()->default_value(true),
-                "colored screen output");
-  options->AddOptions("Logging options")("QwLog.logfile",
-                po::value<string>(),
-                "log file");
-  options->AddOptions("Logging options")("QwLog.loglevel-file",
-                po::value<int>()->default_value(kMessage),
-                "log level for file output");
-  options->AddOptions("Logging options")("QwLog.loglevel-screen",
-                po::value<int>()->default_value(kMessage),
-                "log level for screen output");
-  options->AddOptions("Logging options")("QwLog.print-signature",
-                po::value<bool>()->default_bool_value(false),
-                "print signature on error or warning");
-  options->AddOptions("Logging options")("QwLog.debug-function",
-                po::value< std::vector<string> >()->multitoken(),
-                "print debugging output of function with signatures satisfying the specified regex");
+	// Define the logging options
+	options->AddOptions("Logging options")("QwLog.color",
+			po::value<bool>()->default_value(true),
+			"colored screen output");
+	options->AddOptions("Logging options")("QwLog.logfile",
+			po::value<std::string>(),
+			"log file");
+	options->AddOptions("Logging options")("QwLog.loglevel-file",
+			po::value<int>()->default_value(static_cast<int>(QwLogLevel::kMessage)),
+			"log level for file output");
+	options->AddOptions("Logging options")("QwLog.loglevel-screen",
+			po::value<int>()->default_value(static_cast<int>(QwLogLevel::kMessage)),
+			"log level for screen output");
+	options->AddOptions("Logging options")("QwLog.print-signature",
+			po::value<bool>()->default_bool_value(false),
+			"print signature on error or warning");
+	options->AddOptions("Logging options")("QwLog.debug-function",
+			po::value< std::vector<std::string> >()->multitoken(),
+			"print debugging output of function with signatures satisfying the specified regex");
 }
-
 
 /**
  * Process configuration options for logging class using QwOptions
@@ -125,221 +278,5 @@ void QwLog::ProcessOptions(QwOptions* options)
     std::cout << "Debug regex list:" << std::endl;
   for (size_t i = 0; i < fDebugFunctionRegexString.size(); i++) {
     std::cout << fDebugFunctionRegexString.back() << std::endl;
-  }
-}
-
-
-/*!
- *  Determine whether the function name matches a specified list of regular expressions
- */
-bool QwLog::IsDebugFunction(const string func_sig)
-{
-	// Using a temporary bool, we avoid acquiring the unique lock twice
-	// but risk of running this loop N times for N threads (unlikely)
-	bool is_debug_func = false;
-	auto opt = fIsDebugFunction.Get(func_sig);
-	if( !opt.has_value() ) {
-		for (size_t i = 0; i < fDebugFunctionRegexString.size(); i++) {
-			// When we find a match, break
-			std::regex regex(fDebugFunctionRegexString.at(i));
-			if (std::regex_match(func_sig, regex)) {
-				is_debug_func = true;
-				break;
-			}
-		}
-		// cache it for future lookups
-		fIsDebugFunction.InsertOrAssign(func_sig, is_debug_func);
-	} else {
-		is_debug_func = *opt;
-	}
-	return is_debug_func;
-}
-
-/*! Initialize the log file with name 'name'
- */
-void QwLog::InitLogFile(const string name, const std::ios_base::openmode mode)
-{
-  if (fFile) {
-    delete fFile;
-    fFile = 0;
-  }
-
-  std::ios_base::openmode flags = std::ios::out | mode;
-  fFile = new std::ofstream(name.c_str(), flags);
-  fFileThreshold = kMessage;
-}
-
-/*! Set the screen color mode
- */
-void QwLog::SetScreenColor(bool flag)
-{
-  fUseColor = flag;
-}
-
-/*! Set the screen log level
- */
-void QwLog::SetScreenThreshold(int thr)
-{
-  fScreenThreshold = QwLogLevel(thr);
-}
-
-/*! Set the file log level
- */
-void QwLog::SetFileThreshold(int thr)
-{
-  fFileThreshold = QwLogLevel(thr);
-}
-
-/*! Set the stream log level
- */
-QwLog& QwLog::operator()(
-  const QwLogLevel level,
-  const std::string func_sig)
-{
-  // Set the log level of this sink
-  fLogLevel = level;
-
-  // Override log level of this sink when in a debugged function
-  if (IsDebugFunction(func_sig)) fLogLevel = QwLog::kAlways;
-
-  if (fScreen && fLogLevel <= fScreenThreshold) {
-    if (fScreenAtNewLine) {
-      // Put something at the beginning of a new line
-      switch (level) {
-      case kError:
-        if (fUseColor) {
-          *(fScreen) << QwColor(Qw::kRed);
-          fScreenInColor = true;
-        }
-        if (fPrintFunctionSignature)
-          *(fScreen) << "Error (in " << func_sig << "): ";
-        else
-          *(fScreen) << "Error: ";
-        break;
-      case kWarning:
-        if (fUseColor) {
-          *(fScreen) << QwColor(Qw::kRed);
-          fScreenInColor = true;
-        }
-        if (fPrintFunctionSignature)
-          *(fScreen) << "Warning (in " << func_sig << "): ";
-        else
-          *(fScreen) << "Warning: ";
-        if (fUseColor) {
-          *(fScreen) << QwColor(Qw::kNormal);
-          fScreenInColor = false;
-        }
-        break;
-      default:
-        fScreenInColor = false;
-        break;
-      }
-    }
-    fScreenAtNewLine = false;
-  }
-
-  if (fFile && fLogLevel <= fFileThreshold) {
-    if (fFileAtNewLine) {
-      *(fFile) << GetTime();
-      switch (level) {
-      case kError:   *(fFile) << " EE"; break;
-      case kWarning: *(fFile) << " WW"; break;
-      case kMessage: *(fFile) << " MM"; break;
-      case kVerbose: *(fFile) << " VV"; break;
-      case kDebug:   *(fFile) << " DD"; break;
-      default: *(fFile) << "   "; break;
-      }
-      *(fFile) << " - ";
-      fFileAtNewLine = false;
-    }
-  }
-
-  return *this;
-}
-
-#if (__GNUC__ >= 3)
-/*!
- */
-QwLog& QwLog::operator<<(std::ios_base& (*manip) (std::ios_base&))
-{
-  if (fScreen && (fLogLevel <= fScreenThreshold || fLogLevel <= fFileThreshold) ) {
-    *(fScreen) << manip;
-  }
-
-// The following solution leads to double calls to QwLog::endl
-//   if (fScreen && fLogLevel <= fScreenThreshold) {
-//     *(fScreen) << manip;
-//   }
-//   if (fFile && fLogLevel <= fFileThreshold) {
-//     *(fFile) << manip;
-//   }
-
-  return *this;
-}
-#endif
-
-/*!
- */
-QwLog& QwLog::operator<<(std::ostream& (*manip) (std::ostream&))
-{
-  if (fScreen && (fLogLevel <= fScreenThreshold || fLogLevel <= fFileThreshold) ) {
-    *(fScreen) << manip;
-  }
-
-// The following solution leads to double calls to QwLog::endl
-//   if (fScreen && fLogLevel <= fScreenThreshold) {
-//     *(fScreen) << manip;
-//   }
-//   if (fFile && fLogLevel <= fFileThreshold) {
-//     *(fFile) << manip;
-//   }
-
-  return *this;
-}
-
-/*! End of the line
- */
-std::ostream& QwLog::endl(std::ostream& strm)
-{
-  if (gQwLog.fScreen && gQwLog.fLogLevel <= gQwLog.fScreenThreshold) {
-    if (fScreenInColor)
-      *(gQwLog.fScreen) << QwColor(Qw::kNormal) << std::endl;
-    else
-      *(gQwLog.fScreen) << std::endl;
-    fScreenAtNewLine = true;
-    fScreenInColor = false;
-  }
-  if (gQwLog.fFile && gQwLog.fLogLevel <= gQwLog.fFileThreshold) {
-    *(gQwLog.fFile) << std::endl;
-    fFileAtNewLine = true;
-  }
-
-  return strm;
-}
-
-/*! Flush the streams
- */
-std::ostream& QwLog::flush(std::ostream& strm)
-{
-  if (gQwLog.fScreen) {
-    *(gQwLog.fScreen) << std::flush;
-  }
-  if (gQwLog.fFile) {
-    *(gQwLog.fFile) << std::flush;
-  }
-  return strm;
-}
-
-/*! Get the local time
- */
-const char* QwLog::GetTime()
-{
-  time_t now = time(0);
-  if (now >= 0) {
-    struct tm *currentTime = localtime(&now);
-    strftime(fTimeString, 128, "%Y-%m-%d, %T", currentTime);
-    return fTimeString;
-  } else {
-    return "";
   }
 }

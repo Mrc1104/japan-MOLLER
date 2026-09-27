@@ -7,21 +7,72 @@
  */
 
 #pragma once
-
-// System headers
 #include <iostream>
 #include <iomanip>
-#include <string>
-#include <vector>
-#include <shared_mutex>
 #include <mutex>
+#include <shared_mutex>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <memory>
 #include <optional>
-using std::string;
-
-// Qweak headers
-#include "QwTypes.h"
+#include <vector>
+#include <map>
+#include <chrono>
 #include "QwColor.h"
 
+/*!
+ * \note Because QwOptions depends on QwLog, and QwLog depends also on QwOptions,
+ * we cannot include QwOptions in the QwLog header file here.  QwLog is treated
+ * as more basic than QwOptions.
+ */
+
+// Forward declarations
+class QwOptions;
+
+
+/*! \def QwOut
+ *  \brief Predefined log drain for explicit output
+ */
+#define QwOut      QwLogProxy::Log(QwLogLevel::kAlways,__PRETTY_FUNCTION__)
+
+/*! \def QwError
+ *  \brief Predefined log drain for errors
+ */
+#define QwError    QwLogProxy::Log(QwLogLevel::kError,__PRETTY_FUNCTION__)
+
+/*! \def QwWarning
+ *  \brief Predefined log drain for warnings
+ */
+#define QwWarning  QwLogProxy::Log(QwLogLevel::kWarning,__PRETTY_FUNCTION__)
+
+/*! \def QwMessage
+ *  \brief Predefined log drain for regular messages
+ */
+#define QwMessage  QwLogProxy::Log(QwLogLevel::kMessage,__PRETTY_FUNCTION__)
+
+/*! \def QwVerbose
+ *  \brief Predefined log drain for verbose messages
+ */
+#define QwVerbose  if (QwLog::Instance().GetLogLevel() >= QwLogLevel::kVerbose) QwLogProxy::Log(QwLogLevel::kVerbose,__PRETTY_FUNCTION__)
+
+/*! \def QwDebug
+ *  \brief Predefined log drain for debugging output
+ */
+#define QwDebug    if (QwLog::Instance().GetLogLevel() >= QwLogLevel::kDebug) QwLogProxy::Log(QwLogLevel::kDebug,__PRETTY_FUNCTION__)
+
+//! Loglevels
+/*! enum of possible log levels */
+enum class QwLogLevel : int {
+	kAlways    = -1, /*!< Explicit output  */
+	kError     =  0, /*!< Error loglevel   */
+	kWarning   =  1, /*!< Warning loglevel */
+	kMessage   =  2, /*!< Message loglevel */
+	kVerbose   =  3, /*!< Verbose loglevel */
+	kDebug     =  4  /*!< Debug loglevel   */
+};
+QwColor GetLevelColor(QwLogLevel level);
+std::ostream& operator<<(std::ostream& stream, QwLogLevel level);
 
 template<typename Key, typename Value>
 class QwThreadSafeMap
@@ -36,186 +87,107 @@ public:
 	void Remove(Key const& key);
 };
 
-/*!
- * \note Because QwOptions depends on QwLog, and QwLog depends also on QwOptions,
- * we cannot include QwOptions in the QwLog header file here.  QwLog is treated
- * as more basic than QwOptions.
- */
-
-// Forward declarations
-class QwOptions;
-
-/*! \def QwOut
- *  \brief Predefined log drain for explicit output
- */
-#define QwOut      gQwLog(QwLog::kAlways,__PRETTY_FUNCTION__)
-
-/*! \def QwError
- *  \brief Predefined log drain for errors
- */
-#define QwError    gQwLog(QwLog::kError,__PRETTY_FUNCTION__)
-
-/*! \def QwWarning
- *  \brief Predefined log drain for warnings
- */
-#define QwWarning  gQwLog(QwLog::kWarning,__PRETTY_FUNCTION__)
-
-/*! \def QwMessage
- *  \brief Predefined log drain for regular messages
- */
-#define QwMessage  gQwLog(QwLog::kMessage,__PRETTY_FUNCTION__)
-
-/*! \def QwVerbose
- *  \brief Predefined log drain for verbose messages
- */
-#define QwVerbose  if (gQwLog.GetLogLevel() >= QwLog::kVerbose) gQwLog(QwLog::kVerbose,__PRETTY_FUNCTION__)
-
-/*! \def QwDebug
- *  \brief Predefined log drain for debugging output
- */
-#define QwDebug    if (gQwLog.GetLogLevel() >= QwLog::kDebug) gQwLog(QwLog::kDebug,__PRETTY_FUNCTION__)
 
 
-/**
- *  \class QwLog
- *  \ingroup QwAnalysis
- *  \brief Logging and output management system with configurable verbosity levels
- *
- * Provides a hierarchical logging system with multiple output levels
- * (Error, Warning, Message, Verbose, Debug) and predefined log drains
- * (QwError, QwWarning, QwMessage, QwVerbose, QwDebug). Supports output
- * redirection to files, colored output, and function-specific debugging.
- * Should not be used directly; use the predefined macros instead.
- */
-class QwLog : public std::ostream {
-
-  public:
-
-    /// \brief Define available class options for QwOptions
-    static void DefineOptions(QwOptions* options);
-    /// \brief Process class options for QwOptions
-    void ProcessOptions(QwOptions* options);
-    // Note: this uses pointers as opposed to references, because as indicated
-    // above the QwLog class cannot depend on the QwOptions class.  When using a
-    // pointer we only need a forward declaration and we do not need to include
-    // the header file QwOptions.h.
-
-    //! Loglevels
-    /*! enum of possible log levels */
-    enum QwLogLevel {
-      kAlways    = -1, /*!< Explicit output  */
-      kError     =  0, /*!< Error loglevel   */
-      kWarning   =  1, /*!< Warning loglevel */
-      kMessage   =  2, /*!< Message loglevel */
-      kVerbose   =  3, /*!< Verbose loglevel */
-      kDebug     =  4  /*!< Debug loglevel   */
-    };
-
-    //! Log file open modes
-    static const std::ios_base::openmode kTruncate;
-    static const std::ios_base::openmode kAppend;
-
-    /*! \brief The constructor
-     */
-    QwLog();
-
-    /*! \brief The destructor
-     */
-    ~QwLog() override;
-
-    /*! \brief Determine whether the function name matches a specified list of regular expressions
-     */
-    bool                        IsDebugFunction(const string func_name);
-
-    /*! \brief Initialize the log file with name 'name'
-     */
-    void                        InitLogFile(const std::string name, const std::ios_base::openmode mode = kAppend);
-
-    /*! \brief Set the screen color mode
-     */
-    void                        SetScreenColor(bool flag);
-
-    /*! \brief Set the screen log level
-     */
-    void                        SetScreenThreshold(int thr);
-
-    /*! \brief Set the file log level
-     */
-    void                        SetFileThreshold(int thr);
-
-    /*! \brief Get highest log level
-     */
-    QwLogLevel                  GetLogLevel() const {
-      return std::max(fScreenThreshold, fFileThreshold);
-    };
-
-    /*! \brief Set the stream log level
-     */
-    QwLog&                      operator()(const QwLogLevel level,
-                                           const std::string func_sig  = "<unknown>");
-
-    /*! \brief Stream an object to the output stream
-     */
-    template <class T> QwLog&   operator<<(const T &t) {
-      if (fScreen && fLogLevel <= fScreenThreshold) {
-        *(fScreen) << t;
-      }
-      if (fFile && fLogLevel <= fFileThreshold) {
-        *(fFile) << t;
-      }
-      return *this;
-    }
-
-    /*! \brief Pass the ios_base manipulators
-     */
+class QwLogProxy
+{
+	QwLogLevel fLevel;
+	std::ostringstream fBuffer;
+	void FlushBuffer();
+	QwLogProxy(QwLogLevel level);
+	QwLogProxy(QwLogProxy&& other) noexcept;
+	QwLogProxy& operator=(QwLogProxy && other) = delete;
+	QwLogProxy(QwLogProxy const& other) = delete;
+	QwLogProxy& operator=(QwLogProxy const& other) = delete;
+	static std::time_t const GetTime();
+public:
+	static QwLogProxy Log(QwLogLevel level, std::string const& func_sig  = "<unknown>");
+	~QwLogProxy();
+	template<typename T>
+	QwLogProxy& operator<<(T const& val);
 #if (__GNUC__ >= 3)
-    QwLog&                      operator<<(std::ios_base & (*manip) (std::ios_base &));
+	QwLogProxy& operator<<(std::ios_base& (*manip)(std::ios_base&));
 #endif
-    QwLog&                      operator<<(std::ostream & (*manip) (std::ostream &));
+	QwLogProxy& operator<<(std::ostream& (*manip)(std::ostream&));
+};
 
-    /*! \brief End of the line
-     */
-    static std::ostream&        endl(std::ostream&);
 
-    /*! \brief Flush the streams
-     */
-    static std::ostream&        flush(std::ostream&);
 
-  private:
+class QwLog
+{
 
-    /*! \brief Get the local time
-     */
-    const char*                 GetTime();
-    char                        fTimeString[128];
-
-    //! Screen thresholds and stream
-    QwLogLevel    fScreenThreshold;
-    std::ostream *fScreen;
     //! File thresholds and stream
-    QwLogLevel    fFileThreshold;
-    std::ostream *fFile;
-    //! Log level of this stream
-    QwLogLevel fLogLevel;
+	mutable std::mutex fScreenMutex;
+    QwLogLevel    fScreenThreshold;
+	std::ostream& fScreen;
 
-    //! Flag to print function signature on warning or error
-    bool fPrintFunctionSignature;
+    //! File thresholds and stream
+	mutable std::mutex fFileMutex;
+    QwLogLevel    fFileThreshold;
+	std::unique_ptr<std::ostream> fFile;
 
     //! List of regular expressions for functions that will have increased log level
     QwThreadSafeMap<std::string,bool> fIsDebugFunction;
     std::vector<std::string> fDebugFunctionRegexString;
 
+    //! Flag to print function signature on warning or error
+    bool fPrintFunctionSignature;
     //! Flag to disable color
     bool fUseColor;
 
-    //! Flags only relevant for current line, but static for use in static function
-    static bool fFileAtNewLine;
-    static bool fScreenInColor;
-    static bool fScreenAtNewLine;
+	QwLogLevel ConvertToEnum(int thr);
+
+	QwLog();
+public:
+	static QwLog& Instance();
+	void Write(QwLogLevel level, std::string_view log);
+
+	/* Confuguration Accessors */
+    /// \brief Define available class options for QwOptions
+    static void DefineOptions(QwOptions* options);
+
+    /// \brief Process class options for QwOptions
+    // Note: this uses pointers as opposed to references, because as indicated
+    // above the QwLog class cannot depend on the QwOptions class.  When using a
+    // pointer we only need a forward declaration and we do not need to include
+    // the header file QwOptions.h.
+    void ProcessOptions(QwOptions* options);
+
+	/*! Initialize the log file with name 'name'
+	*/
+	void InitLogFile(std::string const& name, const std::ios_base::openmode mode = std::ios::app);
+	bool IsDebugFunction(std::string const& func_sig);
+	bool PrintFuncSignature() const;
+
+    /*! \brief Set the screen color mode
+     */
+    void SetScreenColor(bool flag);
+	bool PrintWithColor() const;
+
+    /*! \brief Set the screen log level
+     */
+    void SetScreenThreshold(int thr);
+    /*! \brief Set the file log level
+     */
+    void SetFileThreshold(int thr);
+
+    /*! \brief Get highest log level
+     */
+    QwLogLevel GetLogLevel() const;
+
+	/*! \def QwLog::endl
+	 *  \brief Backward compat.
+	 */
+	static std::ostream& endl(std::ostream& stream);
 
 };
 
-extern QwLog gQwLog;
-
+template<typename T>
+QwLogProxy& QwLogProxy::operator<<(T const& val)
+{
+	fBuffer << val;
+	return *this;
+}
 
 template<typename Key, typename Value>
 void QwThreadSafeMap<Key, Value>::InsertOrAssign(Key const& key, Value const& value)
@@ -243,4 +215,5 @@ void QwThreadSafeMap<Key, Value>::Remove(Key const& key)
 	std::unique_lock<std::shared_mutex> lk(fRW_mutex);
 	fMap.erase(key);
 }
+
 
