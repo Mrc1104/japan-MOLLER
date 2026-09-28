@@ -61,7 +61,6 @@ void QwLogProxy::FlushBuffer()
 #if (__GNUC__ >= 3)
 QwLogProxy& QwLogProxy::operator<<(std::ios_base& (*manip)(std::ios_base&))
 {
-	// Does not handle std::endl or std::flush properly
 	fBuffer << manip;
     return *this;
 }
