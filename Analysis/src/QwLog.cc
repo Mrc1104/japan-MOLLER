@@ -7,49 +7,93 @@
 #include "QwLog.h"
 #include "QwOptions.h"
 
-QwLogProxy QwLogProxy::Log(QwLogLevel level, std::string const& func_sig)
+QwLogLevel ConvertToEnum(int thr)
 {
-	QwLogProxy llog = QwLogProxy{level};
-	auto& glogger = QwLog::Instance();
-
-  	// Override log level of this sink when in a debugged function
-  	if( glogger.IsDebugFunction(func_sig) ) { level = QwLogLevel::kAlways; }
-	if(glogger.PrintWithColor()) { llog << GetLevelColor(level); }
-
-	auto current_time = GetTime();
-	llog << '[' << level;
-	llog << " | " << std::put_time(std::localtime(&current_time), "%T") << "]: ";
-
-	if(glogger.PrintFuncSignature()) {
-		llog << func_sig << "->";
+	auto level = QwLogLevel::kAlways;
+	switch(static_cast<QwLogLevel>(thr)) {
+		case QwLogLevel::kError:   level = QwLogLevel::kError  ; break; 
+		case QwLogLevel::kWarning: level = QwLogLevel::kWarning; break;
+		case QwLogLevel::kMessage: level = QwLogLevel::kMessage; break;
+		case QwLogLevel::kVerbose: level = QwLogLevel::kVerbose; break;
+		case QwLogLevel::kDebug:   level = QwLogLevel::kDebug  ; break;
+		default: level = QwLogLevel::kAlways; break;
 	}
-
-	return llog;
+	return level;
 }
-std::time_t const QwLogProxy::GetTime()
+QwColor GetLevelColor(QwLogLevel level)
+{
+	auto color = QwColor(Qw::kNormal);
+	switch (level) {
+		case QwLogLevel::kError:   color = QwColor(Qw::kRed); break;
+		case QwLogLevel::kWarning: color = QwColor(Qw::kMagenta); break;
+		case QwLogLevel::kDebug:   color = QwColor(Qw::kBlue); break;
+		default: break;
+	}
+	return color;
+}
+std::ostream& operator<<(std::ostream& stream, QwLogLevel level)
+{
+	switch (level) {
+		case QwLogLevel::kError:   stream << "ERROR"  ; break;
+		case QwLogLevel::kWarning: stream << "WARN"   ; break;
+		case QwLogLevel::kMessage: stream << "INFO"   ; break;
+		case QwLogLevel::kVerbose: stream << "VERBOSE"; break;
+		case QwLogLevel::kDebug:   stream << "DEBUG"  ; break;
+		default: break;
+	}
+	return stream;
+}
+
+// std:time_t is a typedef so ADL fails
+struct Timestamp
+{
+	std::time_t time;
+	explicit Timestamp(std::time_t t) : time(t) {}
+	std::time_t* operator&() { return std::addressof(time); }
+};
+Timestamp GetTime()
 {
 	using namespace std::chrono;
-	return system_clock::to_time_t(system_clock::now());
+	return Timestamp{system_clock::to_time_t(system_clock::now())};
 }
 
-QwLogProxy::QwLogProxy(QwLogLevel level)
+std::ostream& operator<<(std::ostream& stream, Timestamp time)
+{
+	stream << std::put_time(std::localtime(&time), "%T");
+	return stream;
+}
+
+QwLogProxy::QwLogProxy(VQwLogger& logger, QwLogLevel level)
 : fLevel(level)
+, fLogger(logger)
+, fBuffer{}
 { }
 
 QwLogProxy::QwLogProxy(QwLogProxy&& other) noexcept
 : fLevel(other.fLevel)
+, fLogger(other.fLogger)
 , fBuffer(std::move(other.fBuffer))
 { }
+
+void QwLogProxy::AddColor()
+{
+	fBuffer << GetLevelColor(fLevel);
+}
+
+void QwLogProxy::AddHeader()
+{
+	fBuffer << '[' << fLevel << " | " << GetTime() << "]: ";
+}
 
 void QwLogProxy::FlushBuffer()
 {
 	if(fBuffer.tellp() <= 0 ) return;
 
 #if __cplusplus >= 202002L
-	QwLog::Instance().Write(fLevel, fBuffer.view());
+	fLogger.Write(fLevel, fBuffer.view());
 #else
 	// Pre-c++20 incurs a copy
-	QwLog::Instance().Write(fLevel, fBuffer.str());
+	fLogger.Write(fLevel, fBuffer.str());
 #endif
 
 	// Using an lvalue preserves the internal capacity
@@ -61,6 +105,7 @@ void QwLogProxy::FlushBuffer()
 #if (__GNUC__ >= 3)
 QwLogProxy& QwLogProxy::operator<<(std::ios_base& (*manip)(std::ios_base&))
 {
+	// Does not handle std::endl or std::flush properly
 	fBuffer << manip;
     return *this;
 }
@@ -85,51 +130,48 @@ QwLogProxy::~QwLogProxy()
 	FlushBuffer();
 }
 
-QwLog::QwLog()
-: fScreenThreshold(QwLogLevel::kMessage)
-, fScreen(std::cout)
-, fFileThreshold(QwLogLevel::kMessage)
-, fFile{nullptr}
+gQwLogger::gQwLogger()
+: fScreenLogger(&std::cout, QwLogLevel::kMessage)
+, fFileLogger(nullptr, QwLogLevel::kMessage)
 , fPrintFunctionSignature{false}
 , fUseColor{true}
 { }
 
-QwLog& QwLog::Instance()
+gQwLogger& gQwLogger::Instance()
 {
-	static QwLog instance;
+	static gQwLogger instance;
 	return instance;
 }
 
-void QwLog::Write(QwLogLevel level, std::string_view log)
+QwLogProxy gQwLogger::Log(QwLogLevel level, std::string const& func_sig)
 {
-	{
-		std::lock_guard lk(fScreenMutex);
-		if(level >= fScreenThreshold) {
-    		fScreen << log;
-		}
-	}
-	{
-		std::lock_guard lk(fFileMutex);
-		if(fFile && level >= fFileThreshold) {
-			*fFile << log;
-		}
-	}
+	QwLogProxy llog = QwLogProxy{*this, level};
+
+  	// Override log level of this sink when in a debugged function
+  	if( IsDebugFunction(func_sig) ) { level = QwLogLevel::kAlways; }
+	if( PrintWithColor() ) { llog.AddColor(); }
+	if(level != QwLogLevel::kPlain) { llog.AddHeader(); }
+	if( PrintFuncSignature() ) { llog << func_sig << "->"; 	}
+
+	return llog;
 }
 
-void QwLog::InitLogFile(std::string const& name, const std::ios_base::openmode mode)
+void gQwLogger::Write(QwLogLevel level, std::string_view log)
+{
+	fScreenLogger.Write(level, log);
+	fFileLogger.Write(level, log);
+}
+
+void gQwLogger::InitLogFile(std::string const& name, const std::ios_base::openmode mode)
 {
 	std::ios_base::openmode flags = std::ios::out | mode;
-	{
-		std::lock_guard lock(fFileMutex);
-		fFile.reset( new std::ofstream(name, flags) );
-		fFileThreshold = QwLogLevel::kMessage;
-	}
+	fFileLogger.SetStream(std::make_unique<std::ofstream>(name, flags));
 }
 
 /*!
  *  Determine whether the function name matches a specified list of regular expressions
  */
-bool QwLog::IsDebugFunction(std::string const& func_sig)
+bool gQwLogger::IsDebugFunction(std::string const& func_sig)
 {
 	// Using a temporary bool, we avoid acquiring the unique lock twice
 	// but risk of running this loop N times for N threads (unlikely)
@@ -152,66 +194,32 @@ bool QwLog::IsDebugFunction(std::string const& func_sig)
 	return is_debug_func;
 }
 
-bool QwLog::PrintFuncSignature() const { return fPrintFunctionSignature; }
-bool QwLog::PrintWithColor()     const { return fUseColor; }
+bool gQwLogger::PrintFuncSignature() const { return fPrintFunctionSignature; }
+bool gQwLogger::PrintWithColor()     const { return fUseColor; }
 
-QwColor GetLevelColor(QwLogLevel level) {
-	auto color = QwColor(Qw::kNormal);
-	switch (level) {
-		case QwLogLevel::kError:   color = QwColor(Qw::kRed); break;
-		case QwLogLevel::kWarning: color = QwColor(Qw::kMagenta); break;
-		case QwLogLevel::kDebug:   color = QwColor(Qw::kBlue); break;
-		default: break;
-	}
-	return color;
-}
-std::ostream& operator<<(std::ostream& stream, QwLogLevel level) {
-	switch (level) {
-		case QwLogLevel::kError:   stream << "ERROR"  ; break;
-		case QwLogLevel::kWarning: stream << "WARN"   ; break;
-		case QwLogLevel::kMessage: stream << "INFO"   ; break;
-		case QwLogLevel::kVerbose: stream << "VERBOSE"; break;
-		case QwLogLevel::kDebug:   stream << "DEBUG"  ; break;
-		default: break;
-	}
-	return stream;
-}
 
-void QwLog::SetScreenColor(bool flag)
+void gQwLogger::SetScreenColor(bool flag)
 {
 	fUseColor = flag;
 }
 
-QwLogLevel QwLog::ConvertToEnum(int thr)
+void gQwLogger::SetScreenThreshold(int thr)
 {
-	auto level = QwLogLevel::kAlways;
-	switch(static_cast<QwLogLevel>(thr)) {
-		case QwLogLevel::kError:   level = QwLogLevel::kError  ; break; 
-		case QwLogLevel::kWarning: level = QwLogLevel::kWarning; break;
-		case QwLogLevel::kMessage: level = QwLogLevel::kMessage; break;
-		case QwLogLevel::kVerbose: level = QwLogLevel::kVerbose; break;
-		case QwLogLevel::kDebug:   level = QwLogLevel::kDebug  ; break;
-		default: level = QwLogLevel::kAlways; break;
-	}
-	return level;
-}
-void QwLog::SetScreenThreshold(int thr)
-{
-	std::lock_guard lock(fScreenMutex);
-	fScreenThreshold = ConvertToEnum(thr);
+	fScreenLogger.SetLogLevel(thr);
 }
 
-void QwLog::SetFileThreshold(int thr)
+void gQwLogger::SetFileThreshold(int thr)
 {
-	std::lock_guard lock(fFileMutex);
-	fFileThreshold = ConvertToEnum(thr);
+	fFileLogger.SetLogLevel(thr);
 }
 
-QwLogLevel QwLog::GetLogLevel() const {
-	return std::max(fScreenThreshold, fFileThreshold);
+QwLogLevel gQwLogger::GetLogLevel() const {
+	return std::max(fScreenLogger.GetLogLevel(), fFileLogger.GetLogLevel());
 };
 
 std::ostream& QwLog::endl(std::ostream& stream) { return std::endl(stream); }
+
+
 
 
 /**
@@ -225,7 +233,7 @@ std::ostream& QwLog::endl(std::ostream& stream) { return std::endl(stream); }
  *
  * @param options Options object
  */
-void QwLog::DefineOptions(QwOptions* options)
+void gQwLogger::DefineOptions(QwOptions* options)
 {
 	// Define the logging options
 	options->AddOptions("Logging options")("QwLog.color",
@@ -259,7 +267,7 @@ void QwLog::DefineOptions(QwOptions* options)
  *
  * @param options Options object
  */
-void QwLog::ProcessOptions(QwOptions* options)
+void gQwLogger::ProcessOptions(QwOptions* options)
 {
   // Initialize log file
   if (options->HasValue("QwLog.logfile"))
