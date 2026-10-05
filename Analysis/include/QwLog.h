@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <mutex>
 #include <shared_mutex>
+#include <atomic>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -135,7 +136,8 @@ class QwLogger : public VQwLogger
 {
 	mutable std::mutex fStreamMutex;
 	PtrLikeType fStream;
-	QwLogLevel fThreshold;
+	// Assuming std::hardware_destructive_interference_size = 64
+	alignas(64) std::atomic<QwLogLevel> fThreshold;
 
 	QwLogger(QwLogger const&) = delete;
 	QwLogger& operator=(QwLogger const&) = delete;
@@ -298,24 +300,25 @@ QwLogger<PtrLikeType>::QwLogger(U&& stream, QwLogLevel threshold)
 template<typename PtrLikeType>
 void QwLogger<PtrLikeType>::Write(QwLogLevel level, std::string_view log)
 {
-	std::lock_guard lk(fStreamMutex);
-	if(fStream && (level <= fThreshold)) {
-		*fStream << log;
+	// Only acquire the lock if necessary
+	if( level <= fThreshold.load(std::memory_order_acquire) ) {
+		std::lock_guard lk(fStreamMutex);
+		if(fStream) {
+			*fStream << log;
+		}
 	}
 }
 
 template<typename PtrLikeType>
 void QwLogger<PtrLikeType>::SetLogLevel(int thr) noexcept
 {
-	std::lock_guard lk(fStreamMutex);
-	fThreshold = ConvertToEnum(thr);
+	fThreshold.store(ConvertToEnum(thr), std::memory_order_release);
 }
 
 template<typename PtrLikeType>
 QwLogLevel QwLogger<PtrLikeType>::GetLogLevel() const noexcept
 {
-	std::lock_guard lk(fStreamMutex);
-	return fThreshold;
+	return fThreshold.load(std::memory_order_acquire);
 }
 template<typename PtrLikeType>
 void QwLogger<PtrLikeType>::SetStream(PtrLikeType stream) noexcept
@@ -328,7 +331,8 @@ QwLogger<PtrLikeType>::QwLogger(QwLogger&& other) noexcept
 {
 	std::scoped_lock lk(fStreamMutex, other.fStreamMutex);
 	fStream = std::move(other.fStream);
-	fThreshold = other.fThreshold;
+	fThreshold.store(other.fThreshold.load(std::memory_order_relaxed),
+			           std::memory_order_relaxed);
 }
 
 template<typename PtrLikeType>
