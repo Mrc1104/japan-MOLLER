@@ -67,9 +67,9 @@ Bool_t VEventDecoder::DecodeSubbankHeader(UInt_t *buffer){
 }
 
 // Prints internal decoder information. See header for details.
-void VEventDecoder::PrintDecoderInfo(QwLog& out)
+void VEventDecoder::PrintDecoderInfo()
 {
-	out << "\n-------\n" << std::hex <<
+	QwDebug << "\n-------\n" << std::hex <<
 		"fWordsSoFar " << fWordsSoFar <<
 		"\n fEvtLength; " << fEvtLength <<
 		"\n fEvtType " << fEvtType <<
