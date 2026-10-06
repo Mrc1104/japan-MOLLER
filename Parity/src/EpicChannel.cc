@@ -1,15 +1,25 @@
 #include "EpicChannel.h"
 void EpicChannel::connection_callback(connection_handler_args arg) noexcept {
 	std::string_view ch_name = ::ca_name(arg.chid);
+	bool connected = (arg.op == CA_OP_CONN_UP);
 	std::cout << "[Callback] Channel '" << ch_name << "' status changed: ";
-	if(arg.op == CA_OP_CONN_UP) {
+	if(connected) {
 		std::cout << "Connected to IOC (Host: " << ::ca_host_name(arg.chid) <<")\n";
-	} else if( arg.op == CA_OP_CONN_DOWN) {
+	} else {
 		std::cout << "Disconnected from IOC\n";
 	}
     if (void* private_data = ::ca_puser(arg.chid)) {
         auto* instance = static_cast<EpicChannel*>(private_data);
         instance->is_conn.store(arg.op == CA_OP_CONN_UP);
+		if( connected ) {
+			instance->th_map.ForEach([](::chtype key, AsyncContextBase* ctx) {
+				if(ctx) ctx->Start();
+			});
+		} else {
+			instance->th_map.ForEach([](::chtype key, AsyncContextBase* ctx) {
+				if(ctx) ctx->Stop();
+			});
+		}
     }
 }
 
@@ -37,7 +47,7 @@ void EpicChannel::async_put_callback(::event_handler_args arg)
 }
 
 EpicChannel::EpicChannel(char const* pv_name, ::capri priority)
-: chan{nullptr}, monitor_id{nullptr}, is_conn{false}
+: chan{nullptr}, is_conn{false}
 {
 	::ca_create_channel(pv_name, &EpicChannel::connection_callback, this, priority, &chan);
 }
@@ -46,20 +56,19 @@ EpicChannel::~EpicChannel()
 {
 	if(chan) {
 		std::cout << "Calling dtor for" << ::ca_name(chan) << '\n';
-		StopMonitoring(); // No-op if not monitoring
+		th_map.Clear();
 		::ca_clear_channel(chan);
 	}
 }
 
 
 EpicChannel::EpicChannel(EpicChannel && other) noexcept
+: chan(nullptr)
+, is_conn(false)
 {
-	std::lock(other.io_mut, other.mon_mut);
-	std::lock_guard<std::mutex> lk_io(other.io_mut, std::adopt_lock);
-	std::lock_guard<std::mutex> lk_mon(other.mon_mut, std::adopt_lock);
-
+	std::lock_guard<std::mutex> lk(other.io_mut);
+	th_map = std::move(other.th_map);
 	chan = std::exchange(other.chan, nullptr);
-	monitor_id = std::exchange(other.monitor_id, nullptr);
 	is_conn.store(other.is_conn.exchange(false, std::memory_order_relaxed),
 					std::memory_order_relaxed);
 }
@@ -69,23 +78,40 @@ EpicChannel::EpicChannel(EpicChannel && other) noexcept
 std::string_view EpicChannel::GetName() { return ::ca_name(chan); }
 
 
-void EpicChannel::StartMonitoring()
+[[nodiscard]]
+::evid EpicChannel::StartMonitoring() noexcept
 {
-	StartMonitoring(DBR_STRING, monitor_callback, nullptr);
+	return StartMonitoring(DBR_STRING, monitor_callback, nullptr);
 }
-void EpicChannel::StopMonitoring()
+
+[[nodiscard]]
+::evid EpicChannel::StartMonitoring(::chtype dbr_type, MonitorCallback func, void* pArg) noexcept
+{
+	// We do not support arrays at this time
+	constexpr int elem_size = 1;
+	::evid monitor_id{nullptr};
+	int result{ECA_NORMAL};
+	{
+		std::lock_guard<std::mutex> lk(io_mut);
+		result = ca_create_subscription(dbr_type, elem_size, chan, DBE_VALUE, func, pArg, &monitor_id);
+	}
+	if(result != ECA_NORMAL) {
+		std::cout << "Start Monitoring Error: " << ::ca_message(result) << '\n';
+	}
+	::ca_flush_io();
+	return monitor_id;
+}
+
+void EpicChannel::StopMonitoring(::evid monitor_id) noexcept
 {
 	// No-op if monitor_id is not set
-	evid active_id{nullptr};
+	if(monitor_id)
 	{
-		std::lock_guard lk(mon_mut);
-		if(	monitor_id ) {
-			active_id = monitor_id;
-			monitor_id = nullptr;
+		int result = ECA_NORMAL;
+		{
+			std::lock_guard<std::mutex> lk(io_mut);
+			result = ca_clear_subscription(monitor_id);
 		}
-	}
-	if(active_id) {
-		int result = ca_clear_subscription(active_id);
 		if(result != ECA_NORMAL) {
 			std::cout << "Stop Monitoring Error: " << ::ca_message(result) << '\n';
 		}
@@ -93,21 +119,3 @@ void EpicChannel::StopMonitoring()
 	}
 }
 
-void EpicChannel::StartMonitoring(::chtype dbr_type, MonitorCallback func, void* pArg)
-{
-	// We do not support arrays at this time
-	constexpr int elem_size = 1;
-	{
-		std::lock_guard lk(mon_mut);
-		if(monitor_id == nullptr) {
-			int result = ca_create_subscription(dbr_type, elem_size, chan, DBE_VALUE, func, pArg, &monitor_id);
-			if(result != ECA_NORMAL) {
-				std::cout << "Start Monitoring Error: " << ::ca_message(result) << '\n';
-			}
-		} else {
-			std::cout << "Start Monitoring Error: Already monitoring this channel.\n";
-		}
-	}
-	::ca_flush_io();
-	return;
-}
