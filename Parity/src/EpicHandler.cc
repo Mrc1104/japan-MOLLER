@@ -24,7 +24,7 @@ std::string_view stringify(::channel_state const state)
 	}
 	return sv;
 }
-EpicHandler& EpicHandler::getInstance()
+EpicHandler& EpicHandler::Instance()
 {
 	static EpicHandler singleton;
 	return singleton;

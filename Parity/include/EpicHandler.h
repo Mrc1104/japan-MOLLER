@@ -17,7 +17,7 @@ class EpicHandler
 	EpicHandler(EpicHandler &&) noexcept = delete;
 	EpicHandler& operator=(EpicHandler &&) noexcept = delete;
 public:
-	static EpicHandler& getInstance();
+	static EpicHandler& Instance();
 public:
 	EpicChannel* ConnectChannel(char const* pv_name, ::capri priority = CA_PRIORITY_DEFAULT);
 	void GetStatus(unsigned level=0);
