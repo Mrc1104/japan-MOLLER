@@ -35,7 +35,7 @@ public:
 };
 
 
-class Slope
+class QwFeedbackSlope
 {
 	static_assert( static_cast<int>(IHWP::kIN) == 0
 			&& static_cast<int>(IHWP::kOUT) == 1,
@@ -43,7 +43,7 @@ class Slope
 	std::array<double, 2> fSlopes;
 	IHWP_IOC fIHWP;
 public:
-	Slope() : fSlopes{1.0, 1.0}, fIHWP() {}
+	QwFeedbackSlope() : fSlopes{1.0, 1.0}, fIHWP() {}
 	double& operator[](IHWP state)       { return fSlopes[static_cast<int>(state)]; }
 	double  operator[](IHWP state) const { return fSlopes[static_cast<int>(state)]; }
 	double  GetSlope() const             { return this->operator[](fIHWP.GetState());}
@@ -112,7 +112,7 @@ class QwFeedback
 {
 	// look into placement new
 	std::unique_ptr<VQwFeedbackImpl> fPimpl;
-	Slope fSlope;
+	QwFeedbackSlope fSlope;
 public:
 	enum class TYPE {
 		PITA,
