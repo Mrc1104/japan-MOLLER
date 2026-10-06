@@ -41,11 +41,12 @@ class Slope
 			&& static_cast<int>(IHWP::kOUT) == 1,
 			"Expected: enum IHWP is used for indexing!\n");
 	std::array<double, 2> fSlopes;
+	IHWP_IOC fIHWP;
 public:
-	Slope() : fSlopes{1.0, 1.0}{}
+	Slope() : fSlopes{1.0, 1.0}, fIHWP() {}
 	double& operator[](IHWP state)       { return fSlopes[static_cast<int>(state)]; }
 	double  operator[](IHWP state) const { return fSlopes[static_cast<int>(state)]; }
-	double  GetSlope() const             { return this->operator[](IHWP_IOC::getInstance().GetState());}
+	double  GetSlope() const             { return this->operator[](fIHWP.GetState());}
 };
 
 template<typename BinaryOp>

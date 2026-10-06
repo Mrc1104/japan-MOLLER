@@ -2,47 +2,39 @@
 
 const char* IHWP_IOC::IHWP_PV = "IGL1I00DI24_24M";
 
-IHWP_IOC::IHWP_IOC()
-: epics(EpicHandler::getInstance())
-, ioc(epics.ConnectChannel(IHWP_PV))
-, val{0}
-{
-	ioc->StartMonitoring(DBR_TIME_SHORT, monitor_callback, this);
-}
-
-IHWP_IOC::~IHWP_IOC()
-{
-	if(ioc) {
-		ioc->StopMonitoring();
-	}
-}
-
-void IHWP_IOC::monitor_callback(event_handler_args arg) noexcept
-{
-	void* private_data = arg.usr;
-	if( arg.status == ECA_NORMAL && arg.dbr != nullptr && private_data != nullptr) {
-        auto* instance = static_cast<IHWP_IOC*>(private_data);
-		auto const* data = static_cast<dbr_time_short const*>( arg.dbr );
-		instance->val.store(data->value, std::memory_order_release);
-		std::cout << "[Update] Channel '" << ::ca_name(arg.chid)
-		          << "' status changed: "
-				  << (instance->convert_to_ihwp(data->value) == IHWP::kIN ? "IN\n" : "OUT\n");
-	}
-}
-
-IHWP IHWP_IOC::convert_to_ihwp(short val) const
-{
-	return (val == static_cast<short>(IHWP::kIN)) ? IHWP::kIN : IHWP::kOUT;
-}
 IHWP IHWP_IOC::GetState() const
 {
-	short state = val.load(std::memory_order_acquire);
-	return convert_to_ihwp(state);
+	int value = fCurrState.Load(std::memory_order_acquire);
+	return (value == static_cast<int>(IHWP::kIN)) ? IHWP::kIN : IHWP::kOUT;
 }
 
-IHWP_IOC& IHWP_IOC::getInstance()
+void IHWP_IOC::Update(int const& data)
 {
-	static IHWP_IOC singleton;
-	return singleton;
+	fCurrState.Store(data, std::memory_order_release);
+}
+
+
+IHWP_IOC::IHWP_IOC()
+: IHWP_IOC(EpicHandler::Instance().ConnectChannel(IHWP_IOC::IHWP_PV))
+{ }
+
+IHWP_IOC::IHWP_IOC(EpicChannel* channel)
+: fChannel{channel}
+, fCurrState{0}
+{
+	fChannel->StartMonitoring(this);
+}
+IHWP_IOC::~IHWP_IOC()
+{
+	fChannel->StopMonitoring(this);
+}
+
+IHWP_IOC::IHWP_IOC(IHWP_IOC const& other)
+: fChannel{other.fChannel}
+, fCurrState{0}
+{
+	fCurrState.Store(other.fCurrState.Load(std::memory_order_relaxed),
+						std::memory_order_relaxed);
+	fChannel->StartMonitoring(this);
 }
 
