@@ -340,6 +340,7 @@ QwLogProxy QwLogger<PtrLikeType>::Log(QwLogLevel level, std::string const& msg)
 {
 	QwLogProxy log = QwLogProxy{*this, level};
 	log.AddHeader();
+	log << msg;
 	return log;
 }
 

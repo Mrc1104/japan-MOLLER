@@ -36,10 +36,9 @@ std::ostream& operator<<(std::ostream& stream, QwLogLevel level)
 	switch (level) {
 		case QwLogLevel::kError:   stream << "ERROR"  ; break;
 		case QwLogLevel::kWarning: stream << "WARN"   ; break;
-		case QwLogLevel::kMessage: stream << "INFO"   ; break;
 		case QwLogLevel::kVerbose: stream << "VERBOSE"; break;
 		case QwLogLevel::kDebug:   stream << "DEBUG"  ; break;
-		default: break;
+		default:                   stream << "INFO"   ; break;
 	}
 	return stream;
 }
