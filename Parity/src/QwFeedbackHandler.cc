@@ -32,7 +32,7 @@ void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
   	file.PopValue("patterns",fMaxPattern);
 	file.PopValue("log", logfile);
 	fFeedback->ConfigureFeedbackType(feedback_type);
-	if( fFeedback->ConfigureLogger(logfile) ) {
+	if( !fFeedback->ConfigureLogger(logfile) ) {
 		QwWarning << '(' << logfile << ") Logfile Not Set for "
 		          << feedback_type << " Feedback!" << QwLog::endl;
 	}
@@ -60,7 +60,7 @@ Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)
 			QwWarning << "Invalid Feedback Config:" << config << '\n';
 			continue;
 		}
-		std::cout << config << '\n';
+		QwOut << config << '\n';
 		fFeedback->ConfigureFeedback(std::move(config));
 	}
 
@@ -111,19 +111,12 @@ void QwFeedbackHandler::ProcessData()
 	//    b) unergonomic (nested class structure)
 	if(GetEventcutErrorFlag() == 0) {
 		fDeviceAccum->AccumulateRunningSum(fDeviceObserver);
-		/*
-		std::cout << "Pattern " << fPatternCounter << ")\n";
-		std::cout << "\tValue = " << fDeviceAccum->GetValue() << '\n';
-		std::cout << "\tValueError = " << fDeviceAccum->GetValueError() << '\n';
-		std::cout << "\tValueWidth = " << fDeviceAccum->GetValueWidth() << '\n';
-		*/
 		fPatternCounter++;
 	}
 	if(fPatternCounter >= fMaxPattern) {
 		// Apply correction
 		fDeviceAccum->CalculateRunningAverage();
 		fFeedback->ApplyCorrection(fDeviceAccum->GetValue());
-
 		std::cout << "Pattern " << fPatternCounter << ")\n";
 		std::cout << "\tValue = " << fDeviceAccum->GetValue() * 1e6 << " [ppm]\n";
 		std::cout << "\tValueError = " << fDeviceAccum->GetValueError() * 1e6 << " [ppm]\n";

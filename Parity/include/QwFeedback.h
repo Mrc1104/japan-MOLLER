@@ -49,17 +49,18 @@ public:
 	double& operator[](IHWP state)       { return fSlopes[static_cast<int>(state)]; }
 	double  operator[](IHWP state) const { return fSlopes[static_cast<int>(state)]; }
 	double  GetSlope() const             { return this->operator[](fIHWP.GetState());}
+	void    AttachLogger(QwFeedbackLogger& logger) { fIHWP.AddObserver(&logger); }
 };
 
 
 // Templatize the EPICS Data Type
-class QwFeedbackSetpoint : EPICSObserver<double>
+class QwFeedbackSetpoint : public EPICSObserver<double>, public Publisher<QwFeedbackLogPayload>
 {
 private:
 	EpicChannel* fChannel;
 	double fPrev;
 	AtomicEpicsType<double> fCurr;
-
+	std::string fName;
 public:
 	void Attach(const char* pv_name);
 	void Update(double const& data) override;
@@ -88,7 +89,6 @@ public:
 	virtual std::pair<VQwDataHandler::EQwHandleType, std::string_view>
 	RequestTargetDeviceImpl() const    = 0;
 	virtual std::unique_ptr<VQwFeedbackImpl> Clone() const = 0;
-	virtual void Print(std::ostream& out) const = 0;
 };
 
 class QwPITAFeedback : public VQwFeedbackImpl
@@ -100,17 +100,17 @@ class QwPITAFeedback : public VQwFeedbackImpl
 	std::array<QwFeedbackSetpoint, fNumSetpointsExpected> fPitaVoltages;
 	std::size_t fNumSetpointsSet;
 	std::string fDevice;
+	QwFeedbackLogger& fLogger;
 private:
 	bool SetDeviceName(std::string&& name);
 	bool AddSetpoint(std::string&& setp_name);
 public:
+	QwPITAFeedback(QwFeedbackLogger& logger);
 	void ConfigureImpl(QwFeedbackConfig&& config) override;
 	void ApplyCorrectionImpl(double const running_average) override;
 	std::pair<VQwDataHandler::EQwHandleType, std::string_view>
 	RequestTargetDeviceImpl() const override;
 	std::unique_ptr<VQwFeedbackImpl> Clone() const override;
-	void Print(std::ostream& out) const override;
-
 };
 
 // Non-Virtual Interface
@@ -144,9 +144,6 @@ public:
 	double  GetSlope(IHWP state) const;
 	double& GetSlope(IHWP state);
 	double  GetSlope() const;
-public:
-	// We all need friends
-	friend std::ostream& operator<<(std::ostream& out, QwFeedback const& fb);
 };
 
 

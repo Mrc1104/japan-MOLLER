@@ -77,6 +77,7 @@ QwFeedback::QwFeedback()
 QwFeedback::QwFeedback(QwFeedback const& other)
 : fPimpl( other.fPimpl ? other.fPimpl->Clone() : nullptr )
 , fSlope(other.fSlope)
+, fLogFile{}
 {
 	
 }
@@ -93,7 +94,7 @@ void QwFeedback::ConfigureFeedbackType(TYPE type)
 	if(fPimpl) std::cout << "WARNING: FeedbackType is already configured! Ignoring...\n";
 	switch(type) {
 		case TYPE::PITA:
-			fPimpl = std::make_unique<QwPITAFeedback>();
+			fPimpl = std::make_unique<QwPITAFeedback>(fLogFile);
 			break;
 		default:
 			break;
@@ -111,13 +112,6 @@ void    QwFeedback::SetSlope(IHWP state, double val) { fSlope[state] = val ; }
 double  QwFeedback::GetSlope(IHWP state) const       { return fSlope[state]; }
 double& QwFeedback::GetSlope(IHWP state)             { return fSlope[state]; }
 double  QwFeedback::GetSlope() const                 { return fSlope.GetSlope(); }
-
-std::ostream& operator<<(std::ostream& out, QwFeedback const& fb)
-{
-	fb.fPimpl->Print(out);
-	return out;
-}
-
 
 void QwFeedback::ConfigureFeedback(QwFeedbackConfig&& config)
 {
@@ -138,17 +132,17 @@ QwFeedback::RequestTargetDevice() const
 		   : std::pair{VQwDataHandler::kHandleTypeUnknown, std::string_view{}};
 }
 
+QwPITAFeedback::QwPITAFeedback(QwFeedbackLogger& logger)
+: fNumSetpointsSet{0}
+, fDevice{}
+, fLogger(logger)
+{
+
+}
 
 std::unique_ptr<VQwFeedbackImpl> QwPITAFeedback::Clone() const
 {
 	return std::make_unique<QwPITAFeedback>( *this );
-}
-
-void QwPITAFeedback::Print(std::ostream& out) const
-{
-	out << "QwPITAFeedback Debug Dump:\n";
-	out << "\tfDevice = " << fDevice << '\n';
-	out << "\tfNumSetpoints = " << fNumSetpointsSet << '\n';
 }
 
 void QwPITAFeedback::ConfigureImpl(QwFeedbackConfig&& config)
@@ -202,8 +196,10 @@ bool QwPITAFeedback::AddSetpoint(std::string&& setp_name)
 		return false;
 	}
 	std::cout << "Adding Setpoint: " << setp_name << '\n';
-	fPitaVoltages[fNumSetpointsSet++].Attach(setp_name.c_str());
-	
+	auto& HV = fPitaVoltages[fNumSetpointsSet++];
+	HV.Attach(setp_name.c_str());
+	HV.AddObserver(&fLogger);
+
 	return true;
 
 }
@@ -212,7 +208,10 @@ bool QwPITAFeedback::AddSetpoint(std::string&& setp_name)
 void QwFeedbackSetpoint::Update(double const& data)
 {
 	fPrev = fCurr.Exchange(data, std::memory_order_acq_rel);
-	// Log and such
+	std::string log_payload = fName + ": fPrev = "        + std::to_string(fPrev)
+		                        + ", fCurrent = "     + std::to_string(data)
+								+ " => Correction = " + std::to_string(fPrev - data);
+	Notify(QwFeedbackLogPayload{QwLogLevel::kMessage, std::move(log_payload)}); 
 }
 
 void QwFeedbackSetpoint::Attach(const char* pv_name)
@@ -220,6 +219,7 @@ void QwFeedbackSetpoint::Attach(const char* pv_name)
 	if(fChannel) fChannel->StopMonitoring(this);
 	fChannel = EpicHandler::Instance().ConnectChannel(pv_name);
 	fChannel->StartMonitoring(this);
+	fName = fChannel->GetName();
 }
 
 

@@ -2,14 +2,16 @@
 #include "EpicHandler.h"
 #include "EpicChannel.h"
 #include "ChannelObserver.h"
+#include "Publisher.h"
+#include "QwFeedbackLogger.h"
 #include "EpicTypes.h"
 #include <atomic>
 enum class IHWP {
     kIN  = 0, // PER EPICS
     kOUT = 1  // PER EPICS                                                                                
 };
-
-class IHWP_IOC : public EPICSObserver<int>
+std::string stringify(IHWP ihwp);
+class IHWP_IOC : public EPICSObserver<int>, public Publisher<QwFeedbackLogPayload>
 {
 	EpicChannel* fChannel;
 	AtomicEpicsType<int> fCurrState;

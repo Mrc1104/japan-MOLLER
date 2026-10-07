@@ -10,7 +10,10 @@ IHWP IHWP_IOC::GetState() const
 
 void IHWP_IOC::Update(int const& data)
 {
-	fCurrState.Store(data, std::memory_order_release);
+	auto prev = fCurrState.Exchange(data, std::memory_order_acq_rel);
+	std::string log_payload = "IHWP STATE CHANGED: " + stringify(static_cast<IHWP>(prev))
+	                      + " -> " + stringify(static_cast<IHWP>(data));
+	Notify(QwFeedbackLogPayload{QwLogLevel::kMessage, std::move(log_payload)});
 }
 
 
@@ -38,3 +41,7 @@ IHWP_IOC::IHWP_IOC(IHWP_IOC const& other)
 	fChannel->StartMonitoring(this);
 }
 
+std::string stringify(IHWP ihwp)
+{
+	return (ihwp == IHWP::kIN) ? "IN" : "OUT";
+}
