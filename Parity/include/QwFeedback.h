@@ -2,11 +2,12 @@
 #include <string>
 #include <string_view>
 #include <functional>
-#include <ostream>
+#include <fstream>
 #include <utility>
 #include <variant>
 #include "IHWP.h"
 #include "VQwDataHandler.h" // Access EQwHandleType
+#include "QwLog.h"
 
 class QwFeedbackConfig
 {
@@ -146,3 +147,15 @@ public:
 	friend std::ostream& operator<<(std::ostream& out, QwFeedback const& fb);
 };
 
+
+class QwFeedbackLogger : public VQwLogger
+{
+	QwLogger<std::unique_ptr<std::ofstream>> fSink;
+public:
+	void SetSink(std::string const& sink, const std::ios_base::openmode mode = std::ios::app);
+	explicit operator bool() const;
+
+	void Write(QwLogLevel level, std::string_view log) override;
+	QwLogProxy Log(QwLogLevel level, std::string const& msg = "") override;
+
+};

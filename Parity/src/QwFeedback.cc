@@ -246,3 +246,23 @@ QwFeedbackSetpoint::QwFeedbackSetpoint(QwFeedbackSetpoint const& other)
 	fPrev = other.fPrev;
 	fCurr.Store(current, std::memory_order_release);
 }
+
+void QwFeedbackLogger::SetSink(std::string const& sink, const std::ios_base::openmode mode)
+{
+	fSink = std::make_unique<std::ofstream>(sink, std::ios::out | mode);
+}
+
+QwFeedbackLogger::operator bool() const
+{
+	return static_cast<bool>(fSink);
+}
+
+void QwFeedbackLogger::Write(QwLogLevel level, std::string_view log)
+{
+	if(fSink) fSink.Write(level, log);
+}
+
+QwLogProxy QwFeedbackLogger::Log(QwLogLevel level, std::string const& msg)
+{
+	if(fSink) fSink.Log(level, msg);
+}
