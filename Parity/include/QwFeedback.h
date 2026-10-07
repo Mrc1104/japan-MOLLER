@@ -4,6 +4,7 @@
 #include <functional>
 #include <ostream>
 #include <utility>
+#include <variant>
 #include "IHWP.h"
 #include "VQwDataHandler.h" // Access EQwHandleType
 
@@ -49,29 +50,33 @@ public:
 	double  GetSlope() const             { return this->operator[](fIHWP.GetState());}
 };
 
-template<typename BinaryOp>
-class FeedbackSetpoint {
-	struct Setpoint
-	{
-		double fCurr;
-		double fPrev;
-	};
-	Setpoint fSetpoint;
-public:
-	// Make this connect into the IOC
-	FeedbackSetpoint() : fSetpoint{.fCurr{0.0}, .fPrev{0.0}} {}
-	void Set(double val) {
-		auto& [fCurr, fPrev] = fSetpoint;
-		fPrev = fCurr;
-		fCurr = val;
-	}
-	Setpoint ApplyCorrection(double corr) {
-		auto& [fCurr, fPrev] = fSetpoint;
-		fPrev = fCurr;
-		fCurr = BinaryOp{}(corr, fPrev);
-		return {fCurr, fPrev};
-	}
 
+// Templatize the EPICS Data Type
+class QwFeedbackSetpoint : Observer<double>
+{
+private:
+	EpicChannel* fChannel;
+	double fPrev;
+	AtomicEpicsType<double> fCurr;
+
+public:
+	void Attach(const char* pv_name);
+	void Update(double const& data) override;
+	template<typename BinaryOp>
+	std::future<void> ApplyCorrection(double corr) {
+		double current = fCurr.Load(std::memory_order_acquire);
+		while(!fCurr.CompareExchangeWeak(current, BinaryOp{}(current, corr), 
+				std::memory_order_release, std::memory_order_acquire));
+		return (fChannel) ? fChannel->PutAsync(DBR_DOUBLE, current) : std::future<void>{};
+	}
+public:
+	QwFeedbackSetpoint();
+	QwFeedbackSetpoint(EpicChannel* channel);
+	~QwFeedbackSetpoint();
+	QwFeedbackSetpoint(QwFeedbackSetpoint const& other);
+	QwFeedbackSetpoint(QwFeedbackSetpoint&& other) = delete;
+	QwFeedbackSetpoint& operator=(QwFeedbackSetpoint const& other) = delete;
+	QwFeedbackSetpoint& operator=(QwFeedbackSetpoint&& other) = delete;
 };
 
 class VQwFeedbackImpl
@@ -84,14 +89,14 @@ public:
 	virtual std::unique_ptr<VQwFeedbackImpl> Clone() const = 0;
 	virtual void Print(std::ostream& out) const = 0;
 };
+
 class QwPITAFeedback : public VQwFeedbackImpl
 {
 	// Maybe use std::variant?
 	using ADD = std::plus<double>;
 	using SUB = std::minus<double>;
-	std::array<FeedbackSetpoint<ADD>, 4> fPitaVoltages1_4;
-	std::array<FeedbackSetpoint<SUB>, 4> fPitaVoltages5_8;
 	static constexpr std::size_t fNumSetpointsExpected{8};
+	std::array<QwFeedbackSetpoint, fNumSetpointsExpected> fPitaVoltages;
 	std::size_t fNumSetpointsSet;
 	std::string fDevice;
 private:
@@ -119,14 +124,15 @@ public:
 		POSU,
 		POSV//,etc
 	};
+private:
+	void ConfigureFeedbackType(TYPE type);
 public:
 	QwFeedback();
 	QwFeedback(QwFeedback const& other);
 public:
 	void ConfigureFeedbackType(std::string_view);
-	void ConfigureFeedbackType(TYPE type);
 public:
-	void Configure(QwFeedbackConfig&& config);
+	void ConfigureFeedback(QwFeedbackConfig&& config);
 	void ApplyCorrection(double const running_average);
 	std::pair<VQwDataHandler::EQwHandleType, std::string_view>
 	RequestTargetDevice() const;
@@ -138,6 +144,5 @@ public:
 public:
 	// We all need friends
 	friend std::ostream& operator<<(std::ostream& out, QwFeedback const& fb);
-
 };
 

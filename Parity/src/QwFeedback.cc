@@ -76,7 +76,9 @@ QwFeedback::QwFeedback()
 
 QwFeedback::QwFeedback(QwFeedback const& other)
 : fPimpl( other.fPimpl ? other.fPimpl->Clone() : nullptr )
+, fSlope(other.fSlope)
 {
+	
 }
 
 
@@ -111,7 +113,7 @@ std::ostream& operator<<(std::ostream& out, QwFeedback const& fb)
 }
 
 
-void QwFeedback::Configure(QwFeedbackConfig&& config)
+void QwFeedback::ConfigureFeedback(QwFeedbackConfig&& config)
 {
 	if(fPimpl) fPimpl->ConfigureImpl(std::move(config));
 }
@@ -158,13 +160,12 @@ void QwPITAFeedback::ConfigureImpl(QwFeedbackConfig&& config)
 }
 void QwPITAFeedback::ApplyCorrectionImpl(double const correction)
 {
-	for( auto& hv : fPitaVoltages1_4 ) {
-		auto val = hv.ApplyCorrection(correction);
-		// TODO: LOGGING
-	}
-	for( auto& hv : fPitaVoltages5_8 ) {
-		auto val = hv.ApplyCorrection(correction);
-		// TODO: LOGGING
+	for(std::size_t index = 0; index < fPitaVoltages.size(); index++) {
+		if(index < 4) {
+			auto val = fPitaVoltages[index].ApplyCorrection<std::plus<double>>(correction);
+		} else {
+			auto val = fPitaVoltages[index].ApplyCorrection<std::minus<double>>(correction);
+		}
 	}
 }
 
@@ -195,8 +196,53 @@ bool QwPITAFeedback::AddSetpoint(std::string&& setp_name)
 		return false;
 	}
 	std::cout << "Adding Setpoint: " << setp_name << '\n';
-	fNumSetpointsSet++;
+	fPitaVoltages[fNumSetpointsSet++].Attach(setp_name.c_str());
+	
 	return true;
 
 }
 
+
+void QwFeedbackSetpoint::Update(double const& data)
+{
+	fPrev = fCurr.Exchange(data, std::memory_order_acq_rel);
+}
+
+void QwFeedbackSetpoint::Attach(const char* pv_name)
+{
+	if(fChannel) fChannel->StopMonitoring(this);
+	fChannel = EpicHandler::Instance().ConnectChannel(pv_name);
+	fChannel->StartMonitoring(this);
+}
+
+
+QwFeedbackSetpoint::QwFeedbackSetpoint()
+: fChannel(nullptr)
+, fPrev{}
+, fCurr{}
+{}
+
+QwFeedbackSetpoint::QwFeedbackSetpoint(EpicChannel* channel)
+: fChannel(channel)
+, fPrev{}
+, fCurr{}
+{
+	if(channel) {
+		fChannel->StartMonitoring(this);
+	}
+}
+
+QwFeedbackSetpoint::~QwFeedbackSetpoint()
+{
+	if(fChannel) {
+		fChannel->StopMonitoring(this);
+	}
+}
+
+QwFeedbackSetpoint::QwFeedbackSetpoint(QwFeedbackSetpoint const& other)
+: fChannel(other.fChannel)
+{
+	double current = other.fCurr.Load(std::memory_order_acquire);
+	fPrev = other.fPrev;
+	fCurr.Store(current, std::memory_order_release);
+}

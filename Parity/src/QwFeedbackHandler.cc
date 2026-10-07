@@ -30,6 +30,7 @@ void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
   	file.PopValue("slope_ihwp_in", fFeedback->GetSlope(IHWP::kIN));
   	file.PopValue("slope_ihwp_out",fFeedback->GetSlope(IHWP::kOUT));
   	file.PopValue("patterns",fMaxPattern);
+	// Make this a FACTORY FUNCTION!
 	fFeedback->ConfigureFeedbackType(feedback_type);
 	
 }
@@ -56,7 +57,7 @@ Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)
 			continue;
 		}
 		std::cout << config << '\n';
-		fFeedback->Configure(std::move(config));
+		fFeedback->ConfigureFeedback(std::move(config));
 	}
 
 	return 0;
@@ -66,11 +67,6 @@ Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsys
 {
 	auto [data_type, device] = fFeedback->RequestTargetDevice();
 	std::cout << "Requesting channel: " << device << '\n';
- 	// which one do we want to use?
-	// ReturnInternalValue or
-	// RequestExternalPointer
-    // channel = asym.ReturnInternalValue(TString(device));
-    // channel = RequestExternalPointer(TString(device));
     switch (data_type) {
       case kHandleTypeYield:
         SetEventcutErrorFlagPointer(yield.GetEventcutErrorFlagPointer());
@@ -111,19 +107,23 @@ void QwFeedbackHandler::ProcessData()
 	//    b) unergonomic (nested class structure)
 	if(GetEventcutErrorFlag() == 0) {
 		fDeviceAccum->AccumulateRunningSum(fDeviceObserver);
+		/*
 		std::cout << "Pattern " << fPatternCounter << ")\n";
 		std::cout << "\tValue = " << fDeviceAccum->GetValue() << '\n';
 		std::cout << "\tValueError = " << fDeviceAccum->GetValueError() << '\n';
 		std::cout << "\tValueWidth = " << fDeviceAccum->GetValueWidth() << '\n';
+		*/
 		fPatternCounter++;
 	}
 	if(fPatternCounter >= fMaxPattern) {
 		// Apply correction
 		fDeviceAccum->CalculateRunningAverage();
+		fFeedback->ApplyCorrection(fDeviceAccum->GetValue());
+
 		std::cout << "Pattern " << fPatternCounter << ")\n";
-		std::cout << "\tValue = " << fDeviceAccum->GetValue() << '\n';
-		std::cout << "\tValueError = " << fDeviceAccum->GetValueError() << '\n';
-		std::cout << "\tValueWidth = " << fDeviceAccum->GetValueWidth() << '\n';
+		std::cout << "\tValue = " << fDeviceAccum->GetValue() * 1e6 << " [ppm]\n";
+		std::cout << "\tValueError = " << fDeviceAccum->GetValueError() * 1e6 << " [ppm]\n";
+		std::cout << "\tValueWidth = " << fDeviceAccum->GetValueWidth() * 1e6 << " [ppm]\n";
 		fPatternCounter = 0;
 	}
 }
