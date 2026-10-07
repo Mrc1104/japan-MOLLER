@@ -2,7 +2,7 @@
 #include <vector>
 #include <mutex>
 
-#include "EpicTypes.h"
+#include "EpicTypeTraits.h"
 #include "EpicChannel.h"
 #include "ChannelObserver.h"
 
@@ -13,15 +13,24 @@ class Publisher
 	std::vector<Observer<T>*> Observers;
 
 protected:
-	using EpicsType = typename EpicsTypeTraits<T>::epics_type;
-	using MonitorCallback = void(*)(event_handler_args);
-	void Notify(EpicsType const& data);
+	void Notify(T const& data);
 public:
 	virtual ~Publisher() = default;
 	void AddObserver(Observer<T>* observer);
 	bool RemoveObserver(Observer<T>* observer);
 	std::size_t GetObserverCount() const;
 };
+
+template<typename T>
+class EPICSPublisher : public Publisher<T>
+{
+	static_assert(is_epic_supported<T>::value,
+				"EPICSPublisher is limited only to EPICS Supported Types");
+
+	using EpicsType = typename EpicsTypeTraits<T>::epics_type;
+	using MonitorCallback = void(*)(event_handler_args);
+};
+
 
 template<typename T>
 void Publisher<T>::AddObserver(Observer<T>* observer)
@@ -46,7 +55,7 @@ bool Publisher<T>::RemoveObserver(Observer<T>* observer)
 }
 
 template<typename T>
-void Publisher<T>::Notify(EpicsType const& data)
+void Publisher<T>::Notify(T const& data)
 {
 	std::lock_guard<std::recursive_mutex> lk(mut);
 	for( auto observer : Observers ) {

@@ -54,6 +54,7 @@ public:
 	template<typename T>
 	std::future<void> PutAsync(::chtype dbr_type, T&& value);
 
+	// TODO: Update the Async Functions to use the EpicsTypeTraits
 	class AsyncContextBase {
 	public:
 		virtual ~AsyncContextBase() = default;
@@ -85,7 +86,7 @@ public:
 
 	};
 	template<typename T>
-	class PublisherContext : public AsyncContextBase, public Publisher<T>
+	class PublisherContext : public AsyncContextBase, public EPICSPublisher<T>
 	{
 		// Publisher contains all the 'Subject' logic
 		// Maybe this also should hold onto the ::evid monitor_id too

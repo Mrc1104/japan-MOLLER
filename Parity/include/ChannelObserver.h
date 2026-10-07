@@ -1,5 +1,5 @@
 #pragma once
-#include "EpicTypes.h"
+#include "EpicTypeTraits.h"
 #include "EpicChannel.h"
 #include <string_view>
 
@@ -12,7 +12,16 @@ public:
 };
 
 template<typename T>
-class ChannelObserver : public Observer<T>
+class EPICSObserver : public Observer<T>
+{
+	static_assert(is_epic_supported<T>::value,
+				"ChannelPublisher is limited only to EPICS Supported Types");
+	using EpicsType = typename EpicsTypeTraits<T>::epics_type;
+	using MonitorCallback = void(*)(event_handler_args);
+};
+
+template<typename T>
+class ChannelObserver : public EPICSObserver<T>
 {
 	using EpicsType = typename EpicsTypeTraits<T>::epics_type;
 	AtomicEpicsType<T> fValue;

@@ -53,7 +53,7 @@ public:
 
 
 // Templatize the EPICS Data Type
-class QwFeedbackSetpoint : Observer<double>
+class QwFeedbackSetpoint : EPICSObserver<double>
 {
 private:
 	EpicChannel* fChannel;

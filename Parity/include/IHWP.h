@@ -9,7 +9,7 @@ enum class IHWP {
     kOUT = 1  // PER EPICS                                                                                
 };
 
-class IHWP_IOC : public Observer<int>
+class IHWP_IOC : public EPICSObserver<int>
 {
 	EpicChannel* fChannel;
 	AtomicEpicsType<int> fCurrState;
