@@ -154,7 +154,6 @@ class QwLogger : public VQwLogger
 
 	QwLogger(QwLogger const&) = delete;
 	QwLogger& operator=(QwLogger const&) = delete;
-	QwLogger& operator=(QwLogger &&) = delete;
 public:
 
 	/*! \brief Default Ctor: Sets the QwLogLevel and stream sink to null
@@ -168,6 +167,7 @@ public:
 	template<typename U>
 	QwLogger(U&& stream, QwLogLevel threshold = QwLogLevel::kAlways);
 	QwLogger(QwLogger&& other) noexcept;
+	QwLogger& operator=(QwLogger && other) noexcept;
 
 	/*! \brief Create a LogProxy to handle logging
 	 */
@@ -188,6 +188,10 @@ public:
     /*! \brief Resets the stream sink
      */
 	void SetStream(PtrLikeType stream) noexcept;
+
+    /*! \brief Bool operator
+     */
+	explicit operator bool() const;
 };
 
 
@@ -406,6 +410,21 @@ QwLogger<PtrLikeType>::QwLogger(QwLogger&& other) noexcept
 	fStream = std::move(other.fStream);
 	fThreshold.store(other.fThreshold.load(std::memory_order_relaxed),
 			           std::memory_order_relaxed);
+}
+template<typename PtrLikeType>
+QwLogger<PtrLikeType>& QwLogger<PtrLikeType>::operator=(QwLogger && other) noexcept
+{
+	if(this == &other) return *this;
+	std::scoped_lock lk(fStreamMutex, other.fStreamMutex);
+	fStream = std::move(other.fStream);
+	fThreshold.store(other.fThreshold.load(std::memory_order_relaxed),
+						std::memory_order_relaxed);
+	return *this;
+}
+template<typename PtrLikeType>
+QwLogger<PtrLikeType>::operator bool() const
+{
+	return static_cast<bool>(fStream) && static_cast<bool>(*fStream);
 }
 
 template<typename PtrLikeType>
