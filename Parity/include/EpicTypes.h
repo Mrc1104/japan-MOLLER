@@ -69,20 +69,15 @@ class AtomicEpicsType
 public:
 	AtomicEpicsType(T const& input = T{});
 	void Store(T const& input, std::memory_order mem_order = std::memory_order_seq_cst);
-	template<typename U = EpicsType, typename = std::enable_if_t<!std::is_same_v<T,U>>>
-	void Store(U const& input, std::memory_order mem_order = std::memory_order_seq_cst);
 	T Load(std::memory_order mem_order = std::memory_order_seq_cst) const;
+	T Exchange(T desired, std::memory_order mem_order = std::memory_order_seq_cst);
+	bool CompareExchangeWeak(T& expected, T desired, std::memory_order success, std::memory_order failure);
+	bool CompareExchangeWeak(T& expected, T desired, std::memory_order mem_order = std::memory_order_seq_cst);
 };
 
 template<typename T>
 AtomicEpicsType<T>::AtomicEpicsType(T const& input) : data{input} {}
 
-template<typename T>
-template<typename U, typename>
-void AtomicEpicsType<T>::Store(U const& dbr, std::memory_order mem_order)
-{
-	data.store(static_cast<T>( dbr ), mem_order);	
-}
 
 template<typename T>
 void AtomicEpicsType<T>::Store(T const& val, std::memory_order mem_order) {
@@ -93,6 +88,25 @@ T AtomicEpicsType<T>::Load(std::memory_order mem_order) const {
 	return data.load(mem_order);
 }
 
+template<typename T>
+T AtomicEpicsType<T>::Exchange(T desired, std::memory_order mem_order)
+{
+	return data.exchange(desired, mem_order);
+}
+
+template<typename T>
+bool AtomicEpicsType<T>::CompareExchangeWeak(T& expected, T desired, std::memory_order success, std::memory_order failure)
+{
+	return data.compare_exchange_weak(expected, desired, success, failure);
+}
+
+template<typename T>
+bool AtomicEpicsType<T>::CompareExchangeWeak(T& expected, T desired, std::memory_order mem_order)
+{
+	return data.compare_exchange_weak(expected, desired, mem_order);
+}
+
+// Can I jsut make this accept a string_view?
 template<>
 class AtomicEpicsType<std::string>
 {
@@ -107,4 +121,7 @@ public:
 	void Store(std::string const& input, std::memory_order mem_order = std::memory_order_seq_cst);
 	void Store(EpicsType const& input, std::memory_order mem_order = std::memory_order_seq_cst);
 	std::string Load(std::memory_order mem_order = std::memory_order_seq_cst) const;
+	std::string Exchange(std::string desired, std::memory_order mem_order = std::memory_order_seq_cst);
+	bool CompareExchangeWeak(std::string& expected, std::string desired, std::memory_order success, std::memory_order failure);
+	bool CompareExchangeWeak(std::string& expected, std::string desired, std::memory_order mem_order = std::memory_order_seq_cst);
 };
