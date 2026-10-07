@@ -25,13 +25,17 @@ QwFeedbackHandler::QwFeedbackHandler(QwFeedbackHandler const& source)
 void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
 {
 	VQwDataHandler::ParseConfigFile(file);
-	std::string feedback_type;
+	std::string feedback_type, logfile;
   	file.PopValue("impl", feedback_type);
   	file.PopValue("slope_ihwp_in", fFeedback->GetSlope(IHWP::kIN));
   	file.PopValue("slope_ihwp_out",fFeedback->GetSlope(IHWP::kOUT));
   	file.PopValue("patterns",fMaxPattern);
-	// Make this a FACTORY FUNCTION!
+	file.PopValue("log", logfile);
 	fFeedback->ConfigureFeedbackType(feedback_type);
+	if( fFeedback->ConfigureLogger(logfile) ) {
+		QwWarning << '(' << logfile << ") Logfile Not Set for "
+		          << feedback_type << " Feedback!" << QwLog::endl;
+	}
 	
 }
 Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)

@@ -101,6 +101,12 @@ void QwFeedback::ConfigureFeedbackType(TYPE type)
 	return;
 }
 
+bool QwFeedback::ConfigureLogger(std::string const& str, std::ios_base::openmode mode)
+{
+	fLogFile.SetSink(str);
+	return static_cast<bool>(fLogFile);
+}
+
 void    QwFeedback::SetSlope(IHWP state, double val) { fSlope[state] = val ; }
 double  QwFeedback::GetSlope(IHWP state) const       { return fSlope[state]; }
 double& QwFeedback::GetSlope(IHWP state)             { return fSlope[state]; }
@@ -206,6 +212,7 @@ bool QwPITAFeedback::AddSetpoint(std::string&& setp_name)
 void QwFeedbackSetpoint::Update(double const& data)
 {
 	fPrev = fCurr.Exchange(data, std::memory_order_acq_rel);
+	// Log and such
 }
 
 void QwFeedbackSetpoint::Attach(const char* pv_name)
@@ -247,22 +254,3 @@ QwFeedbackSetpoint::QwFeedbackSetpoint(QwFeedbackSetpoint const& other)
 	fCurr.Store(current, std::memory_order_release);
 }
 
-void QwFeedbackLogger::SetSink(std::string const& sink, const std::ios_base::openmode mode)
-{
-	fSink = std::make_unique<std::ofstream>(sink, std::ios::out | mode);
-}
-
-QwFeedbackLogger::operator bool() const
-{
-	return static_cast<bool>(fSink);
-}
-
-void QwFeedbackLogger::Write(QwLogLevel level, std::string_view log)
-{
-	if(fSink) fSink.Write(level, log);
-}
-
-QwLogProxy QwFeedbackLogger::Log(QwLogLevel level, std::string const& msg)
-{
-	if(fSink) fSink.Log(level, msg);
-}

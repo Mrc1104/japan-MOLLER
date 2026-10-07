@@ -7,7 +7,7 @@
 #include <variant>
 #include "IHWP.h"
 #include "VQwDataHandler.h" // Access EQwHandleType
-#include "QwLog.h"
+#include "QwFeedbackLogger.h"
 
 class QwFeedbackConfig
 {
@@ -119,6 +119,7 @@ class QwFeedback
 	// look into placement new
 	std::unique_ptr<VQwFeedbackImpl> fPimpl;
 	QwFeedbackSlope fSlope;
+	QwFeedbackLogger fLogFile;
 public:
 	enum class TYPE {
 		PITA,
@@ -132,6 +133,7 @@ public:
 	QwFeedback(QwFeedback const& other);
 public:
 	void ConfigureFeedbackType(std::string_view);
+	bool ConfigureLogger(std::string const&, std::ios_base::openmode mode = std::ios::app);
 public:
 	void ConfigureFeedback(QwFeedbackConfig&& config);
 	void ApplyCorrection(double const running_average);
@@ -148,14 +150,3 @@ public:
 };
 
 
-class QwFeedbackLogger : public VQwLogger
-{
-	QwLogger<std::unique_ptr<std::ofstream>> fSink;
-public:
-	void SetSink(std::string const& sink, const std::ios_base::openmode mode = std::ios::app);
-	explicit operator bool() const;
-
-	void Write(QwLogLevel level, std::string_view log) override;
-	QwLogProxy Log(QwLogLevel level, std::string const& msg = "") override;
-
-};
