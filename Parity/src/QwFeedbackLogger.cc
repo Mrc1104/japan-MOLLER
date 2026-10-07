@@ -30,3 +30,7 @@ QwLogProxy QwFeedbackLogger::Log(QwLogLevel level, std::string const& msg)
 	else return gQwLogger::Instance().Log(level, msg);
 }
 
+void QwFeedbackLogger::Update(QwFeedbackLogPayload const& data)
+{
+	if(fSink) Log(data.fLevel, data.fPayload);
+}

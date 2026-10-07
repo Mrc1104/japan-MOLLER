@@ -1,4 +1,5 @@
 #pragma once
+#include <cadef.h>
 #include <db_access.h>
 #include <type_traits>
 

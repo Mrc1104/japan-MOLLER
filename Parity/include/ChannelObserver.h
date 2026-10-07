@@ -1,6 +1,6 @@
 #pragma once
 #include "EpicTypeTraits.h"
-#include "EpicChannel.h"
+#include "EpicTypes.h"
 #include <string_view>
 
 template<typename T>
@@ -11,11 +11,13 @@ public:
 	virtual void Update(T const& data) = 0;
 };
 
+
+// EXAMPLE:
 template<typename T>
 class EPICSObserver : public Observer<T>
 {
 	static_assert(is_epic_supported<T>::value,
-				"ChannelPublisher is limited only to EPICS Supported Types");
+				"EPICSObserver is limited only to EPICS Supported Types");
 	using EpicsType = typename EpicsTypeTraits<T>::epics_type;
 	using MonitorCallback = void(*)(event_handler_args);
 };
@@ -40,7 +42,6 @@ template<typename T>
 void ChannelObserver<T>::Update(EpicsType const& data)
 {
 	fValue.Store(data);	
-	std::cout << "Storing value: " << data << '\n';
 	// Do other things
 }
 

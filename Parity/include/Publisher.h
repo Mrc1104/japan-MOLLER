@@ -3,8 +3,11 @@
 #include <mutex>
 
 #include "EpicTypeTraits.h"
-#include "EpicChannel.h"
 #include "ChannelObserver.h"
+
+// Forward Declaration
+template<typename T>
+class Observer;
 
 template<typename T>
 class Publisher
