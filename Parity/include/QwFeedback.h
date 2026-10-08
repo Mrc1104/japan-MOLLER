@@ -8,6 +8,7 @@
 #include "IHWP.h"
 #include "VQwDataHandler.h" // Access EQwHandleType
 #include "QwFeedbackLogger.h"
+#include "QwFeedbackSetpoints.h"
 
 class QwFeedbackConfig
 {
@@ -52,34 +53,6 @@ public:
 	void    AttachLogger(QwFeedbackLogger& logger) { fIHWP.AddObserver(&logger); }
 };
 
-
-// Templatize the EPICS Data Type
-class QwFeedbackSetpoint : public EPICSObserver<double>, public Publisher<QwFeedbackLogPayload>
-{
-private:
-	EpicChannel* fChannel;
-	double fPrev;
-	AtomicEpicsType<double> fCurr;
-	std::string fName;
-public:
-	void Attach(const char* pv_name);
-	void Update(double const& data) override;
-	template<typename BinaryOp>
-	std::future<void> ApplyCorrection(double corr) {
-		double current = fCurr.Load(std::memory_order_acquire);
-		while(!fCurr.CompareExchangeWeak(current, BinaryOp{}(current, corr), 
-				std::memory_order_release, std::memory_order_acquire));
-		return (fChannel) ? fChannel->PutAsync(DBR_DOUBLE, current) : std::future<void>{};
-	}
-public:
-	QwFeedbackSetpoint();
-	QwFeedbackSetpoint(EpicChannel* channel);
-	~QwFeedbackSetpoint();
-	QwFeedbackSetpoint(QwFeedbackSetpoint const& other);
-	QwFeedbackSetpoint(QwFeedbackSetpoint&& other) = delete;
-	QwFeedbackSetpoint& operator=(QwFeedbackSetpoint const& other) = delete;
-	QwFeedbackSetpoint& operator=(QwFeedbackSetpoint&& other) = delete;
-};
 
 class VQwFeedbackImpl
 {
