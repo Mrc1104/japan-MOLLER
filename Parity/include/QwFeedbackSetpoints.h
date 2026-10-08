@@ -4,6 +4,22 @@
 #include "QwFeedbackLogger.h"
 #include "EpicTypes.h"
 #include "EpicChannel.h"
+#include "IHWP.h"
+
+class QwFeedbackSlope
+{
+	static_assert( static_cast<int>(IHWP::kIN) == 0
+			&& static_cast<int>(IHWP::kOUT) == 1,
+			"Expected: enum IHWP is used for indexing!\n");
+	std::array<double, 2> fSlopes;
+	IHWP_IOC fIHWP;
+public:
+	QwFeedbackSlope();
+	double& operator[](IHWP state);
+	double  operator[](IHWP state) const;
+	double  GetSlope() const;
+	void    AttachLogger(QwFeedbackLogger& logger);
+};
 
 
 class QwFeedbackSetpoint : public EPICSObserver<double>, public Publisher<QwFeedbackLogPayload>

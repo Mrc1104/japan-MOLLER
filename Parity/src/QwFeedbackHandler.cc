@@ -2,6 +2,9 @@
 #include <string_view>
 #include <string>
 #include <limits>
+#include "QwFeedbackConfig.h"
+#include "QwFeedbackImpl.h"
+
 QwFeedbackHandler::QwFeedbackHandler(TString const& name)
 : VQwDataHandler(name)
 , fMaxPattern(std::numeric_limits<std::size_t>::max())
@@ -117,10 +120,10 @@ void QwFeedbackHandler::ProcessData()
 		// Apply correction
 		fDeviceAccum->CalculateRunningAverage();
 		fFeedback->ApplyCorrection(fDeviceAccum->GetValue());
-		std::cout << "Pattern " << fPatternCounter << ")\n";
-		std::cout << "\tValue = " << fDeviceAccum->GetValue() * 1e6 << " [ppm]\n";
-		std::cout << "\tValueError = " << fDeviceAccum->GetValueError() * 1e6 << " [ppm]\n";
-		std::cout << "\tValueWidth = " << fDeviceAccum->GetValueWidth() * 1e6 << " [ppm]\n";
+		QwOut << "Pattern " << fPatternCounter << ")\n";
+		QwOut << "\tValue = " << fDeviceAccum->GetValue() * 1e6 << " [ppm]\n";
+		QwOut << "\tValueError = " << fDeviceAccum->GetValueError() * 1e6 << " [ppm]\n";
+		QwOut << "\tValueWidth = " << fDeviceAccum->GetValueWidth() * 1e6 << " [ppm]\n";
 		fPatternCounter = 0;
 	}
 }

@@ -2,6 +2,16 @@
 #include "QwFeedbackSetpoints.h"
 
 
+
+
+QwFeedbackSlope::QwFeedbackSlope() : fSlopes{1.0, 1.0}, fIHWP() {}
+double& QwFeedbackSlope::operator[](IHWP state)       { return fSlopes[static_cast<int>(state)]; }
+double  QwFeedbackSlope::operator[](IHWP state) const { return fSlopes[static_cast<int>(state)]; }
+double  QwFeedbackSlope::GetSlope() const             { return this->operator[](fIHWP.GetState());}
+void    QwFeedbackSlope::AttachLogger(QwFeedbackLogger& logger) { fIHWP.AddObserver(&logger); }
+
+
+
 void QwFeedbackSetpoint::Update(double const& data)
 {
 	fPrev = fCurr.Exchange(data, std::memory_order_acq_rel);

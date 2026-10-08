@@ -32,5 +32,6 @@ QwLogProxy QwFeedbackLogger::Log(QwLogLevel level, std::string const& msg)
 
 void QwFeedbackLogger::Update(QwFeedbackLogPayload const& data)
 {
+	QwMessage << "Gues Who's is logging!\n";
 	if(fSink) Log(data.fLevel, data.fPayload);
 }
