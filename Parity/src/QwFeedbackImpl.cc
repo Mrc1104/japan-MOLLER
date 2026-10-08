@@ -48,9 +48,9 @@ QwPITAFeedback::RequestTargetDeviceImpl() const
 bool QwPITAFeedback::SetDeviceName(std::string&& name)
 {
 	if(!fDevice.empty()) {
-		std::cout << "Warning: PITA Feedback Device name already set!\n";
-		std::cout << "\tCurrent: " << fDevice << '\n';
-		std::cout << "\tGiven:   " << name    << '\n';
+		QwWarning << "Warning: PITA Feedback Device name already set!\n"
+		          << "\tCurrent: " << fDevice << '\n'
+		          << "\tGiven:   " << name    << '\n';
 		return false;
 	}
 	fDevice = std::move(name);
@@ -61,10 +61,10 @@ bool QwPITAFeedback::SetDeviceName(std::string&& name)
 bool QwPITAFeedback::AddSetpoint(std::string&& setp_name)
 {
 	if(fNumSetpointsSet >= fNumSetpointsExpected) {
-		std::cout << "Error: PITA Feedback Setpoints already set!\n";
+		QwError << "Error: PITA Feedback Setpoints already set!\n";
 		return false;
 	}
-	std::cout << "Adding Setpoint: " << setp_name << '\n';
+	QwMessage << "Adding Setpoint: " << setp_name << '\n';
 	auto& HV = fPitaVoltages[fNumSetpointsSet++];
 	HV.Attach(setp_name.c_str());
 	HV.AddObserver(&fLogger);

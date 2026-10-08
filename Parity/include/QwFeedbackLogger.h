@@ -12,7 +12,7 @@ struct QwFeedbackLogPayload
 
 class QwFeedbackLogger : public VQwLogger, public Observer<QwFeedbackLogPayload>
 {
-	QwLogger<std::unique_ptr<std::ofstream>> fSink;
+	QwLogger<std::unique_ptr<std::ostream>> fSink;
 public:
 	void SetSink(std::string const& sink, const std::ios_base::openmode mode = std::ios::app);
 	explicit operator bool() const;

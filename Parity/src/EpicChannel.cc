@@ -2,11 +2,14 @@
 void EpicChannel::connection_callback(connection_handler_args arg) noexcept {
 	std::string_view ch_name = ::ca_name(arg.chid);
 	bool connected = (arg.op == CA_OP_CONN_UP);
-	std::cout << "[Callback] Channel '" << ch_name << "' status changed: ";
 	if(connected) {
-		std::cout << "Connected to IOC (Host: " << ::ca_host_name(arg.chid) <<")\n";
+		auto log = gQwLogger::Instance().Log(QwLogLevel::kMessage);
+		log << "[Callback] Channel '" << ch_name << "' status changed: ";
+		log << "Connected to IOC (Host: " << ::ca_host_name(arg.chid) <<")\n";
 	} else {
-		std::cout << "Disconnected from IOC\n";
+		auto log = gQwLogger::Instance().Log(QwLogLevel::kWarning);
+		log << "[Callback] Channel '" << ch_name << "' status changed: ";
+		log << "Disconnected from IOC\n";
 	}
     if (void* private_data = ::ca_puser(arg.chid)) {
         auto* instance = static_cast<EpicChannel*>(private_data);
@@ -27,7 +30,7 @@ void EpicChannel::monitor_callback(event_handler_args arg) noexcept
 {
 	if( arg.status == ECA_NORMAL && arg.dbr != nullptr ) {
 		auto const* data = static_cast<dbr_time_string const*>( arg.dbr );
-		std::cout << ">>> Live PV Update: " << data->value << '\n';
+		QwMessage << ">>> Live PV Update: " << data->value << '\n';
 	}
 }
 
@@ -55,7 +58,7 @@ EpicChannel::EpicChannel(char const* pv_name, ::capri priority)
 EpicChannel::~EpicChannel()
 {
 	if(chan) {
-		std::cout << "Calling dtor for" << ::ca_name(chan) << '\n';
+		QwOut << "Calling dtor for" << ::ca_name(chan) << '\n';
 		th_map.Clear();
 		::ca_clear_channel(chan);
 	}

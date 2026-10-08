@@ -21,6 +21,6 @@ public:
 public:
 	EpicChannel* ConnectChannel(char const* pv_name, ::capri priority = CA_PRIORITY_DEFAULT);
 	void GetStatus(unsigned level=0);
-	void CheckConnection(std::ostream& out = std::cout);
+	void CheckConnection();
 };
 

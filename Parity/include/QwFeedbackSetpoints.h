@@ -58,13 +58,13 @@ std::future<void> QwFeedbackSetpoint::ApplyCorrection(double corr)
 		std::string log_payload = "Request: " + fName
 	                            + ": fPrev = "        + std::to_string(fPrev)
 		                        + ", fCurrent = "     + std::to_string(current)
-								+ " => Correction = " + std::to_string(fCorr);
+								+ " => Correction = " + std::to_string(fCorr) + '\n';
 		Notify(QwFeedbackLogPayload{QwLogLevel::kMessage, std::move(log_payload)}); 
 		return fut;
 	}
 	std::string log_payload = "Attempting to send request to "
 							  + fName
-							  + ", but is null... something bad has happened!";
+							  + ", but is null... something bad has happened!\n";
 	Notify(QwFeedbackLogPayload{QwLogLevel::kError, std::move(log_payload)});
 	return std::future<void>{};
 }

@@ -18,7 +18,7 @@ void QwFeedbackSetpoint::Update(double const& data)
 	std::string log_payload = "Received: " + fName
 	                            + ": fPrev = "        + std::to_string(fPrev)
 		                        + ", fCurrent = "     + std::to_string(data)
-								+ " => Correction = " + std::to_string(fPrev - data);
+								+ " => Correction = " + std::to_string(fPrev - data) + '\n';
 	Notify(QwFeedbackLogPayload{QwLogLevel::kMessage, std::move(log_payload)}); 
 }
 

@@ -24,7 +24,7 @@ void QwFeedback::ConfigureFeedbackType(std::string_view sv)
 }
 void QwFeedback::ConfigureFeedbackType(TYPE type)
 {
-	if(fPimpl) std::cout << "WARNING: FeedbackType is already configured! Ignoring...\n";
+	if(fPimpl) QwWarning << "WARNING: FeedbackType is already configured! Ignoring...\n";
 	switch(type) {
 		case TYPE::PITA:
 			fPimpl = std::make_unique<QwPITAFeedback>(fLogFile);

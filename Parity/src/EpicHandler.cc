@@ -1,7 +1,8 @@
-#include "EpicHandler.h"
-#include "ErrorHandling.h"
 #include <cadef.h>
 #include <string_view>
+#include "EpicHandler.h"
+#include "ErrorHandling.h"
+#include "QwLog.h"
 std::string_view stringify(::channel_state const state)
 {
 	std::string_view sv;
@@ -60,13 +61,13 @@ void EpicHandler::GetStatus(unsigned level)
 	::ca_client_status(level);
 }
 
-void EpicHandler::CheckConnection(std::ostream& out)
+void EpicHandler::CheckConnection()
 {
-	out << "Checking channel connections:\n";
+	auto log = gQwLogger::Instance().Log(QwLogLevel::kMessage,  "Checking channel connections:\n");
 	for( auto& ch : channels ) {
 		auto name  = ch->GetName();
 		auto state = ch->CheckConnection();
-		out << name << " -- " << stringify(state) << '\n';
+		log << name << " -- " << stringify(state) << '\n';
 	}
 }
 
