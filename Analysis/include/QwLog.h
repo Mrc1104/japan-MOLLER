@@ -159,13 +159,13 @@ public:
 	/*! \brief Default Ctor: Sets the QwLogLevel and stream sink to null
 	 *  \param QwLogLevel threshold: Threshold level
 	 */
-	explicit QwLogger(QwLogLevel threshold = QwLogLevel::kAlways);
+	explicit QwLogger(QwLogLevel threshold = QwLogLevel::kMessage);
 	/*! \brief Ctor: Sets the QwLogLevel and stream sink
 	 *  \param U&& Stream: Forwarding Reference to a PtrLike sink (raw, smart, etc)
 	 *  \param QwLogLevel threshold: Threshold level
 	 */
 	template<typename U>
-	QwLogger(U&& stream, QwLogLevel threshold = QwLogLevel::kAlways);
+	QwLogger(U&& stream, QwLogLevel threshold = QwLogLevel::kMessage);
 	QwLogger(QwLogger&& other) noexcept;
 	QwLogger& operator=(QwLogger && other) noexcept;
 
