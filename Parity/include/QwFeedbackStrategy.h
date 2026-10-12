@@ -3,13 +3,14 @@
 #include <array>
 #include "QwLog.h"
 #include "QwFeedbackSetpoints.h"
+#include "VQwHardwareChannel.h"
 
 struct QwPitaFBStrategy
 {
 	static constexpr std::string_view fName{"PITA Feedback"};
 	static constexpr std::size_t fNumSetpointsExpected{8};
 	using SetPointArray = std::array<QwFeedbackSetpoint, fNumSetpointsExpected>;
-	static void Apply(double const correction, SetPointArray& setpoints);
+	static void Apply(VQwHardwareChannel const* device, SetPointArray& setpoints);
 };
 
 struct QwAposUFBStrategy
@@ -17,7 +18,7 @@ struct QwAposUFBStrategy
 	static constexpr std::string_view fName{"AposU Feedback"};
 	static constexpr std::size_t fNumSetpointsExpected{4};
 	using SetPointArray = std::array<QwFeedbackSetpoint, fNumSetpointsExpected>;
-	static void Apply(double const correction, SetPointArray& setpoints);
+	static void Apply(VQwHardwareChannel const* device, SetPointArray& setpoints);
 };
 
 struct QwAposVFBStrategy
@@ -25,7 +26,7 @@ struct QwAposVFBStrategy
 	static constexpr std::string_view fName{"AposV Feedback"};
 	static constexpr std::size_t fNumSetpointsExpected{4};
 	using SetPointArray = std::array<QwFeedbackSetpoint, fNumSetpointsExpected>;
-	static void Apply(double const correction, SetPointArray& setpoints);
+	static void Apply(VQwHardwareChannel const* device, SetPointArray& setpoints);
 };
 
 
@@ -34,7 +35,7 @@ struct QwIAFBStrategy
 	static constexpr std::string_view fName{"IA Feedback"};
 	static constexpr std::size_t fNumSetpointsExpected{4};
 	using SetPointArray = std::array<QwFeedbackSetpoint, fNumSetpointsExpected>;
-	static void Apply(double const correction, SetPointArray& setpoints);
+	static void Apply(VQwHardwareChannel const* device, SetPointArray& setpoints);
 };
 
 /*
@@ -56,7 +57,7 @@ public:
 	static constexpr std::size_t fNumSetpointsExpected = Strategy::fNumSetpointsExpected;
 public:
 	bool SetSetpoint(const char* pv_name, QwFeedbackLogger& logger);
-	void operator()(double const correction);
+	void operator()(VQwHardwareChannel const* device);
 private:
 	std::size_t fNumSetpointsSet{0};
 	std::array<QwFeedbackSetpoint, fNumSetpointsExpected> fSetpoints;
@@ -77,10 +78,10 @@ bool QwFBStrategy<Strategy>::SetSetpoint(const char* pv_name, QwFeedbackLogger& 
 }
 
 template <typename Strategy>
-void QwFBStrategy<Strategy>::operator()(double const correction)
+void QwFBStrategy<Strategy>::operator()(VQwHardwareChannel const* device)
 {
 	if(fNumSetpointsSet == fNumSetpointsExpected) {
-		Strategy::Apply(correction, fSetpoints);
+		Strategy::Apply(device, fSetpoints);
 	} else {
 		QwError << fName << " does not have the expected number of setpoints set!"
 		        << "\n\tNo. Set: "      << fNumSetpointsSet 

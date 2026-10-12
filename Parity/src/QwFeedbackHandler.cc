@@ -119,7 +119,7 @@ void QwFeedbackHandler::ProcessData()
 	if(fPatternCounter >= fMaxPattern) {
 		// Apply correction
 		fDeviceAccum->CalculateRunningAverage();
-		fFeedback->ApplyCorrection(fDeviceAccum->GetValue());
+		fFeedback->ApplyCorrection(fDeviceAccum);
 		QwOut << "Pattern " << fPatternCounter << ")\n";
 		QwOut << "\tValue = " << fDeviceAccum->GetValue() * 1e6 << " [ppm]\n";
 		QwOut << "\tValueError = " << fDeviceAccum->GetValueError() * 1e6 << " [ppm]\n";

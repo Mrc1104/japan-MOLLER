@@ -64,9 +64,9 @@ void QwFeedback::ConfigureFeedback(QwFeedbackConfig&& config)
 	if(fPimpl) fPimpl->ConfigureImpl(std::move(config));
 }
 
-void QwFeedback::ApplyCorrection(double const running_average)
+void QwFeedback::ApplyCorrection(VQwHardwareChannel const* device)
 {
-	if(fPimpl) fPimpl->ApplyCorrectionImpl(running_average / GetSlope());
+	if(fPimpl) fPimpl->ApplyCorrectionImpl(device);
 }
 
 

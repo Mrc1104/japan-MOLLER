@@ -33,7 +33,7 @@ public:
 	bool ConfigureLogger(std::string const&, std::ios_base::openmode mode = std::ios::app);
 public:
 	void ConfigureFeedback(QwFeedbackConfig&& config);
-	void ApplyCorrection(double const running_average);
+	void ApplyCorrection(VQwHardwareChannel const* device);
 	std::pair<VQwDataHandler::EQwHandleType, std::string_view>
 	RequestTargetDevice() const;
 public:
