@@ -14,20 +14,33 @@ QwFeedback::QwFeedback(QwFeedback const& other)
 {
 	
 }
-
-
 void QwFeedback::ConfigureFeedbackType(std::string_view sv)
 {
 	if(sv.find("PITA") != std::string_view::npos) {
 		ConfigureFeedbackType(TYPE::PITA);
+	} else if(sv.find("APOSU") != std::string_view::npos) {
+		ConfigureFeedbackType(TYPE::APOSU);
+	} else if(sv.find("APOSV") != std::string_view::npos) {
+		ConfigureFeedbackType(TYPE::APOSV);
+	} else if(sv.find("IA") != std::string_view::npos) {
+		ConfigureFeedbackType(TYPE::IA);
 	}
 }
 void QwFeedback::ConfigureFeedbackType(TYPE type)
 {
-	if(fPimpl) QwWarning << "WARNING: FeedbackType is already configured! Ignoring...\n";
+	if(fPimpl) QwWarning << "FeedbackType is already configured! Ignoring...\n";
 	switch(type) {
 		case TYPE::PITA:
-			fPimpl = std::make_unique<QwFeedbackImpl<QwPitaFBStrategy>>(fLogFile);
+			fPimpl = std::make_unique<QwFeedbackImpl<QwPitaStrategy>>(fLogFile);
+			break;
+		case TYPE::APOSU:
+			fPimpl = std::make_unique<QwFeedbackImpl<QwAposUStrategy>>(fLogFile);
+			break;
+		case TYPE::APOSV:
+			fPimpl = std::make_unique<QwFeedbackImpl<QwAposVStrategy>>(fLogFile);
+			break;
+		case TYPE::IA:
+			fPimpl = std::make_unique<QwFeedbackImpl<QwIAStrategy>>(fLogFile);
 			break;
 		default:
 			break;

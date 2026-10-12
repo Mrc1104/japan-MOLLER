@@ -18,8 +18,10 @@ class QwFeedback
 public:
 	enum class TYPE {
 		PITA,
-		POSU,
-		POSV//,etc
+		APOSU,
+		APOSV,
+		IA,
+		//POSXY // TODO: IMPLEMENT!
 	};
 private:
 	void ConfigureFeedbackType(TYPE type);

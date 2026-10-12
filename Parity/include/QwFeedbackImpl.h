@@ -6,6 +6,8 @@
 #include "VQwDataHandler.h" // Access EQwHandleType
 #include "QwFeedbackLogger.h"
 #include "QwFeedbackConfig.h"
+#include "QwFeedbackStrategy.h"
+
 
 class VQwFeedbackImpl
 {
@@ -15,18 +17,6 @@ public:
 	virtual std::pair<VQwDataHandler::EQwHandleType, std::string_view>
 	RequestTargetDeviceImpl() const    = 0;
 	virtual std::unique_ptr<VQwFeedbackImpl> Clone() const = 0;
-};
-
-class QwPitaFBStrategy
-{
-	static constexpr std::string_view fName{"PITA Feedback"};
-	static constexpr std::size_t fNumSetpointsExpected{8};
-	std::size_t fNumSetpointsSet{0};
-	std::array<QwFeedbackSetpoint, fNumSetpointsExpected> fSetpoints;
-public:
-	void operator()(double const correction);
-	bool SetSetpoint(const char* pv_name, QwFeedbackLogger& logger);
-
 };
 
 template<typename FeedbackStrategy>
@@ -107,5 +97,3 @@ std::unique_ptr<VQwFeedbackImpl> QwFeedbackImpl<FeedbackStrategy>::Clone() const
 {
 	return std::make_unique<QwFeedbackImpl>( *this );
 }
-
-
