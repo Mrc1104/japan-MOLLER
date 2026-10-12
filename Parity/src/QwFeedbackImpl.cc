@@ -1,75 +1,35 @@
 #include "QwFeedbackImpl.h"
-#include "QwFeedbackConfig.h"
-
-QwPITAFeedback::QwPITAFeedback(QwFeedbackLogger& logger)
-: fNumSetpointsSet{0}
-, fDevice{}
-, fLogger(logger)
-{
-
-}
-
-std::unique_ptr<VQwFeedbackImpl> QwPITAFeedback::Clone() const
-{
-	return std::make_unique<QwPITAFeedback>( *this );
-}
-
-void QwPITAFeedback::ConfigureImpl(QwFeedbackConfig&& config)
-{
-	switch(config.getType()) {
-		case QwFeedbackConfig::TYPE::kTARGET:
-			SetDeviceName(std::move(config).getName());
-			break;
-		case QwFeedbackConfig::TYPE::kIOC:
-			AddSetpoint(std::move(config).getName());
-			break;
-		default:
-			break;
-	}
-}
-void QwPITAFeedback::ApplyCorrectionImpl(double const correction)
-{
-	for(std::size_t index = 0; index < fPitaVoltages.size(); index++) {
-		if(index < 4) {
-			auto val = fPitaVoltages[index].ApplyCorrection<std::plus<double>>(correction);
-		} else {
-			auto val = fPitaVoltages[index].ApplyCorrection<std::minus<double>>(correction);
-		}
-	}
-}
-
-std::pair<VQwDataHandler::EQwHandleType, std::string_view>
-QwPITAFeedback::RequestTargetDeviceImpl() const
-{
-	return {VQwDataHandler::EQwHandleType::kHandleTypeAsym, fDevice};
-}
 
 
-bool QwPITAFeedback::SetDeviceName(std::string&& name)
-{
-	if(!fDevice.empty()) {
-		QwWarning << "Warning: PITA Feedback Device name already set!\n"
-		          << "\tCurrent: " << fDevice << '\n'
-		          << "\tGiven:   " << name    << '\n';
-		return false;
-	}
-	fDevice = std::move(name);
-	return true;
-}
-
-// Need to connect to an IOC
-bool QwPITAFeedback::AddSetpoint(std::string&& setp_name)
+bool QwPitaFBStrategy::SetSetpoint(const char* pv_name, QwFeedbackLogger& logger)
 {
 	if(fNumSetpointsSet >= fNumSetpointsExpected) {
-		QwError << "Error: PITA Feedback Setpoints already set!\n";
+		QwError << "Error: " << fName << " Setpoints already set!\n";
 		return false;
 	}
-	QwMessage << "Adding Setpoint: " << setp_name << '\n';
-	auto& HV = fPitaVoltages[fNumSetpointsSet++];
-	HV.Attach(setp_name.c_str());
-	HV.AddObserver(&fLogger);
-
+	QwMessage << "Adding Setpoint: " << pv_name << '\n';
+	auto& setpoint = fSetpoints[fNumSetpointsSet++];
+	setpoint.Attach(pv_name);
+	setpoint.AddObserver(&logger);
 	return true;
-
 }
+
+void QwPitaFBStrategy::operator()(double const correction)
+{
+	using tx_ack = std::future<void>;
+	constexpr auto N = fNumSetpointsExpected;
+	std::array<tx_ack, N> ack;
+	for(std::size_t index = 0; index < N; index++) {
+		if(index < 4) {
+			ack[index] = std::move( fSetpoints[index].ApplyCorrection<std::plus<double>>(correction) );
+		} else {
+			ack[index] = std::move( fSetpoints[index].ApplyCorrection<std::minus<double>>(correction) );
+		}
+	}
+
+	for( auto& tx : ack ) {
+		tx.get();
+	}
+}
+
 

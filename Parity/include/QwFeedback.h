@@ -9,8 +9,6 @@
 class VQwFeedbackImpl;
 class QwFeedbackConfig;
 
-
-// Non-Virtual Interface
 class QwFeedback
 {
 	// look into placement new
