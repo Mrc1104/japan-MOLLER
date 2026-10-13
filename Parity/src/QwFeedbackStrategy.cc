@@ -1,14 +1,14 @@
 #include "QwFeedbackStrategy.h"
 #include "QwFeedbackSlope.h"
 
-#define WAIT_FOR_TX_ACK
+// #define WAIT_FOR_TX_ACK
 
 void QwPitaFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope, SetPointArray& setpoints)
 {
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
 	std::array<tx_ack, N> ack;
-	double const correction = payload.Get(FbCorrType::ASYM) * 1e6 / slope->Get();
+	double const correction = payload.Get(FbCorrType::ASYM) / slope->Get();
 	for(std::size_t index = 0; index < N; index++) {
 		if(index < 4) {
 			ack[index] = std::move( setpoints[index].ApplyCorrection<std::plus<double>>(correction) );
@@ -29,7 +29,7 @@ void QwAposUFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFee
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
 	std::array<tx_ack, N> ack;
-	double const correction = payload.Get(FbCorrType::ASYM) * 1e6 / slope->Get();
+	double const correction = payload.Get(FbCorrType::ASYM) / slope->Get();
 	for(std::size_t index = 0; index < N; index++) {
 		if(index % 2) {
 			ack[index] = std::move( setpoints[index].ApplyCorrection<std::minus<double>>(correction) );
@@ -51,7 +51,7 @@ void QwAposVFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFee
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
 	std::array<tx_ack, N> ack;
-	double const correction = payload.Get(FbCorrType::ASYM) * 1e6 / slope->Get();
+	double const correction = payload.Get(FbCorrType::ASYM) / slope->Get();
 	for(std::size_t index = 0; index < N; index++) {
 		if(index % 2) {
 			ack[index] = std::move( setpoints[index].ApplyCorrection<std::minus<double>>(correction) );
@@ -73,7 +73,7 @@ void QwIAFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedba
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
 	std::array<tx_ack, N> ack;
-	double const correction = payload.Get(FbCorrType::ASYM) * 1e6 / slope->Get();
+	double const correction = payload.Get(FbCorrType::ASYM) / slope->Get();
 	for(std::size_t index = 0; index < N; index++) {
 		ack[index] = std::move( setpoints[index].ApplyCorrection<std::minus<double>>(correction) );
 	}

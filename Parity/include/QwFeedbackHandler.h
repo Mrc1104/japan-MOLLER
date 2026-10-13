@@ -6,6 +6,8 @@
 #include <source_location>
 #include <string>
 #include <ostream>
+#include <optional>
+#include <set>
 
 
 class QwFeedbackHandler : public VQwDataHandler, public MQwDataHandlerCloneable<QwFeedbackHandler>
@@ -41,10 +43,39 @@ protected:
     Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override { THROW_ERROR("NOT SUPPORTED"); }
 
 private:
+	class DeviceMap
+	{
+		FbCorrType fFbType;
+		VQwHardwareChannel const* fDeviceObserver;
+		mutable VQwHardwareChannel* fDeviceAccum;
+		double fScale;
+	public:
+		DeviceMap(FbCorrType fb, VQwHardwareChannel const* observ, VQwHardwareChannel* accum, double factor)
+		: fFbType(fb), fDeviceObserver(observ), fDeviceAccum(accum), fScale(factor){}
+		bool operator<(DeviceMap const& other) const {
+			return static_cast<int>(fFbType) < static_cast<int>(other.fFbType);
+		}
+		void Accumulate() const {
+			fDeviceAccum->AccumulateRunningSum(fDeviceObserver);
+		}
+		void CalculateAverage() const{
+			fDeviceAccum->CalculateRunningAverage();
+		}
+		double GetValue() const {
+			return fDeviceAccum->GetValue() * fScale;
+		}
+		double GetValueError() const {
+			return fDeviceAccum->GetValueError() * fScale;
+		}
+		double GetValueWidth() const {
+			return fDeviceAccum->GetValueWidth() * fScale;
+		}
+		FbCorrType GetFbType() const { return fFbType; }
+		void ClearEventData() const {  fDeviceAccum->ClearEventData(); }
+	};
 	std::size_t fMaxPattern;
 	std::size_t fPatternCounter;
-   	VQwHardwareChannel const* fDeviceObserver;
-   	VQwHardwareChannel* fDeviceAccum;
+	std::set<DeviceMap> fDeviceSet;
 	std::unique_ptr<QwFeedback> fFeedback;
 };
 

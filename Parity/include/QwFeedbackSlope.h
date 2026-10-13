@@ -17,11 +17,11 @@ class QwIHWPSlope : public VQwFeedbackSlopes
 
 	void    SetImpl(int index, const double val) override;
 	double  GetImpl(int index) const override;
-	void check_isvalid() const;
+	void    check_isvalid() const;
 public:
 	QwIHWPSlope(QwFeedbackLogger& logger);
 	std::unique_ptr<VQwFeedbackSlopes> Clone() const override;
-	bool    IsValid() const;
+	bool IsValid() const;
 };
 
 class QwPOSXYSlope : public VQwFeedbackSlopes, public Publisher<QwFeedbackLogPayload>
@@ -42,8 +42,8 @@ public:
 private:
 	void    SetImpl(int index, const double val) override;
 	double  GetImpl(int index) const override;
-	void cache() const;
-	void check_isvalid() const;
+	void    cache() const;
+	void    check_isvalid() const;
 
 	static constexpr std::size_t ARR_SIZE = 4;
 	std::array<double, ARR_SIZE> fSlopes_raw{};

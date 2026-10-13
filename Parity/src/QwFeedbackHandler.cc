@@ -5,13 +5,12 @@
 #include "QwFeedbackConfig.h"
 #include "QwFeedbackImpl.h"
 
+constexpr double PPM_UNIT = 1e6;
 
 QwFeedbackHandler::QwFeedbackHandler(TString const& name)
 : VQwDataHandler(name)
 , fMaxPattern(std::numeric_limits<std::size_t>::max())
 , fPatternCounter(0)
-, fDeviceObserver{nullptr}
-, fDeviceAccum{nullptr}
 , fFeedback{std::make_unique<QwFeedback>()}
 {
 	fKeepRunningSum = false;
@@ -20,8 +19,7 @@ QwFeedbackHandler::QwFeedbackHandler(QwFeedbackHandler const& source)
 : VQwDataHandler(source)
 , fMaxPattern(source.fMaxPattern)
 , fPatternCounter(source.fPatternCounter)
-, fDeviceObserver(source.fDeviceObserver)
-, fDeviceAccum( source.fDeviceAccum->Clone(VQwDataElement::kDerived) )
+, fDeviceSet(source.fDeviceSet)
 , fFeedback(std::make_unique<QwFeedback>(*source.fFeedback))
 { }
 
@@ -107,36 +105,48 @@ Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)
 
 Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff)
 {
-	auto [data_type, device] = fFeedback->RequestTargetDevice();
-	std::cout << "Requesting channel: " << device << '\n';
-    switch (data_type) {
-      case kHandleTypeYield:
-        SetEventcutErrorFlagPointer(yield.GetEventcutErrorFlagPointer());
-        fDeviceObserver = yield.ReturnInternalValue(TString(device));
-        break;
-      case kHandleTypeAsym:
-        SetEventcutErrorFlagPointer(asym.GetEventcutErrorFlagPointer());
-        fDeviceObserver = asym.ReturnInternalValue(TString(device));
-        break;
-      case kHandleTypeDiff:
-        SetEventcutErrorFlagPointer(diff.GetEventcutErrorFlagPointer());
-        fDeviceObserver = diff.ReturnInternalValue(TString(device));
-        break;
-      default:
-        QwWarning << "Warning: QwFeedbackHander::ConnectChannels():\n";
-		QwWarning << "Unknown data type (" << data_type << ") for device (" << device << ")";
-        QwWarning << QwLog::endl;
-        break;
-    }
+	for( auto& device : fFeedback->RequestTargetDevices() ) {
+		auto const& device_name    = device.fName;
+		auto const& device_type    = device.fQwType;
+		auto const& device_fb_type = device.fFbType;
+		double scale_factor = 1.0;
+		VQwHardwareChannel const* observer{nullptr};
+		QwMessage << "Requesting channel: " << device_name << '\n';
+		switch (device_type) {
+			case kHandleTypeYield:
+				// Unsupported
+				continue;	
+				break;
+			case kHandleTypeAsym:
+				SetEventcutErrorFlagPointer(asym.GetEventcutErrorFlagPointer());
+				observer = asym.ReturnInternalValue(TString(device_name));
+				scale_factor = PPM_UNIT; 
+				break;
+			case kHandleTypeDiff:
+				SetEventcutErrorFlagPointer(diff.GetEventcutErrorFlagPointer());
+				observer = diff.ReturnInternalValue(TString(device_name));
+				break;
+			default:
+				QwWarning << "Warning: QwFeedbackHander::ConnectChannels():\n"
+				          << "Unknown data type (" << device_type << ") for device (" << device_name << ")"
+				          << QwLog::endl;
+				break;
+		}
 
-	if(fDeviceObserver == nullptr) {
-		std::string msg = "Feedback Target Device (" 
-					      + std::string(device)
-						  + ") Not Found";
-		throw std::runtime_error(std::move(msg));
+		if(observer == nullptr) {
+			QwWarning << "Feedback Target Device (" 
+				      << device_name
+				      << ") Not Found";
+			continue;
+		} 
+		auto const& [it, success] = fDeviceSet.emplace(DeviceMap{device_fb_type, observer, observer->Clone(VQwDataElement::kDerived), scale_factor});
+		if(!success) {
+			QwWarning << "Feedback Target Device (" 
+				      << device_name
+				      << ") Not included... Likely already set for FB Type: "
+					  << std::to_string(static_cast<int>(device_fb_type)) << QwLog::endl;
+		}
 	}
-	fDeviceAccum =  fDeviceObserver->Clone(VQwDataElement::kDerived);
-
 	
 
 
@@ -150,19 +160,23 @@ void QwFeedbackHandler::ProcessData()
 	//    a) Not virtual and
 	//    b) unergonomic (nested class structure)
 	if(GetEventcutErrorFlag() == 0) {
-		fDeviceAccum->AccumulateRunningSum(fDeviceObserver);
+		for( auto& device : fDeviceSet) {
+			device.Accumulate();
+		}
 		fPatternCounter++;
 	}
 	if(fPatternCounter >= fMaxPattern) {
 		// Apply correction
-		QwFeedbackCorrectionPayload payload{};
-		fDeviceAccum->CalculateRunningAverage();
-		payload.Set(FbCorrType::ASYM, fDeviceAccum->GetValue());
-		fFeedback->ApplyCorrection(payload);
 		QwOut << "Pattern " << fPatternCounter << ")\n";
-		QwOut << "\tValue = " << fDeviceAccum->GetValue() * 1e6 << " [ppm]\n";
-		QwOut << "\tValueError = " << fDeviceAccum->GetValueError() * 1e6 << " [ppm]\n";
-		QwOut << "\tValueWidth = " << fDeviceAccum->GetValueWidth() * 1e6 << " [ppm]\n";
+		QwFeedbackCorrectionPayload payload{};
+		for( auto const& device : fDeviceSet) {
+			device.CalculateAverage();
+			payload.Set(device.GetFbType(), device.GetValue());
+			QwOut << "\tValue = " <<      device.GetValue()      << " [ppm]\n";
+			QwOut << "\tValueError = " << device.GetValueError() << " [ppm]\n";
+			QwOut << "\tValueWidth = " << device.GetValueWidth() << " [ppm]\n";
+		}
+		fFeedback->ApplyCorrection(payload);
 		fPatternCounter = 0;
 	}
 }
@@ -173,7 +187,9 @@ void QwFeedbackHandler::FinishDataHandler()
 
 void QwFeedbackHandler::ClearEventData()
 {
-	fDeviceAccum->ClearEventData();
+	for( auto& device : fDeviceSet) {
+			device.ClearEventData();
+	}
 }
 
 
