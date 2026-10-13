@@ -2,6 +2,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 #include "VQwDataHandler.h" // Access EQwHandleType
 #include "QwFeedbackLogger.h"
 #include "QwFeedbackSlope.h"
@@ -11,12 +12,30 @@
 class VQwFeedbackImpl;
 class QwFeedbackConfig;
 
+struct Device
+{
+	Device(std::string name, std::string_view descr)
+	: fName(std::move(name))
+	, fFbType(GetFbCorrType(descr))
+	, fQwType{VQwDataHandler::kHandleTypeUnknown}
+	{
+		if(fFbType == FbCorrType::ASYM) {
+			fQwType = VQwDataHandler::kHandleTypeAsym;
+		} else if(fFbType == FbCorrType::DIFFX || fFbType == FbCorrType::DIFFY) {
+			fQwType = VQwDataHandler::kHandleTypeDiff;
+		}
+	}
+	std::string   fName;
+	FbCorrType    fFbType;
+	VQwDataHandler::EQwHandleType fQwType;
+};
+
 class QwFeedback
 {
-	// look into placement new
 	std::unique_ptr<VQwFeedbackImpl>   fPimpl;
 	std::unique_ptr<VQwFeedbackSlopes> fSlope;
 	QwFeedbackLogger fLogFile;
+	std::vector<Device> fDevices;
 public:
 	enum class TYPE {
 		PITA,
@@ -36,10 +55,9 @@ public:
 	TYPE ConfigureFeedbackType(std::string_view);
 	bool ConfigureLogger(std::string const&, std::ios_base::openmode mode = std::ios::app);
 public:
-	void ConfigureFeedback(QwFeedbackConfig&& config);
+	void ConfigureFeedback(QwFeedbackConfig const& config);
 	void ApplyCorrection(QwFeedbackCorrectionPayload const& payload);
-	std::pair<VQwDataHandler::EQwHandleType, std::string_view>
-	RequestTargetDevice() const;
+	std::vector<Device> const& RequestTargetDevices() const;
 public:
 	template<typename IndexType>
 	void SetSlope(IndexType Index, double val);

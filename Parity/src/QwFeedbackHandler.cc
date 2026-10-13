@@ -98,8 +98,8 @@ Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)
 			QwWarning << "Invalid Feedback Config:" << config << '\n';
 			continue;
 		}
-		QwOut << config << '\n';
-		fFeedback->ConfigureFeedback(std::move(config));
+		QwOut << config;
+		fFeedback->ConfigureFeedback( config );
 	}
 
 	return 0;

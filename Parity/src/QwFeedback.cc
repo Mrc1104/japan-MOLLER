@@ -75,9 +75,18 @@ bool QwFeedback::ConfigureLogger(std::string const& str, std::ios_base::openmode
 }
 
 
-void QwFeedback::ConfigureFeedback(QwFeedbackConfig&& config)
+void QwFeedback::ConfigureFeedback(QwFeedbackConfig const& config)
 {
-	if(fPimpl) fPimpl->ConfigureImpl(std::move(config));
+	switch(config.getType()) {
+		case QwFeedbackConfig::TYPE::kTARGET:
+			fDevices.emplace_back(config.getName(), config.getDescr());
+			break;
+		case QwFeedbackConfig::TYPE::kIOC:
+			fPimpl->AddSetpoint(config.getName());
+			break;
+		default:
+			break;
+	}
 }
 
 void QwFeedback::ApplyCorrection(QwFeedbackCorrectionPayload const& payload)
@@ -86,11 +95,5 @@ void QwFeedback::ApplyCorrection(QwFeedbackCorrectionPayload const& payload)
 }
 
 
-std::pair<VQwDataHandler::EQwHandleType, std::string_view>
-QwFeedback::RequestTargetDevice() const
-{
-	return fPimpl
-		   ? fPimpl->RequestTargetDeviceImpl()
-		   : std::pair{VQwDataHandler::kHandleTypeUnknown, std::string_view{}};
-}
+std::vector<Device> const& QwFeedback::RequestTargetDevices() const { return fDevices; }
 
