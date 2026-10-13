@@ -25,7 +25,6 @@ T VQwEnumArray<T>::Get(int index) const
 	return GetImpl(index);
 }
 
-
 template<typename T>
 template<typename IndexType>
 void VQwEnumArray<T>::Set(IndexType index, const T val)
