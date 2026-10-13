@@ -17,6 +17,7 @@ class IHWP_IOC : public EPICSObserver<int>, public Publisher<QwFeedbackLogPayloa
 	AtomicEpicsType<int> fCurrState;
 public:
 	static const char* IHWP_PV;
+	static constexpr std::size_t fNumPossibleStates{2};
 	void Update(int const& data) override;
     IHWP GetState() const;
 public:
