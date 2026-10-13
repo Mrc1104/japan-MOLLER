@@ -5,6 +5,8 @@ template<typename T = double>
 class VQwEnumArray
 {
 public:
+	using ValueType = T;
+
 	virtual ~VQwEnumArray() = default;
 	virtual std::unique_ptr<VQwEnumArray> Clone() const = 0;
 	template<typename IndexType>

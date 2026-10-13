@@ -4,7 +4,6 @@
 #include <limits>
 #include "QwFeedbackConfig.h"
 #include "QwFeedbackImpl.h"
-#include "QwFeedbackCorrectionPayload.h"
 
 
 QwFeedbackHandler::QwFeedbackHandler(TString const& name)
@@ -137,6 +136,8 @@ Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsys
 		throw std::runtime_error(std::move(msg));
 	}
 	fDeviceAccum =  fDeviceObserver->Clone(VQwDataElement::kDerived);
+
+	
 
 
 	return 0;
