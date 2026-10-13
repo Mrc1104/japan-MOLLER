@@ -13,8 +13,8 @@ class QwFeedbackConfig;
 class QwFeedback
 {
 	// look into placement new
-	std::unique_ptr<VQwFeedbackImpl>  fPimpl;
-	std::unique_ptr<VQwFeedbackSlope> fSlope;
+	std::unique_ptr<VQwFeedbackImpl> fPimpl;
+	std::unique_ptr<VQwEnumArray>    fSlope;
 	QwFeedbackLogger fLogFile;
 public:
 	enum class TYPE {
@@ -47,6 +47,6 @@ public:
 template<typename IndexType>
 void QwFeedback::SetSlope(IndexType index, double val)
 {
-	if(fSlope) fSlope->SetSlope<IndexType>(index, val);
+	if(fSlope) fSlope->Set<IndexType>(index, val);
 }
 

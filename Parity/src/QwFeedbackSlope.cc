@@ -2,9 +2,9 @@
 #include "cassert"
 #include <cmath> // std::fclassify
 
-double VQwFeedbackSlope::GetSlope(int index) const
+double VQwEnumArray::Get(int index) const
 {
-	return GetSlopeImpl(index);
+	return GetImpl(index);
 }
 
 
@@ -13,16 +13,16 @@ QwIHWPSlope::QwIHWPSlope(QwFeedbackLogger& logger) : fSlopes{1.0, 1.0}, fIHWP()
 	fIHWP.AddObserver(&logger);
 }
 
-std::unique_ptr<VQwFeedbackSlope> QwIHWPSlope::Clone() const
+std::unique_ptr<VQwEnumArray> QwIHWPSlope::Clone() const
 {
 	return std::make_unique<QwIHWPSlope>( *this );
 }
-void QwIHWPSlope::SetSlopeImpl(int index, const double val)
+void QwIHWPSlope::SetImpl(int index, const double val)
 {
 	assert(index < int(ARR_SIZE) && "Enum index out of array bounds!");
 	fSlopes[index] = val;
 }
-double QwIHWPSlope::GetSlopeImpl(int index) const
+double QwIHWPSlope::GetImpl(int index) const
 {
 	assert(index < int(ARR_SIZE) && "Enum index out of array bounds!");
 	if(IsValid() == false) {
@@ -50,17 +50,17 @@ QwPOSXYSlope::QwPOSXYSlope(QwFeedbackLogger& logger)
 	AddObserver(&logger);
 }
 
-std::unique_ptr<VQwFeedbackSlope> QwPOSXYSlope::Clone() const
+std::unique_ptr<VQwEnumArray> QwPOSXYSlope::Clone() const
 {
 	return std::make_unique<QwPOSXYSlope>( *this );
 }
 
-void QwPOSXYSlope::SetSlopeImpl(int index, const double val) 
+void QwPOSXYSlope::SetImpl(int index, const double val) 
 {
 	assert(index < int(ARR_SIZE) && "Enum index out of array bounds!");
 	fSlopes_raw[index] = val;
 }
-double QwPOSXYSlope::GetSlopeImpl(int index) const
+double QwPOSXYSlope::GetImpl(int index) const
 {
 	assert(index < int(ARR_SIZE) && "Enum index out of array bounds!");
 	if(IsValid() == false) {

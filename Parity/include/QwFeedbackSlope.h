@@ -4,34 +4,34 @@
 #include "Publisher.h"
 #include "QwFeedbackLogger.h"
 
-class VQwFeedbackSlope
+class VQwEnumArray
 {
 public:
-	virtual ~VQwFeedbackSlope() = default;
-	virtual std::unique_ptr<VQwFeedbackSlope> Clone() const = 0;
+	virtual ~VQwEnumArray() = default;
+	virtual std::unique_ptr<VQwEnumArray> Clone() const = 0;
 	template<typename IndexType>
-	void SetSlope(IndexType index, const double val);
+	void Set(IndexType index, const double val);
 	template<typename IndexType>
-	double GetSlope(IndexType index = IndexType{}) const;
-	double GetSlope(int index = 0) const;
+	double Get(IndexType index = IndexType{}) const;
+	double Get(int index = 0) const;
 private:
-	virtual void    SetSlopeImpl(int index, const double val) = 0;
-	virtual double  GetSlopeImpl(int index) const = 0;
+	virtual void    SetImpl(int index, const double val) = 0;
+	virtual double  GetImpl(int index) const = 0;
 };
 
 template<typename IndexType>
-void VQwFeedbackSlope::SetSlope(IndexType index, const double val)
+void VQwEnumArray::Set(IndexType index, const double val)
 {
-	SetSlopeImpl(static_cast<int>(index), val);
+	SetImpl(static_cast<int>(index), val);
 }
 template<typename IndexType>
-double VQwFeedbackSlope::GetSlope(IndexType index) const
+double VQwEnumArray::Get(IndexType index) const
 {
-	return GetSlopeImpl(static_cast<int>(index));
+	return GetImpl(static_cast<int>(index));
 }
 
 
-class QwIHWPSlope : public VQwFeedbackSlope
+class QwIHWPSlope : public VQwEnumArray
 {
 	static_assert( static_cast<int>(IHWP::kIN) == 0
 			&& static_cast<int>(IHWP::kOUT) == 1,
@@ -41,16 +41,16 @@ class QwIHWPSlope : public VQwFeedbackSlope
 	IHWP_IOC fIHWP;
 	mutable bool fIsValid{false};
 
-	void    SetSlopeImpl(int index, const double val) override;
-	double  GetSlopeImpl(int index) const override;
+	void    SetImpl(int index, const double val) override;
+	double  GetImpl(int index) const override;
 	void check_isvalid() const;
 public:
 	QwIHWPSlope(QwFeedbackLogger& logger);
-	std::unique_ptr<VQwFeedbackSlope> Clone() const override;
+	std::unique_ptr<VQwEnumArray> Clone() const override;
 	bool    IsValid() const;
 };
 
-class QwPOSXYSlope : public VQwFeedbackSlope, public Publisher<QwFeedbackLogPayload>
+class QwPOSXYSlope : public VQwEnumArray, public Publisher<QwFeedbackLogPayload>
 { 
 public:
 	enum class POS_TYPE
@@ -62,12 +62,12 @@ public:
 			&& static_cast<int>(POS_TYPE::kXU) == 3,
 			"Expected: enum POS_TYPE is used for indexing!\n");
 	QwPOSXYSlope(QwFeedbackLogger& logger);
-	std::unique_ptr<VQwFeedbackSlope> Clone() const override;
+	std::unique_ptr<VQwEnumArray> Clone() const override;
 	void    AttachLogger(QwFeedbackLogger& logger);
 	bool    IsValid() const;
 private:
-	void    SetSlopeImpl(int index, const double val) override;
-	double  GetSlopeImpl(int index) const override;
+	void    SetImpl(int index, const double val) override;
+	double  GetImpl(int index) const override;
 	void cache() const;
 	void check_isvalid() const;
 

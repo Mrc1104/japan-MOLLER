@@ -33,7 +33,7 @@ void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
 	// Instantiate the feedback type first before setting slopes
   	file.PopValue("impl", feedback_type); 
 	auto feedback_type_enum = fFeedback->ConfigureFeedbackType(feedback_type);
-	if(feedback_type_enum != QwFeedback::TYPE::UNKNOWN) {
+	if(feedback_type_enum == QwFeedback::TYPE::UNKNOWN) {
 		THROW_ERROR("Unsupported Feedback Type: " + std::string(feedback_type));
 	}
 	if(feedback_type_enum != QwFeedback::TYPE::POSXY) {

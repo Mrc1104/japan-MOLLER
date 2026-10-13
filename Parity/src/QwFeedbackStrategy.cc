@@ -4,12 +4,12 @@
 
 #define WAIT_FOR_TX_ACK
 
-void QwPitaFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlope const* slope, SetPointArray& setpoints)
+void QwPitaFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray const* slope, SetPointArray& setpoints)
 {
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
 	std::array<tx_ack, N> ack;
-	double const correction = device->GetValue() * 1e6 / slope->GetSlope();
+	double const correction = device->GetValue() * 1e6 / slope->Get();
 	for(std::size_t index = 0; index < N; index++) {
 		if(index < 4) {
 			ack[index] = std::move( setpoints[index].ApplyCorrection<std::plus<double>>(correction) );
@@ -25,12 +25,12 @@ void QwPitaFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlope 
 }
 
 
-void QwAposUFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlope const* slope, SetPointArray& setpoints)
+void QwAposUFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray const* slope, SetPointArray& setpoints)
 {
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
 	std::array<tx_ack, N> ack;
-	double const correction = device->GetValue() * 1e6 / slope->GetSlope();
+	double const correction = device->GetValue() * 1e6 / slope->Get();
 	for(std::size_t index = 0; index < N; index++) {
 		if(index % 2) {
 			ack[index] = std::move( setpoints[index].ApplyCorrection<std::minus<double>>(correction) );
@@ -47,12 +47,12 @@ void QwAposUFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlope
 }
 
 
-void QwAposVFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlope const* slope, SetPointArray& setpoints)
+void QwAposVFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray const* slope, SetPointArray& setpoints)
 {
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
 	std::array<tx_ack, N> ack;
-	double const correction = device->GetValue() * 1e6 / slope->GetSlope();
+	double const correction = device->GetValue() * 1e6 / slope->Get();
 	for(std::size_t index = 0; index < N; index++) {
 		if(index % 2) {
 			ack[index] = std::move( setpoints[index].ApplyCorrection<std::minus<double>>(correction) );
@@ -69,12 +69,12 @@ void QwAposVFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlope
 }
 
 
-void QwIAFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlope const* slope, SetPointArray& setpoints)
+void QwIAFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray const* slope, SetPointArray& setpoints)
 {
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
 	std::array<tx_ack, N> ack;
-	double const correction = device->GetValue() * 1e6 / slope->GetSlope();
+	double const correction = device->GetValue() * 1e6 / slope->Get();
 	for(std::size_t index = 0; index < N; index++) {
 		ack[index] = std::move( setpoints[index].ApplyCorrection<std::minus<double>>(correction) );
 	}
@@ -87,7 +87,7 @@ void QwIAFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlope co
 }
 
 
-void QwPosXYFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlope const* slope, SetPointArray& setpoints)
+void QwPosXYFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray const* slope, SetPointArray& setpoints)
 {
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
@@ -97,10 +97,10 @@ void QwPosXYFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlope
 	double const diff_x  = device->GetValue();
 	double const diff_y  = device->GetValue();
 
-	double const corr_vx = slope->GetSlope(QwPOSXYSlope::POS_TYPE::kYV) * diff_x;
-	double const corr_vy = slope->GetSlope(QwPOSXYSlope::POS_TYPE::kXV) * diff_y;
-	double const corr_ux = slope->GetSlope(QwPOSXYSlope::POS_TYPE::kYU) * diff_x;
-	double const corr_uy = slope->GetSlope(QwPOSXYSlope::POS_TYPE::kXU) * diff_y;
+	double const corr_vx = slope->Get(QwPOSXYSlope::POS_TYPE::kYV) * diff_x;
+	double const corr_vy = slope->Get(QwPOSXYSlope::POS_TYPE::kXV) * diff_y;
+	double const corr_ux = slope->Get(QwPOSXYSlope::POS_TYPE::kYU) * diff_x;
+	double const corr_uy = slope->Get(QwPOSXYSlope::POS_TYPE::kXU) * diff_y;
 
 	double const corr_v = corr_vx + corr_vy;
 	double const corr_u = corr_ux + corr_uy;
