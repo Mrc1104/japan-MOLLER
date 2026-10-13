@@ -4,6 +4,8 @@
 #include <limits>
 #include "QwFeedbackConfig.h"
 #include "QwFeedbackImpl.h"
+#include "QwFeedbackCorrectionPayload.h"
+
 
 QwFeedbackHandler::QwFeedbackHandler(TString const& name)
 : VQwDataHandler(name)
@@ -152,8 +154,10 @@ void QwFeedbackHandler::ProcessData()
 	}
 	if(fPatternCounter >= fMaxPattern) {
 		// Apply correction
+		QwFeedbackCorrectionPayload payload{};
 		fDeviceAccum->CalculateRunningAverage();
-		fFeedback->ApplyCorrection(fDeviceAccum);
+		payload.Set(FbCorrType::ASYM, fDeviceAccum->GetValue());
+		fFeedback->ApplyCorrection(payload);
 		QwOut << "Pattern " << fPatternCounter << ")\n";
 		QwOut << "\tValue = " << fDeviceAccum->GetValue() * 1e6 << " [ppm]\n";
 		QwOut << "\tValueError = " << fDeviceAccum->GetValueError() * 1e6 << " [ppm]\n";

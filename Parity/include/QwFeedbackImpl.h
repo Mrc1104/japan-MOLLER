@@ -8,6 +8,8 @@
 #include "QwFeedbackConfig.h"
 #include "QwFeedbackStrategy.h"
 #include "QwFeedbackSlope.h"
+#include "QwFeedbackCorrectionPayload.h"
+
 
 class VQwHardwareChannel;
 
@@ -15,7 +17,7 @@ class VQwFeedbackImpl
 {
 public:
 	virtual void ConfigureImpl(QwFeedbackConfig&& config)        = 0;
-	virtual void ApplyCorrectionImpl(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope) = 0;
+	virtual void ApplyCorrectionImpl(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope) = 0;
 	virtual std::pair<VQwDataHandler::EQwHandleType, std::string_view>
 	RequestTargetDeviceImpl() const    = 0;
 	virtual std::unique_ptr<VQwFeedbackImpl> Clone() const = 0;
@@ -33,7 +35,7 @@ private:
 public:
 	QwFeedbackImpl(QwFeedbackLogger& logger);
 	void ConfigureImpl(QwFeedbackConfig&& config) override;
-	void ApplyCorrectionImpl(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope) override;
+	void ApplyCorrectionImpl(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope) override;
 	std::pair<VQwDataHandler::EQwHandleType, std::string_view>
 	RequestTargetDeviceImpl() const override;
 	std::unique_ptr<VQwFeedbackImpl> Clone() const override;
@@ -81,9 +83,9 @@ void QwFeedbackImpl<FeedbackStrategy>::ConfigureImpl(QwFeedbackConfig&& config)
 }
 
 template<typename FeedbackStrategy>
-void QwFeedbackImpl<FeedbackStrategy>::ApplyCorrectionImpl(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope)
+void QwFeedbackImpl<FeedbackStrategy>::ApplyCorrectionImpl(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope)
 {
-	fFbStrategy(device, slope);
+	fFbStrategy(payload, slope);
 }
 
 

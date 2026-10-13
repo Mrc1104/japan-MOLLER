@@ -3,16 +3,14 @@
 #include <array>
 #include "QwLog.h"
 #include "QwFeedbackSetpoints.h"
-#include "VQwEnumArray.h"
-
-class VQwHardwareChannel;
+#include "QwFeedbackCorrectionPayload.h"
 
 struct QwPitaFBStrategy
 {
 	static constexpr std::string_view fName{"PITA Feedback"};
 	static constexpr std::size_t fNumSetpointsExpected{8};
 	using SetPointArray = std::array<QwFeedbackSetpoint, fNumSetpointsExpected>;
-	static void Apply(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
+	static void Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
 };
 
 struct QwAposUFBStrategy
@@ -20,7 +18,7 @@ struct QwAposUFBStrategy
 	static constexpr std::string_view fName{"AposU Feedback"};
 	static constexpr std::size_t fNumSetpointsExpected{4};
 	using SetPointArray = std::array<QwFeedbackSetpoint, fNumSetpointsExpected>;
-	static void Apply(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
+	static void Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
 };
 
 struct QwAposVFBStrategy
@@ -28,7 +26,7 @@ struct QwAposVFBStrategy
 	static constexpr std::string_view fName{"AposV Feedback"};
 	static constexpr std::size_t fNumSetpointsExpected{4};
 	using SetPointArray = std::array<QwFeedbackSetpoint, fNumSetpointsExpected>;
-	static void Apply(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
+	static void Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
 };
 
 
@@ -37,7 +35,7 @@ struct QwIAFBStrategy
 	static constexpr std::string_view fName{"IA Feedback"};
 	static constexpr std::size_t fNumSetpointsExpected{4};
 	using SetPointArray = std::array<QwFeedbackSetpoint, fNumSetpointsExpected>;
-	static void Apply(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
+	static void Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
 };
 
 struct QwPosXYFBStrategy
@@ -45,7 +43,7 @@ struct QwPosXYFBStrategy
 	static constexpr std::string_view fName{"PosXY Feedback"};
 	static constexpr std::size_t fNumSetpointsExpected{8};
 	using SetPointArray = std::array<QwFeedbackSetpoint, fNumSetpointsExpected>;
-	static void Apply(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
+	static void Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
 };
 
 template <typename Strategy>
@@ -56,7 +54,7 @@ public:
 	static constexpr std::size_t fNumSetpointsExpected = Strategy::fNumSetpointsExpected;
 public:
 	bool SetSetpoint(const char* pv_name, QwFeedbackLogger& logger);
-	void operator()(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope);
+	void operator()(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope);
 private:
 	std::size_t fNumSetpointsSet{0};
 	std::array<QwFeedbackSetpoint, fNumSetpointsExpected> fSetpoints;
@@ -77,10 +75,10 @@ bool QwFBStrategy<Strategy>::SetSetpoint(const char* pv_name, QwFeedbackLogger& 
 }
 
 template <typename Strategy>
-void QwFBStrategy<Strategy>::operator()(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope)
+void QwFBStrategy<Strategy>::operator()(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope)
 {
 	if(fNumSetpointsSet == fNumSetpointsExpected) {
-		Strategy::Apply(device, slope, fSetpoints);
+		Strategy::Apply(payload, slope, fSetpoints);
 	} else {
 		QwError << fName << " does not have the expected number of setpoints set!"
 		        << "\n\tNo. Set: "      << fNumSetpointsSet 

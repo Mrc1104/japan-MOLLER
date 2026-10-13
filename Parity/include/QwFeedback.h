@@ -6,6 +6,7 @@
 #include "QwFeedbackLogger.h"
 #include "QwFeedbackSlope.h"
 #include "QwFeedbackSetpoints.h"
+#include "QwFeedbackCorrectionPayload.h"
 
 class VQwFeedbackImpl;
 class QwFeedbackConfig;
@@ -36,7 +37,7 @@ public:
 	bool ConfigureLogger(std::string const&, std::ios_base::openmode mode = std::ios::app);
 public:
 	void ConfigureFeedback(QwFeedbackConfig&& config);
-	void ApplyCorrection(VQwHardwareChannel const* device);
+	void ApplyCorrection(QwFeedbackCorrectionPayload const& payload);
 	std::pair<VQwDataHandler::EQwHandleType, std::string_view>
 	RequestTargetDevice() const;
 public:

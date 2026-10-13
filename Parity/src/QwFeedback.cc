@@ -80,9 +80,9 @@ void QwFeedback::ConfigureFeedback(QwFeedbackConfig&& config)
 	if(fPimpl) fPimpl->ConfigureImpl(std::move(config));
 }
 
-void QwFeedback::ApplyCorrection(VQwHardwareChannel const* device)
+void QwFeedback::ApplyCorrection(QwFeedbackCorrectionPayload const& payload)
 {
-	if(fPimpl && fSlope) fPimpl->ApplyCorrectionImpl(device, fSlope.get());
+	if(fPimpl && fSlope) fPimpl->ApplyCorrectionImpl(payload, fSlope.get());
 }
 
 
