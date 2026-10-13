@@ -16,13 +16,23 @@ class Publisher
 	std::vector<Observer<T>*> Observers;
 
 protected:
-	void Notify(T const& data);
+	void Notify(T const& data) const;
 public:
+	Publisher() = default;
 	virtual ~Publisher() = default;
+	Publisher(Publisher const& other);
 	void AddObserver(Observer<T>* observer);
 	bool RemoveObserver(Observer<T>* observer);
 	std::size_t GetObserverCount() const;
 };
+
+template<typename T>
+Publisher<T>::Publisher(Publisher<T> const& other)
+{
+	std::lock_guard<std::recursive_mutex> lk(other.mut);
+	Observers = other.Observers;
+}
+
 
 template<typename T>
 class EPICSPublisher : public Publisher<T>
@@ -58,7 +68,7 @@ bool Publisher<T>::RemoveObserver(Observer<T>* observer)
 }
 
 template<typename T>
-void Publisher<T>::Notify(T const& data)
+void Publisher<T>::Notify(T const& data) const
 {
 	std::lock_guard<std::recursive_mutex> lk(mut);
 	for( auto observer : Observers ) {
