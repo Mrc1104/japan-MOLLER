@@ -13,8 +13,8 @@ class QwFeedbackConfig;
 class QwFeedback
 {
 	// look into placement new
-	std::unique_ptr<VQwFeedbackImpl> fPimpl;
-	std::unique_ptr<VQwEnumArray>    fSlope;
+	std::unique_ptr<VQwFeedbackImpl>   fPimpl;
+	std::unique_ptr<VQwFeedbackSlopes> fSlope;
 	QwFeedbackLogger fLogFile;
 public:
 	enum class TYPE {

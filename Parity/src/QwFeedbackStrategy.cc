@@ -4,7 +4,7 @@
 
 #define WAIT_FOR_TX_ACK
 
-void QwPitaFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray const* slope, SetPointArray& setpoints)
+void QwPitaFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope, SetPointArray& setpoints)
 {
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
@@ -25,7 +25,7 @@ void QwPitaFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray cons
 }
 
 
-void QwAposUFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray const* slope, SetPointArray& setpoints)
+void QwAposUFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope, SetPointArray& setpoints)
 {
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
@@ -47,7 +47,7 @@ void QwAposUFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray con
 }
 
 
-void QwAposVFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray const* slope, SetPointArray& setpoints)
+void QwAposVFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope, SetPointArray& setpoints)
 {
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
@@ -69,7 +69,7 @@ void QwAposVFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray con
 }
 
 
-void QwIAFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray const* slope, SetPointArray& setpoints)
+void QwIAFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope, SetPointArray& setpoints)
 {
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
@@ -87,7 +87,7 @@ void QwIAFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray const*
 }
 
 
-void QwPosXYFBStrategy::Apply(VQwHardwareChannel const* device, VQwEnumArray const* slope, SetPointArray& setpoints)
+void QwPosXYFBStrategy::Apply(VQwHardwareChannel const* device, VQwFeedbackSlopes const* slope, SetPointArray& setpoints)
 {
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;

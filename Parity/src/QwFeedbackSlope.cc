@@ -2,18 +2,12 @@
 #include "cassert"
 #include <cmath> // std::fclassify
 
-double VQwEnumArray::Get(int index) const
-{
-	return GetImpl(index);
-}
-
-
 QwIHWPSlope::QwIHWPSlope(QwFeedbackLogger& logger) : fSlopes{1.0, 1.0}, fIHWP() 
 {
 	fIHWP.AddObserver(&logger);
 }
 
-std::unique_ptr<VQwEnumArray> QwIHWPSlope::Clone() const
+std::unique_ptr<VQwFeedbackSlopes> QwIHWPSlope::Clone() const
 {
 	return std::make_unique<QwIHWPSlope>( *this );
 }
@@ -50,7 +44,7 @@ QwPOSXYSlope::QwPOSXYSlope(QwFeedbackLogger& logger)
 	AddObserver(&logger);
 }
 
-std::unique_ptr<VQwEnumArray> QwPOSXYSlope::Clone() const
+std::unique_ptr<VQwFeedbackSlopes> QwPOSXYSlope::Clone() const
 {
 	return std::make_unique<QwPOSXYSlope>( *this );
 }
