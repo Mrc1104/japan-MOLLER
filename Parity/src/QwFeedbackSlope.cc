@@ -1,13 +1,36 @@
-#include "QwFeedbackSlopes.h"
-#include "ErrorHandling.h"
+#include "QwFeedbackSlope.h"
+#include "cassert"
 #include <cmath> // std::fclassify
 
+double VQwFeedbackSlope::GetSlope(int index) const
+{
+	return GetSlopeImpl(index);
+}
 
-QwIHWPSlope::QwIHWPSlope() : fSlopes{1.0, 1.0}, fIHWP() {}
-double& QwIHWPSlope::operator[](IHWP state)       { return fSlopes[static_cast<int>(state)]; }
-double  QwIHWPSlope::operator[](IHWP state) const { return fSlopes[static_cast<int>(state)]; }
-double  QwIHWPSlope::GetSlope() const             { return this->operator[](fIHWP.GetState());}
-void    QwIHWPSlope::AttachLogger(QwFeedbackLogger& logger) { fIHWP.AddObserver(&logger); }
+
+QwIHWPSlope::QwIHWPSlope(QwFeedbackLogger& logger) : fSlopes{1.0, 1.0}, fIHWP() 
+{
+	fIHWP.AddObserver(&logger);
+}
+
+std::unique_ptr<VQwFeedbackSlope> QwIHWPSlope::Clone() const
+{
+	return std::make_unique<QwIHWPSlope>( *this );
+}
+void QwIHWPSlope::SetSlopeImpl(int index, const double val)
+{
+	assert(index < int(ARR_SIZE) && "Enum index out of array bounds!");
+	fSlopes[index] = val;
+}
+double QwIHWPSlope::GetSlopeImpl(int index) const
+{
+	assert(index < int(ARR_SIZE) && "Enum index out of array bounds!");
+	if(IsValid() == false) {
+		QwError << "Invalid Slopes Given! Setting slope = 1.0\n";
+		return 1.0;
+	}
+	return fSlopes[static_cast<int>(fIHWP.GetState())];
+}
 bool QwIHWPSlope::IsValid() const
 {
 	if(fIsValid == false) check_isvalid();
@@ -22,49 +45,51 @@ void QwIHWPSlope::check_isvalid() const
 	fIsValid = is_valid;
 }
 
-
-
-double& QwPOSXYSlope::operator[](POS_TYPE pos)
+QwPOSXYSlope::QwPOSXYSlope(QwFeedbackLogger& logger)
 {
-	auto idx = static_cast<int>(pos);
-	if(idx >= ARR_SIZE) {
-		THROW_MSG("Given Index (" + std::to_string(idx) + ") >= Capacity (" +std::to_string(ARR_SIZE) ')');
-	}
-	return fSlopes_raw[idx];
-}
-double  QwPOSXYSlope::operator[](POS_TYPE pos) const
-{
-	auto idx = static_cast<int>(pos);
-	if(idx >= ARR_SIZE) {
-		THROW_MSG("Given Index (" + std::to_string(idx) + ") >= Capacity (" +std::to_string(ARR_SIZE) ')');
-	}
-	return fSlopes_raw[idx];
+	AddObserver(&logger);
 }
 
-double  QwPOSXYSlope::GetSlope(POS_TYPE pos) const
+std::unique_ptr<VQwFeedbackSlope> QwPOSXYSlope::Clone() const
 {
+	return std::make_unique<QwPOSXYSlope>( *this );
+}
+
+void QwPOSXYSlope::SetSlopeImpl(int index, const double val) 
+{
+	assert(index < int(ARR_SIZE) && "Enum index out of array bounds!");
+	fSlopes_raw[index] = val;
+}
+double QwPOSXYSlope::GetSlopeImpl(int index) const
+{
+	assert(index < int(ARR_SIZE) && "Enum index out of array bounds!");
+	if(IsValid() == false) {
+		QwError << "Invalid Slopes Given! Setting slope = 1.0\n";
+		return 1.0;
+	}
 	if(fIsCached == false) cache();
-	return fSlopes_cached[static_cast<int>(pos)];
+	return fSlopes_cached[index];
 }
 
 void QwPOSXYSlope::cache() const
 {
-	auto fyV = operator[](POS_TYPE::YV);
-	auto fyU = operator[](POS_TYPE::YU);
-	auto fxV = operator[](POS_TYPE::XV);
-	auto fxU = operator[](POS_TYPE::XU);
+	using namespace std::string_literals;
+	auto fyV = fSlopes_raw[static_cast<int>(POS_TYPE::kYV)];
+	auto fyU = fSlopes_raw[static_cast<int>(POS_TYPE::kYU)];
+	auto fxV = fSlopes_raw[static_cast<int>(POS_TYPE::kXV)];
+	auto fxU = fSlopes_raw[static_cast<int>(POS_TYPE::kXU)];
 	
 	auto lin_comb_yv =  fyV / ( (fxU * fyV) - (fyU * fxV) );
     auto lin_comb_yu = -fyU / ( (fxU * fyV) - (fyU * fxV) );
     auto lin_comb_xv = -fxV / ( (fxU * fyV) - (fyU * fxV) );
     auto lin_comb_xu =  fxU / ( (fxU * fyV) - (fyU * fxV) );
 
-	fSlopes_cached[static_cast<int>(POS_TYPE::YV)] = lin_comb_yv;
-	fSlopes_cached[static_cast<int>(POS_TYPE::YU)] = lin_comb_yu;
-	fSlopes_cached[static_cast<int>(POS_TYPE::XV)] = lin_comb_xv;
-	fSlopes_cached[static_cast<int>(POS_TYPE::XU)] = lin_comb_xu;
+	fSlopes_cached[static_cast<int>(POS_TYPE::kYV)] = lin_comb_yv;
+	fSlopes_cached[static_cast<int>(POS_TYPE::kYU)] = lin_comb_yu;
+	fSlopes_cached[static_cast<int>(POS_TYPE::kXV)] = lin_comb_xv;
+	fSlopes_cached[static_cast<int>(POS_TYPE::kXU)] = lin_comb_xu;
 
-	std::string log_payload = "PosXY Linear Combinations:\n"
+	std::string log_payload = "PosXY Linear Combinations:\n"s
 	                        + "\tYV = " + std::to_string(lin_comb_yv)
 	                        + "\tYU = " + std::to_string(lin_comb_yu)
 	                        + "\tXV = " + std::to_string(lin_comb_xv)
@@ -75,7 +100,7 @@ void QwPOSXYSlope::cache() const
 
 void QwPOSXYSlope::AttachLogger(QwFeedbackLogger& logger)
 {
-	AddObserver(logger);
+	AddObserver(&logger);
 }
 
 bool QwPOSXYSlope::IsValid() const
@@ -91,4 +116,3 @@ void QwPOSXYSlope::check_isvalid() const
 	}
 	fIsValid = is_valid;
 }
-

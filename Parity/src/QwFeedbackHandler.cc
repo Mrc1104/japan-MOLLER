@@ -29,12 +29,46 @@ void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
 {
 	VQwDataHandler::ParseConfigFile(file);
 	std::string feedback_type, logfile;
-  	file.PopValue("impl", feedback_type);
-  	file.PopValue("slope_ihwp_in", fFeedback->GetSlope(IHWP::kIN));
-  	file.PopValue("slope_ihwp_out",fFeedback->GetSlope(IHWP::kOUT));
+
+	// Instantiate the feedback type first before setting slopes
+  	file.PopValue("impl", feedback_type); 
+	auto feedback_type_enum = fFeedback->ConfigureFeedbackType(feedback_type);
+	if(feedback_type_enum != QwFeedback::TYPE::UNKNOWN) {
+		THROW_ERROR("Unsupported Feedback Type: " + std::string(feedback_type));
+	}
+	if(feedback_type_enum != QwFeedback::TYPE::POSXY) {
+		double slope_in = 0, slope_out = 0;
+		if(!file.PopValue("slope_ihwp_in", slope_in)) {
+			THROW_ERROR("Missing Required Slope (slope_ihwp_in)!");
+		}
+		if(!file.PopValue("slope_ihwp_out", slope_out)) {
+			THROW_ERROR("Missing Required Slope (slope_ihwp_out)!");
+		}
+		fFeedback->SetSlope(IHWP::kIN , slope_in );
+		fFeedback->SetSlope(IHWP::kOUT, slope_out);
+	} else {
+		double slope_xu = 0, slope_xv = 0,
+		       slope_yu = 0, slope_yv = 0;
+		if(!file.PopValue("slope_xu", slope_xu)) {
+			THROW_ERROR("Missing Required Slope (slope_xu)!");
+		}
+		if(!file.PopValue("slope_xv", slope_xv)) {
+			THROW_ERROR("Missing Required Slope (slope_xv)!");
+		}
+		if(!file.PopValue("slope_yu", slope_yu)) {
+			THROW_ERROR("Missing Required Slope (slope_yu)!");
+		}
+		if(!file.PopValue("slope_yu", slope_yv)) {
+			THROW_ERROR("Missing Required Slope (slope_yv)!");
+		}
+		fFeedback->SetSlope(QwPOSXYSlope::POS_TYPE::kXU , slope_xu);
+		fFeedback->SetSlope(QwPOSXYSlope::POS_TYPE::kXV , slope_xv);
+		fFeedback->SetSlope(QwPOSXYSlope::POS_TYPE::kYU , slope_yu);
+		fFeedback->SetSlope(QwPOSXYSlope::POS_TYPE::kYV , slope_yv);
+	}
+
   	file.PopValue("patterns",fMaxPattern);
 	file.PopValue("log", logfile);
-	fFeedback->ConfigureFeedbackType(feedback_type);
 	if( !fFeedback->ConfigureLogger(logfile) ) {
 		QwWarning << '(' << logfile << ") Logfile Not Set for "
 		          << feedback_type << " Feedback!" << QwLog::endl;

@@ -4,6 +4,7 @@
 #include <utility>
 #include "VQwDataHandler.h" // Access EQwHandleType
 #include "QwFeedbackLogger.h"
+#include "QwFeedbackSlope.h"
 #include "QwFeedbackSetpoints.h"
 
 class VQwFeedbackImpl;
@@ -12,8 +13,8 @@ class QwFeedbackConfig;
 class QwFeedback
 {
 	// look into placement new
-	std::unique_ptr<VQwFeedbackImpl> fPimpl;
-	QwFeedbackSlope fSlope;
+	std::unique_ptr<VQwFeedbackImpl>  fPimpl;
+	std::unique_ptr<VQwFeedbackSlope> fSlope;
 	QwFeedbackLogger fLogFile;
 public:
 	enum class TYPE {
@@ -21,7 +22,8 @@ public:
 		APOSU,
 		APOSV,
 		IA,
-		//POSXY // TODO: IMPLEMENT!
+		POSXY,
+		UNKNOWN
 	};
 private:
 	void ConfigureFeedbackType(TYPE type);
@@ -29,7 +31,8 @@ public:
 	QwFeedback();
 	QwFeedback(QwFeedback const& other);
 public:
-	void ConfigureFeedbackType(std::string_view);
+	TYPE GetTypeOfFeedback(std::string_view sv) const;
+	TYPE ConfigureFeedbackType(std::string_view);
 	bool ConfigureLogger(std::string const&, std::ios_base::openmode mode = std::ios::app);
 public:
 	void ConfigureFeedback(QwFeedbackConfig&& config);
@@ -37,10 +40,13 @@ public:
 	std::pair<VQwDataHandler::EQwHandleType, std::string_view>
 	RequestTargetDevice() const;
 public:
-	void    SetSlope(IHWP state, double val);
-	double  GetSlope(IHWP state) const;
-	double& GetSlope(IHWP state);
-	double  GetSlope() const;
+	template<typename IndexType>
+	void SetSlope(IndexType Index, double val);
 };
 
+template<typename IndexType>
+void QwFeedback::SetSlope(IndexType index, double val)
+{
+	if(fSlope) fSlope->SetSlope<IndexType>(index, val);
+}
 

@@ -9,22 +9,34 @@ QwFeedback::QwFeedback()
 
 QwFeedback::QwFeedback(QwFeedback const& other)
 : fPimpl( other.fPimpl ? other.fPimpl->Clone() : nullptr )
-, fSlope(other.fSlope)
+, fSlope( other.fSlope ? other.fSlope->Clone() : nullptr )
 , fLogFile{}
 {
 	
 }
-void QwFeedback::ConfigureFeedbackType(std::string_view sv)
+
+QwFeedback::TYPE QwFeedback::GetTypeOfFeedback(std::string_view sv) const
 {
+	auto fb_type = QwFeedback::TYPE::UNKNOWN;
 	if(sv.find("PITA") != std::string_view::npos) {
-		ConfigureFeedbackType(TYPE::PITA);
+		fb_type = TYPE::PITA;
 	} else if(sv.find("APOSU") != std::string_view::npos) {
-		ConfigureFeedbackType(TYPE::APOSU);
+		fb_type = TYPE::APOSU;
 	} else if(sv.find("APOSV") != std::string_view::npos) {
-		ConfigureFeedbackType(TYPE::APOSV);
+		fb_type = TYPE::APOSV;
 	} else if(sv.find("IA") != std::string_view::npos) {
-		ConfigureFeedbackType(TYPE::IA);
+		fb_type = TYPE::IA;
+	} else if(sv.find("POSXY") != std::string_view::npos) {
+		fb_type = TYPE::POSXY;
 	}
+	return fb_type;
+}
+
+QwFeedback::TYPE QwFeedback::ConfigureFeedbackType(std::string_view sv)
+{
+	auto fb_type = GetTypeOfFeedback(sv);
+	ConfigureFeedbackType(fb_type);
+	return fb_type;
 }
 void QwFeedback::ConfigureFeedbackType(TYPE type)
 {
@@ -32,15 +44,23 @@ void QwFeedback::ConfigureFeedbackType(TYPE type)
 	switch(type) {
 		case TYPE::PITA:
 			fPimpl = std::make_unique<QwFeedbackImpl<QwPitaStrategy>>(fLogFile);
+			fSlope = std::make_unique<QwIHWPSlope>(fLogFile);
 			break;
 		case TYPE::APOSU:
 			fPimpl = std::make_unique<QwFeedbackImpl<QwAposUStrategy>>(fLogFile);
+			fSlope = std::make_unique<QwIHWPSlope>(fLogFile);
 			break;
 		case TYPE::APOSV:
 			fPimpl = std::make_unique<QwFeedbackImpl<QwAposVStrategy>>(fLogFile);
+			fSlope = std::make_unique<QwIHWPSlope>(fLogFile);
 			break;
 		case TYPE::IA:
 			fPimpl = std::make_unique<QwFeedbackImpl<QwIAStrategy>>(fLogFile);
+			fSlope = std::make_unique<QwIHWPSlope>(fLogFile);
+			break;
+		case TYPE::POSXY:
+			fPimpl = std::make_unique<QwFeedbackImpl<QwPosXYStrategy>>(fLogFile);
+			fSlope = std::make_unique<QwPOSXYSlope>(fLogFile);
 			break;
 		default:
 			break;
@@ -54,10 +74,6 @@ bool QwFeedback::ConfigureLogger(std::string const& str, std::ios_base::openmode
 	return static_cast<bool>(fLogFile);
 }
 
-void    QwFeedback::SetSlope(IHWP state, double val) { fSlope[state] = val ; }
-double  QwFeedback::GetSlope(IHWP state) const       { return fSlope[state]; }
-double& QwFeedback::GetSlope(IHWP state)             { return fSlope[state]; }
-double  QwFeedback::GetSlope() const                 { return fSlope.GetSlope(); }
 
 void QwFeedback::ConfigureFeedback(QwFeedbackConfig&& config)
 {
@@ -66,7 +82,7 @@ void QwFeedback::ConfigureFeedback(QwFeedbackConfig&& config)
 
 void QwFeedback::ApplyCorrection(VQwHardwareChannel const* device)
 {
-	if(fPimpl) fPimpl->ApplyCorrectionImpl(device);
+	if(fPimpl && fSlope) fPimpl->ApplyCorrectionImpl(device, fSlope.get());
 }
 
 
