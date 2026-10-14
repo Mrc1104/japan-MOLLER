@@ -37,7 +37,7 @@ endforeach()
 # Standardize status messaging (Found/Not Found) and error handling
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(EPICS
-    REQUIRED_VARS EPICS_Com_LIBRARY EPICS_INCLUDE_DIR EPICS_OS_INCLUDE_DIR EPICS_GCC_INCLUDE_DIR EPICS_GCC_INCLUDE_DIR
+    REQUIRED_VARS EPICS_Com_LIBRARY EPICS_INCLUDE_DIR EPICS_OS_INCLUDE_DIR EPICS_GCC_INCLUDE_DIR 
 	HANDLE_COMPONENTS
 )
 if(EPICS_FOUND)

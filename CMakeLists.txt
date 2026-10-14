@@ -284,13 +284,6 @@ foreach(file ${my_project_headers})
 endforeach()
 
 
-#----------------------------------------------------------------------------
-# EPICS library
-# TODO: Move to subfolder with its own CMakeList
-#
-find_package(EPICS REQUIRED COMPONENTS
-	Com ca 
-)
 
 #----------------------------------------------------------------------------
 # main library
@@ -328,8 +321,6 @@ endif()
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     eviowrapper
-	EPICS::Com
-	EPICS::ca
   PUBLIC
     ROOT::Core ROOT::Tree ROOT::Hist ROOT::Rint ${LIBMAPFILE}
     $<TARGET_NAME_IF_EXISTS:ROOT::ROOTNTuple>
@@ -360,6 +351,11 @@ install(FILES ${my_project_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 if((${sqlpp}_FOUND OR TARGET ${sqlpp}::${sqlpp}) AND SQLPP_DDL2CPP)
   install(FILES ${SCHEMA_OUTPUT_FILE} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif()
+
+#----------------------------------------------------------------------------
+#  Build feedback library and executable
+add_subdirectory(Feedback)
+
 
 #----------------------------------------------------------------------------
 # executables
@@ -394,10 +390,6 @@ foreach(file ${exefiles})
     DESTINATION ${CMAKE_INSTALL_BINDIR}
   )
 endforeach()
-
-#----------------------------------------------------------------------------
-#  Build feedback library and executable
-### add_subdirectory(Feedback)
 
 #----------------------------------------------------------------------------
 # uninstall
