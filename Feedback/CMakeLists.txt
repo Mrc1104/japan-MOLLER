@@ -35,7 +35,7 @@ if(NOT EPICS_FOUND)
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${SRC})
-target_link_libraries(${PROJECT_NAME} PRIVATE
+target_link_libraries(${PROJECT_NAME} PUBLIC
 	QwEPICS
 	${CMAKE_PROJECT_NAME}
 )

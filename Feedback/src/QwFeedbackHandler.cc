@@ -144,7 +144,7 @@ Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsys
 			QwWarning << "Feedback Target Device (" 
 				      << device_name
 				      << ") Not included... Likely already set for FB Type: "
-					  << std::to_string(static_cast<int>(device_fb_type)) << QwLog::endl;
+					  << stringify(device_fb_type) << QwLog::endl;
 		}
 	}
 	
