@@ -50,10 +50,22 @@ EpicHandler::~EpicHandler()
 
 EpicChannel* EpicHandler::ConnectChannel(char const* pv_name, capri priority)
 {
-	auto new_ch = std::make_unique<EpicChannel>(pv_name, priority);
-	auto ptr    = new_ch.get();
-	channels.push_back( std::move(new_ch) );
+	EpicChannel* ptr = FindChannel(pv_name);
+	if(ptr == nullptr) {
+		auto new_ch = std::make_unique<EpicChannel>(pv_name, priority);
+		ptr    = new_ch.get();
+		channels.push_back( std::move(new_ch) );
+	}
 	return ptr;
+}
+
+EpicChannel* EpicHandler::FindChannel(std::string_view target)
+{
+	using std::begin, std::end;
+	auto it = std::find_if(begin(channels), end(channels), [target](auto const& chan) {
+		return (target == chan->GetName());
+	});
+	return (it != end(channels)) ? it->get() : nullptr;
 }
 
 void EpicHandler::GetStatus(unsigned level)

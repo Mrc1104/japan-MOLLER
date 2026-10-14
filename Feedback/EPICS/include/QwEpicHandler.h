@@ -20,6 +20,7 @@ public:
 	static EpicHandler& Instance();
 public:
 	EpicChannel* ConnectChannel(char const* pv_name, ::capri priority = CA_PRIORITY_DEFAULT);
+	EpicChannel* FindChannel(std::string_view target);
 	void GetStatus(unsigned level=0);
 	void CheckConnection();
 };
