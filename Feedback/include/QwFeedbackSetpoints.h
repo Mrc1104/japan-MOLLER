@@ -46,21 +46,18 @@ std::future<void> QwFeedbackSetpoint::ApplyCorrection(double corr)
 	}
 
 	double current = fCurr.Load(std::memory_order_acquire);
-	do {
-		fCorr = BinaryOp{}(current, corr);
-		if(IsWithinLimits(fCorr) == false) {
-			std::string log_payload = "Request: " + fName
-				+ ": fPrev = "        + std::to_string(fPrev)
-				+ ", fCurrent = "     + std::to_string(current)
-				+ " => Correction = " + std::to_string(fCorr)
-				+ " is outside of limits [" + std::to_string(fLimits.lower_limit)
-				+ ", " + std::to_string(fLimits.upper_limit) + "]\n";
-			Notify(QwFeedbackLogPayload{QwLogLevel::kError, std::move(log_payload)});
-			return std::future<void>{};
-		}
-	} while(!fCurr.CompareExchangeWeak(current, fCorr,
-				std::memory_order_release, std::memory_order_acquire));
-	auto fut = fChannel->PutAsync(DBR_DOUBLE, current);
+	fCorr = BinaryOp{}(current, corr);
+	if(IsWithinLimits(fCorr) == false) {
+		std::string log_payload = "Request: " + fName
+			+ ": fPrev = "        + std::to_string(fPrev)
+			+ ", fCurrent = "     + std::to_string(current)
+			+ " => Correction = " + std::to_string(fCorr)
+			+ " is outside of limits [" + std::to_string(fLimits.lower_limit)
+			+ ", " + std::to_string(fLimits.upper_limit) + "]\n";
+		Notify(QwFeedbackLogPayload{QwLogLevel::kError, std::move(log_payload)});
+		return std::future<void>{};
+	}
+	auto fut = fChannel->PutAsync(DBR_DOUBLE, fCorr);
 	std::string log_payload = "Request: " + fName
                             + ": fPrev = "        + std::to_string(fPrev)
 	                        + ", fCurrent = "     + std::to_string(current)

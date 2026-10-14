@@ -5,9 +5,7 @@ void QwFeedbackSetpoint::Update(double const& data)
 {
 	fPrev = fCurr.Exchange(data, std::memory_order_acq_rel);
 	std::string log_payload = "Received: " + fName
-	                            + ": fPrev = "        + std::to_string(fPrev)
-		                        + ", fCurrent = "     + std::to_string(data)
-								+ " => Correction = " + std::to_string(fPrev - data) + '\n';
+		                        + ": fCurrent = "     + std::to_string(data) + '\n';
 	Notify(QwFeedbackLogPayload{QwLogLevel::kMessage, std::move(log_payload)}); 
 }
 
