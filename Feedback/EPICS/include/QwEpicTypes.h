@@ -3,7 +3,7 @@
 #include <mutex>
 #include <string>
 #include <cadef.h>
-#include "EpicTypeTraits.h"
+#include "QwEpicTypeTraits.h"
 
 
 //////////////////////////////////////////////////////////////////////

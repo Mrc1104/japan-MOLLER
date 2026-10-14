@@ -1,11 +1,11 @@
 #pragma once
-#include "EpicHandler.h"
-#include "EpicChannel.h"
-#include "ChannelObserver.h"
-#include "Publisher.h"
-#include "QwFeedbackLogger.h"
-#include "EpicTypes.h"
 #include <atomic>
+#include "QwEpicHandler.h"
+#include "QwEpicChannel.h"
+#include "QwObserver.h"
+#include "QwPublisher.h"
+#include "QwFeedbackLogger.h"
+#include "QwEpicTypes.h"
 enum class IHWP {
     kIN  = 0, // PER EPICS
     kOUT = 1  // PER EPICS                                                                                

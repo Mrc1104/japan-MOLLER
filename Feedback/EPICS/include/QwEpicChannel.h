@@ -10,9 +10,9 @@
 #include <iostream>
 #include <stdexcept>
 #include <optional>
-#include "EpicTypes.h"
-#include "ChannelObserver.h"
-#include "Publisher.h"
+#include "QwEpicTypes.h"
+#include "QwObserver.h"
+#include "QwPublisher.h"
 #include "QwLog.h"
 
 class EpicChannel

@@ -2,7 +2,7 @@
 #include <string>
 #include <fstream>
 #include <memory>
-#include "ChannelObserver.h"
+#include "QwObserver.h"
 #include "QwLog.h"
 struct QwFeedbackLogPayload
 {

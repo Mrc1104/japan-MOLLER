@@ -2,8 +2,8 @@
 #include <vector>
 #include <mutex>
 
-#include "EpicTypeTraits.h"
-#include "ChannelObserver.h"
+#include "QwEpicTypeTraits.h"
+#include "QwObserver.h"
 
 // Forward Declaration
 template<typename T>

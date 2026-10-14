@@ -1,4 +1,4 @@
-#include "IHWP.h"
+#include "QwIHWP.h"
 
 const char* IHWP_IOC::IHWP_PV = "IGL1I00DI24_24M";
 

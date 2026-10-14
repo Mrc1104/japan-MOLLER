@@ -1,7 +1,7 @@
 #include "QwFeedbackCorrectionPayload.h"
 #include <string>
 #include "QwLog.h"
-#include "ErrorHandling.h"
+#include "QwErrorHandling.h"
 
 std::string_view stringify(FbCorrType type)
 {

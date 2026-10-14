@@ -2,9 +2,9 @@
 #include <future>
 #include <string>
 #include "QwFeedbackLogger.h"
-#include "EpicTypes.h"
-#include "EpicChannel.h"
-#include "IHWP.h"
+#include "QwEpicTypes.h"
+#include "QwEpicChannel.h"
+#include "QwIHWP.h"
 
 class QwFeedbackSlope
 {

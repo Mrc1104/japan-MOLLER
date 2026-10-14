@@ -1,4 +1,4 @@
-#include "EpicChannel.h"
+#include "QwEpicChannel.h"
 void EpicChannel::connection_callback(connection_handler_args arg) noexcept {
 	std::string_view ch_name = ::ca_name(arg.chid);
 	bool connected = (arg.op == CA_OP_CONN_UP);

@@ -1,8 +1,8 @@
 #pragma once
 #include <array>
 #include "VQwEnumArray.h"
-#include "IHWP.h"
-#include "Publisher.h"
+#include "QwIHWP.h"
+#include "QwPublisher.h"
 #include "QwFeedbackLogger.h"
 
 class QwIHWPSlope : public VQwFeedbackSlopes

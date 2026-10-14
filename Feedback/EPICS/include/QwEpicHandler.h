@@ -3,8 +3,8 @@
 #include <cadef.h>
 #include <vector>
 #include <list>
-#include "ErrorHandling.h"
-#include "EpicChannel.h"
+#include "QwErrorHandling.h"
+#include "QwEpicChannel.h"
 
 class EpicHandler
 {
