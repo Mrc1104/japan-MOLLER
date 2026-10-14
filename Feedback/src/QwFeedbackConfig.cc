@@ -1,4 +1,6 @@
+#include <charconv>
 #include "QwFeedbackConfig.h"
+#include "QwLog.h"
 
 bool QwFeedbackConfig::parse_pair(std::string_view token) {
 	bool status = false;
@@ -12,9 +14,31 @@ bool QwFeedbackConfig::parse_pair(std::string_view token) {
 		name = std::string(sv);
 		status = true;
 	}
-	else if( auto sv = parse_pair_impl(token, "Decr" ); sv != std::string_view{} ) {
+	else if( auto sv = parse_pair_impl(token, "descr" ); sv != std::string_view{} ) {
 		descr = std::string(sv);
 		status = true;
+	}
+	else if( auto sv = parse_pair_impl(token, "lower" ); sv != std::string_view{} ) {
+		double tmp;
+		auto [ptr, err] = std::from_chars(sv.data(), sv.data() + sv.size(), tmp);
+		if( err == std::errc{} ) {
+			limits.lower_limit = tmp;
+			QwMessage << "Setting lower bound (" << sv << ") for (" << getName() << ")\n";
+		} else {
+			QwWarning << "Could not parse lower bound (" << sv << ") "
+			          << " for (" << getName() << ")! Using default lower bound\n";
+		}
+	}
+	else if (auto sv = parse_pair_impl(token, "upper" ); sv != std::string_view{} ) {
+		double tmp;
+		auto [ptr, err] = std::from_chars(sv.data(), sv.data() + sv.size(), tmp);
+		if( err == std::errc{} ) {
+			limits.upper_limit = tmp;
+			QwMessage << "Setting upper bound (" << sv << ") for (" << getName() << ")\n";
+		} else {
+			QwWarning << "Could not parse upper bound (" << sv << ") "
+			          << " for (" << getName() << ")! Using default upper bound\n";
+		}
 	}
 	return status;
 }
