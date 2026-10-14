@@ -1,0 +1,13 @@
+[QwBeamLine]
+ name = ISU_TestStand
+ map = isu_channels.map
+ param = isu_pedestals.map
+ eventcut = isu_eventcuts.in
+[QwFeedbackHandler]
+  name = Feedback
+  map  = feedback.map
+  impl = PITA
+  slope_ihwp_in  = 0.1
+  slope_ihwp_out = -0.1
+  patterns = 20
+  log  = ./myFirstLogFile.log
