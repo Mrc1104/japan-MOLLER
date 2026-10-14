@@ -5,6 +5,7 @@
 #include "QwFeedbackStrategy.h"
 #include "QwFeedbackSlope.h"
 #include "QwFeedbackCorrectionPayload.h"
+#include "QwLimits.h"
 
 
 class VQwFeedbackImpl
@@ -12,7 +13,7 @@ class VQwFeedbackImpl
 public:
 	virtual void ApplyCorrectionImpl(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope) = 0;
 	virtual std::unique_ptr<VQwFeedbackImpl> Clone() const = 0;
-	virtual bool AddSetpoint(std::string const& setpoints) = 0;
+	virtual bool AddSetpoint(std::string const& setpoints, QwSetpointLimits const&) = 0;
 };
 
 template<typename FeedbackStrategy>
@@ -24,7 +25,7 @@ public:
 	QwFeedbackImpl(QwFeedbackLogger& logger);
 	void ApplyCorrectionImpl(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope) override;
 	std::unique_ptr<VQwFeedbackImpl> Clone() const override;
-	bool AddSetpoint(std::string const& setpoint) override;
+	bool AddSetpoint(std::string const& setpoint, QwSetpointLimits const&) override;
 };
 
 template<typename FeedbackStrategy>
@@ -34,9 +35,9 @@ QwFeedbackImpl<FeedbackStrategy>::QwFeedbackImpl(QwFeedbackLogger& logger)
 { }
 
 template<typename FeedbackStrategy>
-bool QwFeedbackImpl<FeedbackStrategy>::AddSetpoint(std::string const& setpoint)
+bool QwFeedbackImpl<FeedbackStrategy>::AddSetpoint(std::string const& setpoint, QwSetpointLimits const& limits)
 {
-	return fFbStrategy.SetSetpoint(setpoint.c_str(), fLogger);
+	return fFbStrategy.SetSetpoint(setpoint.c_str(), limits, fLogger);
 }
 
 template<typename FeedbackStrategy>

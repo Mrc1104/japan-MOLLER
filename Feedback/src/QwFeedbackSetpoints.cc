@@ -1,17 +1,6 @@
 #include "QwEpicHandler.h"
 #include "QwFeedbackSetpoints.h"
 
-
-
-
-QwFeedbackSlope::QwFeedbackSlope() : fSlopes{1.0, 1.0}, fIHWP() {}
-double& QwFeedbackSlope::operator[](IHWP state)       { return fSlopes[static_cast<int>(state)]; }
-double  QwFeedbackSlope::operator[](IHWP state) const { return fSlopes[static_cast<int>(state)]; }
-double  QwFeedbackSlope::GetSlope() const             { return this->operator[](fIHWP.GetState());}
-void    QwFeedbackSlope::AttachLogger(QwFeedbackLogger& logger) { fIHWP.AddObserver(&logger); }
-
-
-
 void QwFeedbackSetpoint::Update(double const& data)
 {
 	fPrev = fCurr.Exchange(data, std::memory_order_acq_rel);
@@ -30,19 +19,30 @@ void QwFeedbackSetpoint::Attach(const char* pv_name)
 	fName = fChannel->GetName();
 }
 
+void QwFeedbackSetpoint::SetLimits(QwSetpointLimits const& limits) { fLimits = limits; }
 
 QwFeedbackSetpoint::QwFeedbackSetpoint()
 : fChannel(nullptr)
 , fCorr{}
 , fPrev{}
 , fCurr{}
+, fLimits{}
 {}
+
+bool QwFeedbackSetpoint::IsWithinLimits(double const input) const noexcept
+{
+	bool status = true;
+	if(input > fLimits.upper_limit || input < fLimits.lower_limit )
+		status = false;
+	return status;
+}
 
 QwFeedbackSetpoint::QwFeedbackSetpoint(EpicChannel* channel)
 : fChannel(channel)
 , fCorr{}
 , fPrev{}
 , fCurr{}
+, fLimits{}
 {
 	if(channel) {
 		fChannel->StartMonitoring(this);
@@ -58,6 +58,7 @@ QwFeedbackSetpoint::~QwFeedbackSetpoint()
 
 QwFeedbackSetpoint::QwFeedbackSetpoint(QwFeedbackSetpoint const& other)
 : fChannel(other.fChannel)
+, fLimits(other.fLimits)
 {
 	double current = other.fCurr.Load(std::memory_order_acquire);
 	fCorr = other.fCorr;

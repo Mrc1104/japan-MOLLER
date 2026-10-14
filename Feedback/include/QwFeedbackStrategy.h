@@ -4,6 +4,7 @@
 #include "QwLog.h"
 #include "QwFeedbackSetpoints.h"
 #include "QwFeedbackCorrectionPayload.h"
+#include "QwLimits.h"
 
 struct QwPitaFBStrategy
 {
@@ -53,7 +54,7 @@ public:
 	static constexpr std::string_view fName            = Strategy::fName;
 	static constexpr std::size_t fNumSetpointsExpected = Strategy::fNumSetpointsExpected;
 public:
-	bool SetSetpoint(const char* pv_name, QwFeedbackLogger& logger);
+	bool SetSetpoint(const char* pv_name, QwSetpointLimits const& limits, QwFeedbackLogger& logger);
 	void operator()(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope);
 private:
 	std::size_t fNumSetpointsSet{0};
@@ -61,7 +62,7 @@ private:
 };
 
 template <typename Strategy>
-bool QwFBStrategy<Strategy>::SetSetpoint(const char* pv_name, QwFeedbackLogger& logger)
+bool QwFBStrategy<Strategy>::SetSetpoint(const char* pv_name, QwSetpointLimits const& limits, QwFeedbackLogger& logger)
 {
 	if(fNumSetpointsSet >= fNumSetpointsExpected) {
 		QwError << "Error: " << fName << " Setpoints already set!\n";
@@ -71,6 +72,7 @@ bool QwFBStrategy<Strategy>::SetSetpoint(const char* pv_name, QwFeedbackLogger& 
 	auto& setpoint = fSetpoints[fNumSetpointsSet++];
 	setpoint.Attach(pv_name);
 	setpoint.AddObserver(&logger);
+	setpoint.SetLimits(limits);
 	return true;
 }
 

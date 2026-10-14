@@ -2,23 +2,17 @@
 #include <ostream>
 #include <string>
 #include <string_view>
-#include <utility>
-#include <limits>
+#include "QwLimits.h"
 
 class QwFeedbackConfig
 {
 public:
 	enum class TYPE	{ kTARGET, kIOC, kUNKNOWN };
-	struct SetpointBounds
-	{
-		double lower_limit{std::numeric_limits<double>::lowest()};
-		double upper_limit{std::numeric_limits<double>::max()};
-	};
 private:
 	TYPE type{TYPE::kUNKNOWN};
 	std::string name;
 	std::string descr;
-	SetpointBounds limits{};
+	QwSetpointLimits limits{};
 private:
 	std::string_view parse_pair_impl(std::string_view token, std::string_view target);
 public:
@@ -28,10 +22,9 @@ public:
 public:
 	// Accesors
 	TYPE getType() const;
-	std::string const& getName() const& noexcept;
-	std::string&& getName() && noexcept;
-	std::string const& getDescr() const& noexcept;
-	std::string&& getDescr() && noexcept;
+	std::string const& getName() const noexcept;
+	std::string const& getDescr() const noexcept;
+	QwSetpointLimits const& getLimits() const noexcept;
 
 public:
 	// We all need friends

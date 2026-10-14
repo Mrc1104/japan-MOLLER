@@ -68,11 +68,9 @@ QwFeedbackConfig::TYPE QwFeedbackConfig::getType() const
 {
 	return type;
 }
-std::string const& QwFeedbackConfig::getName() const& noexcept { return name; }
-std::string&& QwFeedbackConfig::getName() && noexcept { return std::move(name); }
-std::string const& QwFeedbackConfig::getDescr() const& noexcept { return descr; }
-std::string&& QwFeedbackConfig::getDescr() && noexcept { return std::move(descr); }
-
+std::string const& QwFeedbackConfig::getName() const noexcept { return name; }
+std::string const& QwFeedbackConfig::getDescr() const noexcept { return descr; }
+QwSetpointLimits const& QwFeedbackConfig::getLimits() const noexcept { return limits; }
 
 std::ostream& operator<<(std::ostream& out, QwFeedbackConfig const& config)
 {

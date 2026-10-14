@@ -82,7 +82,7 @@ void QwFeedback::ConfigureFeedback(QwFeedbackConfig const& config)
 			fDevices.emplace_back(config.getName(), config.getDescr());
 			break;
 		case QwFeedbackConfig::TYPE::kIOC:
-			fPimpl->AddSetpoint(config.getName());
+			fPimpl->AddSetpoint(config.getName(), config.getLimits());
 			break;
 		default:
 			break;
