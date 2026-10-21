@@ -51,7 +51,7 @@ std::future<void> QwFeedbackSetpoint::ApplyCorrection(double corr)
 		std::string log_payload = "Request: " + fName
 			+ ": fPrev = "        + std::to_string(fPrev)
 			+ ", fCurrent = "     + std::to_string(current)
-			+ " => Correction = " + std::to_string(fCorr)
+			+ ", Correction = "   + std::to_string(fCorr)
 			+ " is outside of limits [" + std::to_string(fLimits.lower_limit)
 			+ ", " + std::to_string(fLimits.upper_limit) + "]\n";
 		Notify(QwFeedbackLogPayload{QwLogLevel::kError, std::move(log_payload)});
@@ -59,9 +59,9 @@ std::future<void> QwFeedbackSetpoint::ApplyCorrection(double corr)
 	}
 	auto fut = fChannel->PutAsync(DBR_DOUBLE, fCorr);
 	std::string log_payload = "Request: " + fName
-                            + ": fPrev = "        + std::to_string(fPrev)
-	                        + ", fCurrent = "     + std::to_string(current)
-							+ " => Correction = " + std::to_string(fCorr) + '\n';
+			+ ": fPrev = "        + std::to_string(fPrev)
+			+ ", fCurrent = "     + std::to_string(current)
+			+ ", Correction = "   + std::to_string(fCorr) + '\n';
 	Notify(QwFeedbackLogPayload{QwLogLevel::kMessage, std::move(log_payload)});
 	return fut;
 }

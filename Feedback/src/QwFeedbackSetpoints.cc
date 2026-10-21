@@ -4,8 +4,8 @@
 void QwFeedbackSetpoint::Update(double const& data)
 {
 	fPrev = fCurr.Exchange(data, std::memory_order_acq_rel);
-	std::string log_payload = "Received: " + fName
-		                        + ": fCurrent = "     + std::to_string(data) + '\n';
+	std::string log_payload = "[Callback] Channel '" + fName + "' value changed: New ="
+	                          + std::to_string(data) + ", Old = " + std::to_string(fPrev) + '\n';
 	Notify(QwFeedbackLogPayload{QwLogLevel::kMessage, std::move(log_payload)}); 
 }
 
