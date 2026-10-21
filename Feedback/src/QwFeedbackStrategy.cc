@@ -18,7 +18,11 @@ void QwPitaFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFeed
 	}
 #ifdef WAIT_FOR_TX_ACK
 	for( auto& tx : ack ) {
-		tx.get();
+		try{
+			tx.get();
+		} catch(std::future_error &except) {
+			QwError << fName << " Payload not sent!\n";
+		}
 	}
 #endif
 }
@@ -40,7 +44,11 @@ void QwAposUFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFee
 
 #ifdef WAIT_FOR_TX_ACK
 	for( auto& tx : ack ) {
-		tx.get();
+		try{
+			tx.get();
+		} catch(std::future_error &except) {
+			QwError << fName << " Payload not sent!\n";
+		}
 	}
 #endif
 }
@@ -62,7 +70,11 @@ void QwAposVFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFee
 
 #ifdef WAIT_FOR_TX_ACK
 	for( auto& tx : ack ) {
-		tx.get();
+		try{
+			tx.get();
+		} catch(std::future_error &except) {
+			QwError << fName << " Payload not sent!\n";
+		}
 	}
 #endif
 }
@@ -80,7 +92,11 @@ void QwIAFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedba
 
 #ifdef WAIT_FOR_TX_ACK
 	for( auto& tx : ack ) {
-		tx.get();
+		try{
+			tx.get();
+		} catch(std::future_error &except) {
+			QwError << fName << " Payload not sent!\n";
+		}
 	}
 #endif
 }
@@ -91,8 +107,6 @@ void QwPosXYFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFee
 	using tx_ack = std::future<void>;
 	constexpr auto N = fNumSetpointsExpected;
 	std::array<tx_ack, N> ack;
-	// I need to have access to two devices! 
-	// POSXY is not like the others :(
 	double const diff_x  = payload.Get(FbCorrType::DIFFX);
 	double const diff_y  = payload.Get(FbCorrType::DIFFY);
 
@@ -116,7 +130,11 @@ void QwPosXYFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFee
 
 #ifdef WAIT_FOR_TX_ACK
 	for( auto& tx : ack ) {
-		tx.get();
+		try{
+			tx.get();
+		} catch(std::future_error &except) {
+			QwError << fName << " Payload not sent!\n";
+		}
 	}
 #endif
 }
