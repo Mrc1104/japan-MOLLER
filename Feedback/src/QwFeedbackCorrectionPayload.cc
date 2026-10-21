@@ -26,11 +26,11 @@ std::string_view stringify(FbCorrType type)
 FbCorrType GetFbCorrType(std::string_view sv)
 {
 	FbCorrType type;
-	if(sv.find("ASYM")) {
+	if(sv == "ASYM") {
 		type = FbCorrType::ASYM;
-	} else if(sv.find("DIFFX")) {
+	} else if(sv == "DIFFX") {
 		type = FbCorrType::DIFFX;
-	} else if(sv.find("DIFFY")) {
+	} else if(sv == "DIFFY") {
 		type = FbCorrType::DIFFY;
 	} else {
 		QwWarning << "Unknown enum GetFbCorrType" << '\n';

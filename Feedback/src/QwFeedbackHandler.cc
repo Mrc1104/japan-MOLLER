@@ -6,7 +6,7 @@
 #include "QwFeedbackImpl.h"
 
 constexpr double PPM_UNIT = 1e6;
-
+constexpr double  UM_UNIT = 1e3;
 QwFeedbackHandler::QwFeedbackHandler(TString const& name)
 : VQwDataHandler(name)
 , fMaxPattern(std::numeric_limits<std::size_t>::max())
@@ -57,7 +57,7 @@ void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
 		if(!file.PopValue("slope_yu", slope_yu)) {
 			THROW_ERROR("Missing Required Slope (slope_yu)!");
 		}
-		if(!file.PopValue("slope_yu", slope_yv)) {
+		if(!file.PopValue("slope_yv", slope_yv)) {
 			THROW_ERROR("Missing Required Slope (slope_yv)!");
 		}
 		fFeedback->SetSlope(QwPOSXYSlope::POS_TYPE::kXU , slope_xu);
@@ -125,6 +125,7 @@ Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsys
 			case kHandleTypeDiff:
 				SetEventcutErrorFlagPointer(diff.GetEventcutErrorFlagPointer());
 				observer = diff.ReturnInternalValue(TString(device_name));
+				scale_factor = UM_UNIT;
 				break;
 			default:
 				QwWarning << "Warning: QwFeedbackHander::ConnectChannels():\n"
