@@ -1,5 +1,5 @@
-type=target name=xy_targ_x         descr=DIFFX
-type=target name=xy_targ_y         descr=DIFFY
+type=target name=xy_pos_x         descr=DIFFX
+type=target name=xy_pos_y         descr=DIFFY
 type=ioc    name=RTPXPORT1Q1calc.A descr=PC_HV1 lower=-1.0 upper=36000
 type=ioc    name=RTPXPORT1Q4calc.A descr=PC_HV2 lower=-1.0 upper=36000
 type=ioc    name=RTPXPORT2Q1calc.A descr=PC_HV3 lower=-1.0 upper=36000
