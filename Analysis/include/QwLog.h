@@ -215,6 +215,8 @@ class gQwLogger : public VQwLogger
 
 	gQwLogger();
 public:
+	/*! \brief Access the singleton
+	 */
 	static gQwLogger& Instance();
 	/*! \brief Create a LogProxy to handle logging
 	 */

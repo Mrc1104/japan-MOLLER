@@ -34,11 +34,11 @@ QwColor GetLevelColor(QwLogLevel level)
 std::ostream& operator<<(std::ostream& stream, QwLogLevel level)
 {
 	switch (level) {
-		case QwLogLevel::kError:   stream << "ERROR"  ; break;
-		case QwLogLevel::kWarning: stream << "WARN"   ; break;
-		case QwLogLevel::kVerbose: stream << "VERBOSE"; break;
-		case QwLogLevel::kDebug:   stream << "DEBUG"  ; break;
-		default:                   stream << "INFO"   ; break;
+		case QwLogLevel::kError:   stream << "ERRO"; break;
+		case QwLogLevel::kWarning: stream << "WARN"; break;
+		case QwLogLevel::kVerbose: stream << "VERB"; break;
+		case QwLogLevel::kDebug:   stream << "DEBG"; break;
+		default:                   stream << "INFO"; break;
 	}
 	return stream;
 }
@@ -133,7 +133,7 @@ gQwLogger::gQwLogger()
 : fScreenLogger(&std::cout, QwLogLevel::kMessage)
 , fFileLogger(nullptr, QwLogLevel::kMessage)
 , fPrintFunctionSignature{false}
-, fUseColor{true}
+, fUseColor{false}
 { }
 
 gQwLogger& gQwLogger::Instance()
