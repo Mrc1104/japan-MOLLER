@@ -2,6 +2,7 @@
 #include <atomic>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <cadef.h>
 #include "QwEpicTypeTraits.h"
 
@@ -14,6 +15,8 @@ class AtomicEpicsType
 {
 	static_assert(std::is_trivially_copyable_v<T>,
 		"Primary template must be trivially copyable.");
+	static_assert(is_epic_supported<T>::value,
+			"AtomicEpicsType is limited to EPICS Supported Types");
 	using EpicsType = typename EpicsTypeTraits<T>::epics_type;
 	std::atomic<T> data;
 public:
@@ -56,7 +59,6 @@ bool AtomicEpicsType<T>::CompareExchangeWeak(T& expected, T desired, std::memory
 	return data.compare_exchange_weak(expected, desired, mem_order);
 }
 
-// Can I jsut make this accept a string_view?
 template<>
 class AtomicEpicsType<std::string>
 {
@@ -65,15 +67,12 @@ class AtomicEpicsType<std::string>
 	std::string data;
 	mutable std::mutex  mut;
 
-	void StoreImpl(std::string_view sv, std::memory_order mem_order);
+	void StoreImpl(std::string_view sv);
 public:
-	AtomicEpicsType(std::string_view input = "", std::memory_order mem_order = std::memory_order_seq_cst);
-	void Store(std::string const& input, std::memory_order mem_order = std::memory_order_seq_cst);
-	void Store(EpicsType const& input, std::memory_order mem_order = std::memory_order_seq_cst);
+	AtomicEpicsType(std::string_view sv = std::string_view{}, std::memory_order mem_order = std::memory_order_seq_cst);
+	void Store(std::string_view sv, std::memory_order mem_order = std::memory_order_seq_cst);
 	std::string Load(std::memory_order mem_order = std::memory_order_seq_cst) const;
-	std::string Exchange(std::string desired, std::memory_order mem_order = std::memory_order_seq_cst);
-	bool CompareExchangeWeak(std::string& expected, std::string desired, std::memory_order success, std::memory_order failure);
-	bool CompareExchangeWeak(std::string& expected, std::string desired, std::memory_order mem_order = std::memory_order_seq_cst);
+	std::string Exchange(std::string_view desired, std::memory_order mem_order = std::memory_order_seq_cst);
 };
 
 

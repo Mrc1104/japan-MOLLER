@@ -2,7 +2,6 @@
 #include <iostream>
 #include <cadef.h>
 #include <vector>
-#include <list>
 #include "QwErrorHandling.h"
 #include "QwEpicChannel.h"
 
