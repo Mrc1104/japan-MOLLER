@@ -34,7 +34,7 @@
   slope_xu = 0.1
   slope_xv = 0.1
   slope_yu = -0.1
-  slope_yv = -0.1
+  slope_yv = 0.1
   patterns = 200
   log  = ./POSXY_Feedback.log
 

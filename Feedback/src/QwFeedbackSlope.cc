@@ -73,11 +73,21 @@ void QwPOSXYSlope::cache() const
 	auto fxV = fSlopes_raw[static_cast<int>(POS_TYPE::kXV)];
 	auto fxU = fSlopes_raw[static_cast<int>(POS_TYPE::kXU)];
 	
-	auto lin_comb_yv =  fyV / ( (fxU * fyV) - (fyU * fxV) );
-    auto lin_comb_yu = -fyU / ( (fxU * fyV) - (fyU * fxV) );
-    auto lin_comb_xv = -fxV / ( (fxU * fyV) - (fyU * fxV) );
-    auto lin_comb_xu =  fxU / ( (fxU * fyV) - (fyU * fxV) );
-
+	double lin_comb_yv = 0.0;
+	double lin_comb_yu = 0.0;
+	double lin_comb_xv = 0.0;
+	double lin_comb_xu = 0.0;
+	double denom = (fxU * fyV) - (fyU * fxV);
+	if( std::isnormal(denom) ) {
+		lin_comb_yv =  fyV / denom;
+		lin_comb_yu = -fyU / denom;
+		lin_comb_xv = -fxV / denom;
+		lin_comb_xu =  fxU / denom;
+	} else {
+		std::string log_payload = "PosXY Linear Combinations: Invalid Linear Combination! Setting combinations to 0!\n";
+		QwError << log_payload;
+		Notify(QwFeedbackLogPayload{QwLogLevel::kError, std::move(log_payload)});
+	}
 	fSlopes_cached[static_cast<int>(POS_TYPE::kYV)] = lin_comb_yv;
 	fSlopes_cached[static_cast<int>(POS_TYPE::kYU)] = lin_comb_yu;
 	fSlopes_cached[static_cast<int>(POS_TYPE::kXV)] = lin_comb_xv;
