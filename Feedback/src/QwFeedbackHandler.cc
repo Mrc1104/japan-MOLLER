@@ -140,7 +140,7 @@ Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsys
 				      << ") Not Found";
 			continue;
 		} 
-		auto const& [it, success] = fDeviceSet.emplace(DeviceMap{device_fb_type, observer, observer->Clone(VQwDataElement::kDerived), scale_factor});
+		auto const& [it, success] = fDeviceSet.emplace(DeviceMap{device_name, device_fb_type, observer, observer->Clone(VQwDataElement::kDerived), scale_factor});
 		if(!success) {
 			QwWarning << "Feedback Target Device (" 
 				      << device_name
@@ -173,7 +173,8 @@ void QwFeedbackHandler::ProcessData()
 		for( auto const& device : fDeviceSet) {
 			device.CalculateAverage();
 			payload.Set(device.GetFbType(), device.GetValue());
-			QwOut << "\tValue = " <<      device.GetValue()      << " [ppm]\n";
+			QwOut << '\t'             <<  device.GetName()       <<   '\n';
+			QwOut << "\tValue = "     <<  device.GetValue()      << " [ppm]\n";
 			QwOut << "\tValueError = " << device.GetValueError() << " [ppm]\n";
 			QwOut << "\tValueWidth = " << device.GetValueWidth() << " [ppm]\n";
 		}

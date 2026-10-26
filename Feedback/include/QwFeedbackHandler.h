@@ -46,15 +46,17 @@ private:
 	class DeviceMap
 	{
 		FbCorrType fFbType;
+		std::string fName;
 		VQwHardwareChannel const* fDeviceObserver;
 		mutable VQwHardwareChannel* fDeviceAccum;
 		double fScale;
 	public:
-		DeviceMap(FbCorrType fb, VQwHardwareChannel const* observ, VQwHardwareChannel* accum, double factor)
-		: fFbType(fb), fDeviceObserver(observ), fDeviceAccum(accum), fScale(factor){}
+		DeviceMap(std::string name, FbCorrType fb, VQwHardwareChannel const* observ, VQwHardwareChannel* accum, double factor)
+		: fName(std::move(name)), fFbType(fb), fDeviceObserver(observ), fDeviceAccum(accum), fScale(factor){}
 		bool operator<(DeviceMap const& other) const {
 			return static_cast<int>(fFbType) < static_cast<int>(other.fFbType);
 		}
+		std::string const& GetName() const { return fName; }
 		void Accumulate() const {
 			fDeviceAccum->AccumulateRunningSum(fDeviceObserver);
 		}
