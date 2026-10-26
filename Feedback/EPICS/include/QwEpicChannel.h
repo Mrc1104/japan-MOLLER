@@ -50,11 +50,10 @@ public:
 	void StopMonitoring(Observer<T>* observer) noexcept;
 public:
 	template<typename T>
-	std::future<T> GetAsync(::chtype dbr_type);
+	std::future<T> GetAsync();
 	template<typename T>
-	std::future<void> PutAsync(::chtype dbr_type, T&& value);
+	std::future<void> PutAsync(T&& value);
 
-	// TODO: Update the Async Functions to use the EpicsTypeTraits
 	class AsyncContextBase {
 	public:
 		virtual ~AsyncContextBase() = default;
@@ -120,8 +119,12 @@ void EpicChannel::monitor_value_callback(event_handler_args arg) noexcept
 
 
 template<typename T>
-std::future<T> EpicChannel::GetAsync(::chtype dbr_type)
+std::future<T> EpicChannel::GetAsync()
 {
+	static_assert(is_epic_supported<T>::value,
+			"EpicChannel::GetAsync is limited to EPICS Supported Types");
+	constexpr ::chtype dbr_type = EpicsTypeTraits<T>::dbr_type;
+
 	auto context = std::make_unique<GetRequestContext<T>>();
 	auto future  = context->GetFuture();
 	try {
@@ -145,10 +148,14 @@ std::future<T> EpicChannel::GetAsync(::chtype dbr_type)
 }
 
 template<typename T>
-std::future<void> EpicChannel::PutAsync(::chtype dbr_type, T&& value)
+std::future<void> EpicChannel::PutAsync(T&& value)
 {
-	// how to avoid all heap allocs?
-	auto context = std::make_unique<PutRequestContext<std::decay_t<T>>>(std::forward<T>(value));
+	using decay_type = std::decay_t<T>;
+	static_assert(is_epic_supported<decay_type>::value,
+			"EpicChannel::PutAsync is limited to EPICS Supported Types");
+	constexpr ::chtype dbr_type = EpicsTypeTraits<decay_type>::dbr_type;
+
+	auto context = std::make_unique<PutRequestContext<decay_type>>(std::forward<T>(value));
 	auto future  = context->GetFuture();
 	try {
 		if(!is_conn.load()) {

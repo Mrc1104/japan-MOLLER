@@ -19,7 +19,7 @@ int main()
 	do {
 		std::cout << "Press 'q' to quit...\n";
 		auto start = std::chrono::high_resolution_clock::now();
-		auto fut = hv->GetAsync<double>(EpicsTypeTraits<double>::dbr_type);
+		auto fut = hv->GetAsync<double>();
 		auto val = fut.get();
 		auto end = std::chrono::high_resolution_clock::now();
 		auto dur_ns = std::chrono::duration_cast<std::chrono::microseconds>( end - start ).count();

@@ -57,7 +57,7 @@ std::future<void> QwFeedbackSetpoint::ApplyCorrection(double corr)
 		Notify(QwFeedbackLogPayload{QwLogLevel::kError, std::move(log_payload)});
 		return std::future<void>{};
 	}
-	auto fut = fChannel->PutAsync(DBR_DOUBLE, fCorr);
+	auto fut = fChannel->PutAsync(fCorr);
 	std::string log_payload = "Request: " + fName
 			+ ": fPrev = "        + std::to_string(fPrev)
 			+ ", fCurrent = "     + std::to_string(current)
