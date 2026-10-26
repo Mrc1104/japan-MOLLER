@@ -1,7 +1,7 @@
 #include "QwFeedbackStrategy.h"
 #include "QwFeedbackSlope.h"
 
-// #define WAIT_FOR_TX_ACK
+#define WAIT_FOR_TX_ACK
 
 void QwPitaFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope, SetPointArray& setpoints)
 {
@@ -20,8 +20,10 @@ void QwPitaFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFeed
 	for( auto& tx : ack ) {
 		try{
 			tx.get();
-		} catch(std::future_error &except) {
-			QwError << fName << " Payload not sent!\n";
+		} catch(std::future_error const& except) {
+			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
+		} catch(std::runtime_error const& except) {
+			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
 		}
 	}
 #endif
@@ -46,8 +48,10 @@ void QwAposUFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFee
 	for( auto& tx : ack ) {
 		try{
 			tx.get();
-		} catch(std::future_error &except) {
-			QwError << fName << " Payload not sent!\n";
+		} catch(std::future_error const& except) {
+			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
+		} catch(std::runtime_error const& except) {
+			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
 		}
 	}
 #endif
@@ -72,8 +76,10 @@ void QwAposVFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFee
 	for( auto& tx : ack ) {
 		try{
 			tx.get();
-		} catch(std::future_error &except) {
-			QwError << fName << " Payload not sent!\n";
+		} catch(std::future_error const& except) {
+			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
+		} catch(std::runtime_error const& except) {
+			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
 		}
 	}
 #endif
@@ -94,8 +100,10 @@ void QwIAFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedba
 	for( auto& tx : ack ) {
 		try{
 			tx.get();
-		} catch(std::future_error &except) {
-			QwError << fName << " Payload not sent!\n";
+		} catch(std::future_error const& except) {
+			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
+		} catch(std::runtime_error const& except) {
+			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
 		}
 	}
 #endif
@@ -132,8 +140,10 @@ void QwPosXYFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFee
 	for( auto& tx : ack ) {
 		try{
 			tx.get();
-		} catch(std::future_error &except) {
-			QwError << fName << " Payload not sent!\n";
+		} catch(std::future_error const& except) {
+			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
+		} catch(std::runtime_error const& except) {
+			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
 		}
 	}
 #endif
