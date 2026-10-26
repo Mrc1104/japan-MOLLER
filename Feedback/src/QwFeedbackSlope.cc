@@ -93,11 +93,12 @@ void QwPOSXYSlope::cache() const
 	fSlopes_cached[static_cast<int>(POS_TYPE::kXV)] = lin_comb_xv;
 	fSlopes_cached[static_cast<int>(POS_TYPE::kXU)] = lin_comb_xu;
 
-	std::string log_payload = "PosXY Linear Combinations:\n"s
-	                        + "\tYV = " + std::to_string(lin_comb_yv)
-	                        + "\tYU = " + std::to_string(lin_comb_yu)
-	                        + "\tXV = " + std::to_string(lin_comb_xv)
-	                        + "\tXU = " + std::to_string(lin_comb_xu) + '\n';
+	std::string log_payload = "PosXY Linear Combinations: "s
+	                        + "  YV = " + std::to_string(lin_comb_yv)
+	                        + ", YU = " + std::to_string(lin_comb_yu)
+	                        + ", XV = " + std::to_string(lin_comb_xv)
+	                        + ", XU = " + std::to_string(lin_comb_xu) + '\n';
+	QwMessage << log_payload;
 	Notify(QwFeedbackLogPayload{QwLogLevel::kMessage, std::move(log_payload)});
 	fIsCached = true;
 }
