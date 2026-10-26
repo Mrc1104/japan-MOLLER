@@ -3,6 +3,7 @@
  map = isu_channels.map
  param = isu_pedestals.map
  eventcut = isu_eventcuts.in
+
 ![QwFeedbackHandler]
 !  name = PitaFeedback
 !  map  = pita_feedback.map
@@ -11,6 +12,7 @@
 !  slope_ihwp_out = -0.2
 !  patterns = 200
 !  log  = ./PITA_Feedback.log
+
 ![QwFeedbackHandler]
 !  name = AposUFeedback
 !  map  = aposu_feedback.map
@@ -19,6 +21,7 @@
 !  slope_ihwp_out = -0.8
 !  patterns = 200
 !  log  = ./APOSU_Feedback.log
+
 ![QwFeedbackHandler]
 !  name = AposVFeedback
 !  map  = aposv_feedback.map
@@ -27,6 +30,7 @@
 !  slope_ihwp_out = -0.5
 !  patterns = 200
 !  log  = ./APOSV_Feedback.log
+
 [QwFeedbackHandler]
   name = PosXYFeedback
   map  = posxy_feedback.map
@@ -38,3 +42,29 @@
   patterns = 200
   log  = ./POSXY_Feedback.log
 
+![QwFeedbackHandler]
+!  name = HAIAFeedback
+!  map  = haia_feedback.map
+!  impl = IA
+!  slope_ihwp_in  = 0.5
+!  slope_ihwp_out = -0.5
+!  patterns = 200
+!  log  = ./HAIA_Feedback.log
+
+![QwFeedbackHandler]
+!  name = HBIAFeedback
+!  map  = hbia_feedback.map
+!  impl = IA
+!  slope_ihwp_in  = 0.5
+!  slope_ihwp_out = -0.5
+!  patterns = 200
+!  log  = ./HBIA_Feedback.log
+
+![QwFeedbackHandler]
+!  name = HCIAFeedback
+!  map  = hcia_feedback.map
+!  impl = IA
+!  slope_ihwp_in  = 0.5
+!  slope_ihwp_out = -0.5
+!  patterns = 200
+!  log  = ./HAIA_Feedback.log
