@@ -6,6 +6,10 @@
 #include "QwFeedbackCorrectionPayload.h"
 #include "QwLimits.h"
 
+/**
+ * @class QwPitaFBStrategy
+ * @brief PITA Feedback Strategy
+ */
 struct QwPitaFBStrategy
 {
 	static constexpr std::string_view fName{"PITA Feedback"};
@@ -14,6 +18,10 @@ struct QwPitaFBStrategy
 	static void Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
 };
 
+/**
+ * @class QwAposUFBStrategy
+ * @brief AposU Feedback Strategy
+ */
 struct QwAposUFBStrategy
 {
 	static constexpr std::string_view fName{"AposU Feedback"};
@@ -22,6 +30,10 @@ struct QwAposUFBStrategy
 	static void Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
 };
 
+/**
+ * @class QwAposVFBStrategy
+ * @brief AposV Feedback Strategy
+ */
 struct QwAposVFBStrategy
 {
 	static constexpr std::string_view fName{"AposV Feedback"};
@@ -31,6 +43,10 @@ struct QwAposVFBStrategy
 };
 
 
+/**
+ * @class QwIAFBStrategy
+ * @brief IA Feedback Strategy
+ */
 struct QwIAFBStrategy
 {
 	static constexpr std::string_view fName{"IA Feedback"};
@@ -39,6 +55,10 @@ struct QwIAFBStrategy
 	static void Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
 };
 
+/**
+ * @class QwPosXYFBStrategy
+ * @brief POSXY Feedback Strategy
+ */
 struct QwPosXYFBStrategy
 {
 	static constexpr std::string_view fName{"PosXY Feedback"};
@@ -47,6 +67,11 @@ struct QwPosXYFBStrategy
 	static void Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope, SetPointArray& setpoints);
 };
 
+/**
+ * @class QwFBStrategy
+ * @brief Generic Feedback Strategy. Isolates common functinality
+ *        and specifics are injected using the sub-strategies (policies)
+ */
 template <typename Strategy>
 class QwFBStrategy
 {
@@ -54,7 +79,21 @@ public:
 	static constexpr std::string_view fName            = Strategy::fName;
 	static constexpr std::size_t fNumSetpointsExpected = Strategy::fNumSetpointsExpected;
 public:
+	/**
+	 *@brief Add an IOC (setpoint)
+	 *@param [in] pv_name Process variable
+	 *@param [in] limits Correction limits
+	 *@param [in] logger Logger to attach to setpoint
+	 *@details Requests the IOC from QwEpicHandler.
+	 *@retval  TRUE : Setpoint added; FALSE : Setpoint not added
+	 */
 	bool SetSetpoint(const char* pv_name, QwSetpointLimits const& limits, QwFeedbackLogger& logger);
+
+	/**
+	 *@brief Sends the corrections and slopes to each setpoint for processing
+	 *@param [in] payload Measured values to correct
+	 *@param [in] slope value to setpoint unit conversion
+	 */
 	void operator()(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope);
 private:
 	std::size_t fNumSetpointsSet{0};
@@ -84,11 +123,12 @@ void QwFBStrategy<Strategy>::operator()(QwFeedbackCorrectionPayload const& paylo
 	} else {
 		QwError << fName << " does not have the expected number of setpoints set!"
 		        << "\n\tNo. Set: "      << fNumSetpointsSet 
-		        << "\n\tNo. Expected: " << fNumSetpointsExpected << QwLog::endl;
+		        << "\n\tNo. Expected: " << fNumSetpointsExpected
+				<< "\nCorrection not applied!" << QwLog::endl;
 	}
 }
 
-// Helpful Aliases
+// Helpful Strategy Aliases
 using QwPitaStrategy  = QwFBStrategy<QwPitaFBStrategy>;
 using QwAposUStrategy = QwFBStrategy<QwAposUFBStrategy>;
 using QwAposVStrategy = QwFBStrategy<QwAposVFBStrategy>;

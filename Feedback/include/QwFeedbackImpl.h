@@ -8,6 +8,10 @@
 #include "QwLimits.h"
 
 
+/**
+ * @class VQwFeedbackImpl
+ * @brief Feedback Impl Interface
+ */
 class VQwFeedbackImpl
 {
 public:
@@ -16,6 +20,11 @@ public:
 	virtual bool AddSetpoint(std::string const& setpoints, QwSetpointLimits const&) = 0;
 };
 
+/**
+ * @class QwFeedbackImpl
+ * @brief Feedback Impl using the strategy (policy) pattern
+ * @tparam FeedbackStrategy Feedback strategy
+ */
 template<typename FeedbackStrategy>
 class QwFeedbackImpl : public VQwFeedbackImpl
 {

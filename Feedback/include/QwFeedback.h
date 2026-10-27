@@ -12,6 +12,10 @@
 class VQwFeedbackImpl;
 class QwFeedbackConfig;
 
+/**
+ * @class Device
+ * @brief Encapsulates the information for a specific VQwhardwareChannel device 
+ */
 struct Device
 {
 	Device(std::string name, std::string_view descr)
@@ -30,13 +34,23 @@ struct Device
 	VQwDataHandler::EQwHandleType fQwType;
 };
 
+/**
+ * @class QwFeedback
+ * @brief QwFeedbackHandler and QwFeedbackImpl bridge. Contains intermediate logic
+ *        such as list of VQwHardChannel devices, feedback slopes, and configuration.
+ */
 class QwFeedback
 {
+	/*@var fPimpl pointer to feedback impl */
 	std::unique_ptr<VQwFeedbackImpl>   fPimpl;
+
+	/*@var fPimpl pointer to slope impl */
 	std::unique_ptr<VQwFeedbackSlopes> fSlope;
+
 	QwFeedbackLogger fLogFile;
 	std::vector<Device> fDevices;
 public:
+	/*@enum Supported Feedback Types */
 	enum class TYPE {
 		PITA,
 		APOSU,
@@ -46,19 +60,55 @@ public:
 		UNKNOWN
 	};
 private:
+	/**
+	 *@brief Instantiations the correct slope and feedback impl based off of the feedback type
+	 *@param [in] type Feedback type
+	 *@detials No Op if feedback impl is already instantiated
+	 */
 	void ConfigureFeedbackType(TYPE type);
 public:
 	QwFeedback();
 	QwFeedback(QwFeedback const& other);
-public:
+
+	/**
+	 *@brief Obtains Feedback type from string like input
+	 *@param [in] sv string like input
+	 */
 	TYPE GetTypeOfFeedback(std::string_view sv) const;
+
+	/**
+	 *@brief Determines the feedback type and instantiates it alongside the proper slope impl
+	 *@param [in] sv string like input
+	 @retval Feedback type selected
+	 */
 	TYPE ConfigureFeedbackType(std::string_view);
+
+	/**
+	 *@brief Configures the logfile
+	 @retval success
+	 */
 	bool ConfigureLogger(std::string const&, std::ios_base::openmode mode = std::ios::app);
-public:
+
+	/**
+	 *@brief Configure the feedback system
+	 */
 	void ConfigureFeedback(QwFeedbackConfig const& config);
+
+	/**
+	 *@brief Applies the correction. No op if fSlope or fPimpl is null
+	 */
 	void ApplyCorrection(QwFeedbackCorrectionPayload const& payload);
+
+	/**
+	 *@brief Get list of VQwHardware devices
+	 */
 	std::vector<Device> const& RequestTargetDevices() const;
-public:
+
+	/**
+	 *@brief Set the value of the slope for a specific index.
+	 *       No op of fSlopes is null
+	 *@tparam IndexType Enumerated Index
+	 */
 	template<typename IndexType>
 	void SetSlope(IndexType Index, double val);
 };

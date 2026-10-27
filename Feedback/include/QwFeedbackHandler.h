@@ -43,12 +43,19 @@ protected:
     Int_t ConnectChannels(QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff) override { THROW_ERROR("NOT SUPPORTED"); }
 
 private:
+	/**
+	 * @class DeviceMap
+	 * @brief Encapsulates the VQwHardwareChannel ptr with accumulator + meta data
+	 */
 	class DeviceMap
 	{
+
+		/*@var fFbType Feedback Correction Type */
 		FbCorrType fFbType;
 		std::string fName;
 		VQwHardwareChannel const* fDeviceObserver;
 		mutable VQwHardwareChannel* fDeviceAccum;
+		/*@var fScale Scale factor to convert to desired units */
 		double fScale;
 	public:
 		DeviceMap(std::string name, FbCorrType fb, VQwHardwareChannel const* observ, VQwHardwareChannel* accum, double factor)

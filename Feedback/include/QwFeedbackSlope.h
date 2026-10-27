@@ -5,6 +5,17 @@
 #include "QwPublisher.h"
 #include "QwFeedbackLogger.h"
 
+/**
+ * @class QwIHWPSlope
+ * @brief Feedback Slope based off of the IHWP state
+ * @details
+ *        Enum-indexed array contaning the feedback slopes
+ *        that vary based off of the IHWP state. 
+ *
+ *        The IHWP state is updated atomically by the IWHP_IOC container
+ *        (see QwIHWP.h), and the corresponding slope can be accessed via
+ *        a calls to VQwFeedbackSlopes::Get();
+ */
 class QwIHWPSlope : public VQwFeedbackSlopes
 {
 	static_assert( static_cast<int>(IHWP::kIN) == 0
@@ -24,6 +35,25 @@ public:
 	bool IsValid() const;
 };
 
+/**
+ * @class QwPOSXYSlope
+ * @brief Feedback Slope based off of the four linear combinations of XU, XV, YU, YV
+ * @details
+ *        Enum-indexed array contaning the feedback slopes
+ *        that vary based off of the four lin. combinations
+ *
+ *        The corresponding slope can be accessed via
+ *        a calls to VQwFeedbackSlopes::Get(POS_TYPE::);
+ *        e.g.
+ *          slope->Get(QwPOSXYSlope::POS_TYPE::kYV)
+ *	 		slope->Get(QwPOSXYSlope::POS_TYPE::kXV)
+ *	 		slope->Get(QwPOSXYSlope::POS_TYPE::kYU)
+ *	 		slope->Get(QwPOSXYSlope::POS_TYPE::kXU)
+ *
+ *
+ *        On the first call to VQwFeedbackSlopes::Get, the linear combinations
+ *        are calculated and cached
+ */
 class QwPOSXYSlope : public VQwFeedbackSlopes, public Publisher<QwFeedbackLogPayload>
 { 
 public:

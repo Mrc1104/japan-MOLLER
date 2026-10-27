@@ -11,6 +11,21 @@ enum class IHWP {
     kOUT = 1  // PER EPICS                                                                                
 };
 std::string stringify(IHWP ihwp);
+
+
+/**
+ * @class IHWP_IOC
+ * @brief IHWP IOC container
+ * @details
+ * 		  Instead of requesting (and waiting) for up-to-date EPICS values every time
+ * 		  we need them, we can let the EPICS lib handle the updates for us. This is
+ * 		  achieved using the Observer pattern and the EPICS lib callback functionality.
+ * 		  When a IOC value changes, the EPICS lib updates our held value atomically.
+ *
+ * 		  Logging is handled in a similar manner. A logger (observer) is attached to the
+ * 		  setpoint (publisher). Everytime we request or receive a change in the setpoint value,
+ * 		  we notify the logger of the change.
+ */
 class IHWP_IOC : public EPICSObserver<int>, public Publisher<QwFeedbackLogPayload>
 {
 	EpicChannel* fChannel;

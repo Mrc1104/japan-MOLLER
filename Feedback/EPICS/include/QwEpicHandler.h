@@ -29,7 +29,7 @@ class EpicHandler
 public:
 	/**
 	 *@brief EpicHandler Instance.
-	 *@detials Implemented as a Meyers Singleton for
+	 *@details Implemented as a Meyers Singleton for
 	 *         thread safe creation and destruction
 	 */
 	static EpicHandler& Instance();
