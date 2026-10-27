@@ -3,6 +3,19 @@
 
 #define WAIT_FOR_TX_ACK
 
+template <std::size_t N>
+void wait_for_tx_ack(std::string_view name, std::array<std::future<void>, N>& ack) {
+	for( auto& tx : ack ) {
+		try{
+			tx.get();
+		} catch(std::future_error const& except) {
+			QwError << name << " Request not sent! " << except.what() << QwLog::endl;
+		} catch(std::runtime_error const& except) {
+			QwError << name << " Request not sent! " << except.what() << QwLog::endl;
+		}
+	}
+}
+
 void QwPitaFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope, SetPointArray& setpoints)
 {
 	using tx_ack = std::future<void>;
@@ -17,15 +30,7 @@ void QwPitaFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFeed
 		}
 	}
 #ifdef WAIT_FOR_TX_ACK
-	for( auto& tx : ack ) {
-		try{
-			tx.get();
-		} catch(std::future_error const& except) {
-			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
-		} catch(std::runtime_error const& except) {
-			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
-		}
-	}
+	wait_for_tx_ack(fName, ack);
 #endif
 }
 
@@ -45,15 +50,7 @@ void QwAposUFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFee
 	}
 
 #ifdef WAIT_FOR_TX_ACK
-	for( auto& tx : ack ) {
-		try{
-			tx.get();
-		} catch(std::future_error const& except) {
-			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
-		} catch(std::runtime_error const& except) {
-			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
-		}
-	}
+	wait_for_tx_ack(fName, ack);
 #endif
 }
 
@@ -73,15 +70,7 @@ void QwAposVFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFee
 	}
 
 #ifdef WAIT_FOR_TX_ACK
-	for( auto& tx : ack ) {
-		try{
-			tx.get();
-		} catch(std::future_error const& except) {
-			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
-		} catch(std::runtime_error const& except) {
-			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
-		}
-	}
+	wait_for_tx_ack(fName, ack);
 #endif
 }
 
@@ -97,15 +86,7 @@ void QwIAFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFeedba
 	}
 
 #ifdef WAIT_FOR_TX_ACK
-	for( auto& tx : ack ) {
-		try{
-			tx.get();
-		} catch(std::future_error const& except) {
-			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
-		} catch(std::runtime_error const& except) {
-			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
-		}
-	}
+	wait_for_tx_ack(fName, ack);
 #endif
 }
 
@@ -137,14 +118,6 @@ void QwPosXYFBStrategy::Apply(QwFeedbackCorrectionPayload const& payload, VQwFee
 	ack[7] = std::move( setpoints[7].ApplyCorrection<std::plus<double>>(corr_u)  );
 
 #ifdef WAIT_FOR_TX_ACK
-	for( auto& tx : ack ) {
-		try{
-			tx.get();
-		} catch(std::future_error const& except) {
-			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
-		} catch(std::runtime_error const& except) {
-			QwError << fName << " Request not sent! " << except.what() << QwLog::endl;
-		}
-	}
+	wait_for_tx_ack(fName, ack);
 #endif
 }
