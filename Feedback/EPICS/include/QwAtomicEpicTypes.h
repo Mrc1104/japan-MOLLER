@@ -62,11 +62,12 @@ bool AtomicEpicsType<T>::CompareExchangeWeak(T& expected, T desired, std::memory
 template<>
 class AtomicEpicsType<std::string>
 {
-	static constexpr std::size_t MAX_STR_LENGTH = 40;
+	static constexpr std::size_t MAX_STR_LENGTH = EpicsTypeTraits<std::string>::MAX_STR_LENGTH;
 	using EpicsType = typename EpicsTypeTraits<std::string>::epics_type;
 	std::string data;
 	mutable std::mutex  mut;
 
+	std::string_view SliceImpl(std::string_view sv);
 	void StoreImpl(std::string_view sv);
 public:
 	AtomicEpicsType(std::string_view sv = std::string_view{}, std::memory_order mem_order = std::memory_order_seq_cst);

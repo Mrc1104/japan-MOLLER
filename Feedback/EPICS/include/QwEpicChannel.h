@@ -186,6 +186,8 @@ void EpicChannel::GetRequestContext<T>::SetException(std::exception_ptr except) 
 template<typename T>
 void EpicChannel::GetRequestContext<T>::Fulfill(int status, chtype dbr_type, const void* dbr_ptr)
 {
+	using Traits = EpicsTypeTraits<T>;
+	using epics_type = typename Traits::epics_type;
 	try {
 		if(status != ECA_NORMAL) {
 			throw std::runtime_error("Network Read Error: " + std::string(::ca_message(status)));
@@ -193,8 +195,10 @@ void EpicChannel::GetRequestContext<T>::Fulfill(int status, chtype dbr_type, con
 		if(!dbr_ptr) {
 			throw std::runtime_error("Network read error: payload is empty");
 		}
-		T const* data = static_cast<T const*>( dbr_ptr );
-		promise.set_value(*data);
+		auto epics_data = static_cast<epics_type const*>( dbr_ptr );
+		T data;
+		Traits::from_epics(data, *epics_data);
+		promise.set_value(data);
 	} catch(...) {
 		// Return the exception to the caller
 		promise.set_exception(std::current_exception());
@@ -213,7 +217,7 @@ std::future<void> EpicChannel::PutRequestContext<T>::GetFuture()
 template<typename T>
 void const* EpicChannel::PutRequestContext<T>::GetValuePtr() const noexcept
 {
-	return &data;
+	return EpicsTypeTraits<T>::get_ptr(data);
 }
 template<typename T>
 void EpicChannel::PutRequestContext<T>::Fulfill(int status, chtype dbr_type, const void* dbr_ptr)
