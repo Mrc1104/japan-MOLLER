@@ -1,6 +1,6 @@
 #pragma once
 #include "QwEpicTypeTraits.h"
-#include "QwEpicTypes.h"
+#include "QwAtomicEpicTypes.h"
 #include <string_view>
 
 template<typename T>

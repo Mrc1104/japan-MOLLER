@@ -2,7 +2,7 @@
 #include <future>
 #include <string>
 #include "QwFeedbackLogger.h"
-#include "QwEpicTypes.h"
+#include "QwAtomicEpicTypes.h"
 #include "QwEpicChannel.h"
 #include "QwIHWP.h"
 #include "QwLimits.h"

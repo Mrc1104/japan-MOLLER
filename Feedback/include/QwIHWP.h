@@ -5,7 +5,7 @@
 #include "QwObserver.h"
 #include "QwPublisher.h"
 #include "QwFeedbackLogger.h"
-#include "QwEpicTypes.h"
+#include "QwAtomicEpicTypes.h"
 enum class IHWP {
     kIN  = 0, // PER EPICS
     kOUT = 1  // PER EPICS                                                                                

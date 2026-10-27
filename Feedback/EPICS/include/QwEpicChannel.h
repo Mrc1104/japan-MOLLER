@@ -10,7 +10,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <optional>
-#include "QwEpicTypes.h"
+#include "QwEpicTypeTraits.h"
 #include "QwObserver.h"
 #include "QwPublisher.h"
 #include "QwLog.h"

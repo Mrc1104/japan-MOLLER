@@ -1,4 +1,4 @@
-#include "QwEpicTypes.h"
+#include "QwAtomicEpicTypes.h"
 
 AtomicEpicsType<std::string>::AtomicEpicsType(std::string_view sv, std::memory_order mem_order)
 {
