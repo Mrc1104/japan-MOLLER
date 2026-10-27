@@ -48,12 +48,11 @@ public:
 	void StartMonitoring(EPICSObserver<T>* observer) noexcept;
 	template <typename T>
 	void StopMonitoring(EPICSObserver<T>* observer) noexcept;
-public:
 	template<typename T>
 	std::future<T> GetAsync();
 	template<typename T>
 	std::future<void> PutAsync(T&& value);
-
+private:
 	class AsyncContextBase {
 	public:
 		virtual ~AsyncContextBase() = default;
