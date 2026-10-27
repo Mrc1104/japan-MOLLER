@@ -45,9 +45,9 @@ public:
 	::evid StartMonitoring() noexcept;
 	void StopMonitoring(::evid monitor_id) noexcept;
 	template <typename T>
-	void StartMonitoring(Observer<T>* observer) noexcept;
+	void StartMonitoring(EPICSObserver<T>* observer) noexcept;
 	template <typename T>
-	void StopMonitoring(Observer<T>* observer) noexcept;
+	void StopMonitoring(EPICSObserver<T>* observer) noexcept;
 public:
 	template<typename T>
 	std::future<T> GetAsync();
@@ -238,7 +238,7 @@ void EpicChannel::PutRequestContext<T>::SetException(std::exception_ptr except)
 }
 
 template <typename T>
-void EpicChannel::StartMonitoring(Observer<T>* observer) noexcept
+void EpicChannel::StartMonitoring(EPICSObserver<T>* observer) noexcept
 {
 	// I want to have a map with ::chtype as the key
 	constexpr auto key = EpicsTypeTraits<T>::dbr_type;
@@ -250,7 +250,7 @@ void EpicChannel::StartMonitoring(Observer<T>* observer) noexcept
 	publisher_context->Start();
 }
 template <typename T>
-void EpicChannel::StopMonitoring(Observer<T>* observer) noexcept
+void EpicChannel::StopMonitoring(EPICSObserver<T>* observer) noexcept
 {
 	// I want to have a map with ::chtype as the key
 	constexpr auto key = EpicsTypeTraits<T>::dbr_type;
