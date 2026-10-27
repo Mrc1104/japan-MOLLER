@@ -25,6 +25,7 @@ struct EpicsTypeTraits<double> {
 		return &input;
 	}
 };
+
 template<>
 struct EpicsTypeTraits<int> {
 	static constexpr ::chtype dbr_type = DBR_LONG;
@@ -40,6 +41,7 @@ struct EpicsTypeTraits<int> {
 		return &input;
 	}
 };
+
 template<>
 struct EpicsTypeTraits<std::string> {
 	static constexpr ::chtype dbr_type = DBR_STRING;

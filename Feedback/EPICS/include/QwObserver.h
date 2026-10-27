@@ -3,6 +3,10 @@
 #include "QwAtomicEpicTypes.h"
 #include <string_view>
 
+/**
+ *@class Observer
+ *@brief Interface for Observer class (Observer pattern).
+ */
 template<typename T>
 class Observer
 {
@@ -12,7 +16,11 @@ public:
 };
 
 
-// EXAMPLE:
+/**
+ *@class EPICSObserver
+ *@brief Interface for Observer class limited to EPICS
+ *       supported types
+ */
 template<typename T>
 class EPICSObserver : public Observer<T>
 {
@@ -22,6 +30,10 @@ class EPICSObserver : public Observer<T>
 	using MonitorCallback = void(*)(event_handler_args);
 };
 
+/**
+ *@class ChannelObserver
+ *@brief Example usage of Observer Pattern
+ */
 template<typename T>
 class ChannelObserver : public EPICSObserver<T>
 {
