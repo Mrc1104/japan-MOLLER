@@ -15,51 +15,171 @@
 #include "QwPublisher.h"
 #include "QwLog.h"
 
+/**
+ *@class EpicChannel
+ *@brief Encapsulates all the business logic for Epics channels.
+ */
 class EpicChannel
 {
-	// chid is an opaque ptr
-	// think void*
+	/*@var chid chan opaque type (use as if void*) */
 	chid chan;
+
+	/*@var is_conn atomic connection flag. 
+	 *      Is set inside connection_callback
+	 */
 	std::atomic<bool> is_conn;
 	std::mutex io_mut;
+
+	/*@brief Connection callback on conn. status change.
+	 *@param [in] arg EPICS data passed into callback
+	 *@details
+	 *     see https://docs.epics-controls.org/projects/base/en/latest/cadef_h.html#_CPPv423connection_handler_args
+	 */
 	static void connection_callback(::connection_handler_args arg) noexcept;
+
+	/*@brief Live Value Monitoring callback on value change
+	 *@param [in] arg EPICS data passed into callback
+	 *@details
+	 *      Barebone callback used in StartMonitoring() overload;
+	 *      Prints the status update as a string
+	 */
 	static void monitor_callback(::event_handler_args arg) noexcept;
+
+	/*@brief Channel value callback on value change.
+	 *@param [in] arg EPICS data passed into callback
+	 */
 	template<typename T>
 	static void monitor_value_callback(event_handler_args arg) noexcept;
+
+	/*@brief Async Read Callback
+	 *@param [in] arg EPICS data passed into callback
+	 */
 	static void async_get_callback(::event_handler_args arg);
+
+	/*@brief Async Write Callback
+	 *@param [in] arg EPICS data passed into callback
+	 */
 	static void async_put_callback(::event_handler_args arg);
 public:
+	/**
+	 *@brief EpicChannel Ctor
+	 *@param [in] pv_name Process variable
+	 *@param [in] priority level for EPICS dispatch
+	 *@details Creates an EPICS Channel associated with the given PV and creates a
+	 *         connection subscription (see connection_callback(connection_handler_args))
+	 *
+	 *         Currently the priority level has no effect.
+	 *         See description for ca_create_channel
+	 *         https://docs.epics-controls.org/projects/base/en/latest/cadef_h.html
+	 */
 	EpicChannel(char const* pv_name, ::capri priority);
+
+	/**
+	 *@brief EpicChannel Dtor
+	 *@details Removes an monitor subscriptions and disconnects the channel
+	 */
 	~EpicChannel();
 	EpicChannel(EpicChannel const&)            = delete;
 	EpicChannel& operator=(EpicChannel const&) = delete;
 	EpicChannel(EpicChannel && other) noexcept;
 	EpicChannel& operator=(EpicChannel && other) = delete;
 public:
+	/**
+	 *@brief Get the EpicChannel PV
+	 *@return Name of the EpicChannel
+	 */
 	std::string_view GetName();
+
+	/**
+	 *@brief Get the current connection status
+	 *@retval Connection status. See stringify(::channel_state const)
+	 *        or https://docs.epics-controls.org/projects/base/en/latest/cadef_h.html#_CPPv413channel_state
+	 *        for enumeration description
+	 */
 	::channel_state CheckConnection();
+
+	/**
+	 *@brief Monitor Callback function signature
+	 */
 	using MonitorCallback = void(*)(::event_handler_args);
+
+	/**
+	 *@brief Start monitoring a this channel with a user defined callback
+	 *@param [in] dbr_type EPICS primitive C type
+	 *@param [in] func User supplied callback function. See MonitorCallback for required signature
+	 *@param [in] pArg Pointer to user args (accessible through event_handler_args)
+	 *@return evid Subscrption ID, needed to stop subscription
+	 *@TODO Replace explicit use of ::chtype with EpicsTypeTraits (see QwEpicTypeTraits)
+	 */
 	[[nodiscard]]
 	::evid StartMonitoring(::chtype dbr_type, MonitorCallback func, void* pArg) noexcept;
+
+	/**
+	 *@brief Start monitoring a this channel with default monitor callback
+	 *@return evid Subscrption ID, needed to stop subscription
+	 */
 	[[nodiscard]]
 	::evid StartMonitoring() noexcept;
+
+	/**
+	 *@brief Stop monitoring a this channel for a given subscription ID.
+	 *       No op if monitor_id is invalid
+	 *@param [in] evid Subscrption ID
+	 */
 	void StopMonitoring(::evid monitor_id) noexcept;
+
+	/**
+	 *@brief Start monitoring the channel for value change using Observer Pattern
+	 *@param [in] observer Observer type limited to EPICS supported types
+	 */
 	template <typename T>
 	void StartMonitoring(EPICSObserver<T>* observer) noexcept;
+
+	/**
+	 *@brief Stop monitoring the channel for value change using Observer Pattern
+	 *@param [in] observer Observer type limited to EPICS supported types
+	 */
 	template <typename T>
 	void StopMonitoring(EPICSObserver<T>* observer) noexcept;
+
+	/**
+	 *@brief Primitive Async Read Method
+	 *@tparam T Standard C++ type that has a corresponding EPICS type
+	 *          (see QwEpicsTypeTraits)
+	 *@return Result of async read or exception.
+	 *details This is a primitive read method for standalone requests.
+	 *        If doing a lot of repetitive requests, using the callback
+	 *        feature is likely a better option
+	 */
 	template<typename T>
 	std::future<T> GetAsync();
+
+	/**
+	 *@brief Primitive Async Write Method
+	 *@tparam T Standard C++ type that has a corresponding EPICS type
+	 *          (see QwEpicsTypeTraits)
+	 *@return Request acknowlegement or exception.
+	 */
 	template<typename T>
 	std::future<void> PutAsync(T&& value);
 private:
+
+	/**
+	 *@class Async Context Interface
+	 */
 	class AsyncContextBase {
 	public:
 		virtual ~AsyncContextBase() = default;
 		virtual void Fulfill(int status, chtype dbr_type, const void* dbr_ptr) = 0;
+		//@brief Interface needed for PublisherContext
 		virtual void Start(){};
 		virtual void Stop(){};
 	};
+
+	/**
+	 *@class Async Read Request Context
+	 *brief Encapsulates the Async Get callback logic. Uses std::promise / future pair
+	 */
 	template<typename T>
 	class GetRequestContext : public AsyncContextBase
 	{
@@ -69,6 +189,11 @@ private:
 		void SetException(std::exception_ptr except);
 		std::future<T> GetFuture();
 	};
+
+	/**
+	 *@class Async Write Request Context
+	 *brief Encapsulates the Async Put callback logic. Uses std::promise / future pair
+	 */
 	template<typename T>
 	class PutRequestContext : public AsyncContextBase
 	{
@@ -83,6 +208,15 @@ private:
 		void const* GetValuePtr() const noexcept;
 
 	};
+
+	/**
+	 *@class Async Monitor Context
+	 *@brief Encapsulates the Async Monitor logic using the Observer pattern
+	 *@detail Idea is to have a many-to-one pairing for each channel (one) mapped
+	 *        to each epics supported type, ::chtype, (many). 
+	 *        A single instantiation of this base class corresponds to a unique
+	 *        ::chtype type (mapped via EpicTypeTraits)
+	 */
 	template<typename T>
 	class PublisherContext : public AsyncContextBase, public EPICSPublisher<T>
 	{
@@ -99,11 +233,18 @@ private:
 		PublisherContext(PublisherContext&& other) = delete;
 		PublisherContext& operator=(PublisherContext&& other) = delete;
 		// Loops over all of the Subscribed values and updates them
-		void Fulfill(int status, chtype dbr_type, const void* dbr_ptr) override;
+		void Fulfill(int status, ::chtype dbr_type, const void* dbr_ptr) override;
 		// No Op if already monitoring
 		void Start() override;
 		void Stop() override;
 	};
+	/*
+	 *@var map a unique PublisherContext (derived) to ::ch_type
+	 *@detail Lifetime of contents is tied to the lifetime of the th_map
+	 *        any resources will not be released until th_map is destroyed.
+	 *        see ~EpicChannel()
+	 *        This avoid having to deal with deallocation in an aync context.
+	 */
 	QwThreadSafeMap<::chtype, AsyncContextBase*> th_map;
 
 };
@@ -114,7 +255,6 @@ void EpicChannel::monitor_value_callback(event_handler_args arg) noexcept
 	if(!context) return;
 	context->Fulfill(arg.status, arg.type, arg.dbr);
 }
-
 
 
 template<typename T>
@@ -141,6 +281,7 @@ std::future<T> EpicChannel::GetAsync()
 		context.release();
 		::ca_flush_io();
 	} catch(...) {
+		// Return the exception to the caller
 		context->SetException(std::current_exception());
 	}
 	return future;
@@ -171,6 +312,7 @@ std::future<void> EpicChannel::PutAsync(T&& value)
 		context.release();
 		::ca_flush_io();
 	} catch(...) {
+		// Return the exception to the caller
 		context->SetException(std::current_exception());
 	}
 	return future;
@@ -239,7 +381,6 @@ void EpicChannel::PutRequestContext<T>::SetException(std::exception_ptr except)
 template <typename T>
 void EpicChannel::StartMonitoring(EPICSObserver<T>* observer) noexcept
 {
-	// I want to have a map with ::chtype as the key
 	constexpr auto key = EpicsTypeTraits<T>::dbr_type;
 	if(!th_map.Find(key)) {
 		th_map.InsertOrAssign(key, new PublisherContext<T>(this));
@@ -251,7 +392,6 @@ void EpicChannel::StartMonitoring(EPICSObserver<T>* observer) noexcept
 template <typename T>
 void EpicChannel::StopMonitoring(EPICSObserver<T>* observer) noexcept
 {
-	// I want to have a map with ::chtype as the key
 	constexpr auto key = EpicsTypeTraits<T>::dbr_type;
 	if(th_map.Find(key)) {
 		auto publisher_context = static_cast<PublisherContext<T>*>(*th_map.Get(key));
@@ -264,6 +404,7 @@ EpicChannel::PublisherContext<T>::PublisherContext(EpicChannel* chan)
 : fChannel(chan)
 , monitor_id{nullptr}
 { }
+
 template <typename T>
 EpicChannel::PublisherContext<T>::~PublisherContext()
 {
