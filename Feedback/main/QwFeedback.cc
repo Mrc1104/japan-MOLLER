@@ -120,7 +120,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwSubsystemArrayParity ringoutput(detectors);
 
     /// Create the data handler arrays
-    QwDataHandlerArray datahandlerarray_evt(gQwOptions,ringoutput,run_label);
     QwDataHandlerArray datahandlerarray_mul(gQwOptions,helicitypattern,run_label);
 
     ///  Create the running sum
@@ -219,9 +218,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  // Accumulate the running sum to calculate the event based running average
 	  eventsum.AccumulateRunningSum(ringoutput);
 
-	  // Process data handlers
-          datahandlerarray_evt.ProcessDataHandlerEntry();
-
           // Load the event into the helicity pattern
           helicitypattern.LoadEventData(ringoutput);
 
@@ -274,7 +270,6 @@ Int_t main(Int_t argc, Char_t* argv[])
               << eventbuffer.GetPhysicsEventNumber() << QwLog::endl;
 
     // Finish data handlers
-    datahandlerarray_evt.FinishDataHandler();
     datahandlerarray_mul.FinishDataHandler();
 
     // Calculate running averages
