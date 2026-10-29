@@ -85,7 +85,7 @@ private:
 	std::size_t fMaxPattern;
 	std::size_t fPatternCounter;
 	std::set<DeviceMap> fDeviceSet;
-	std::unique_ptr<QwFeedback> fFeedback;
+    QwFeedback fFeedback;
 };
 
 // Register this handler with the factory
