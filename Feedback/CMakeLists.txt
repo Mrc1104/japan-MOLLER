@@ -33,6 +33,7 @@ if(NOT EPICS_FOUND)
   message(WARNING "${PROJECT_NAME} Skipped: EPICS Not Found!")
   return()
 endif()
+message(STATUS "NOTICE: ${PROJECT_NAME} will be built!")
 
 add_library(${PROJECT_NAME} SHARED ${SRC})
 target_link_libraries(${PROJECT_NAME} PUBLIC

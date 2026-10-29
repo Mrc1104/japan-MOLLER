@@ -22,16 +22,13 @@ set_diagnostic_flags(WALL)
 #----------------------------------------------------------------------------
 # EPICS library
 #
-find_package(EPICS REQUIRED COMPONENTS 
+find_package(EPICS COMPONENTS
 	Com ca 
 )
 if(NOT EPICS_FOUND)
 	set(EPICS_FOUND FALSE PARENT_SCOPE)
 	return()
 
-endif()
-if(EPICS_FOUND)
-	message(STATUS "EPICS FOUND!")
 endif()
 set(EPICS_FOUND TRUE PARENT_SCOPE)
 
