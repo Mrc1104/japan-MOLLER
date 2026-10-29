@@ -1,17 +1,11 @@
-[QwBeamLine]
- name = ISU_TestStand
- map = isu_channels.map
- param = isu_pedestals.map
- eventcut = isu_eventcuts.in
-
-![QwFeedbackHandler]
-!  name = PitaFeedback
-!  map  = pita_feedback.map
-!  impl = PITA
-!  slope_ihwp_in  = 0.2
-!  slope_ihwp_out = -0.2
-!  patterns = 200
-!  log  = ./PITA_Feedback.log
+[QwFeedbackHandler]
+  name = PitaFeedback
+  map  = pita_feedback.map
+  impl = PITA
+  slope_ihwp_in  = 0.2
+  slope_ihwp_out = -0.2
+  patterns = 200
+  log  = ./PITA_Feedback.log
 
 ![QwFeedbackHandler]
 !  name = AposUFeedback
@@ -31,16 +25,16 @@
 !  patterns = 200
 !  log  = ./APOSV_Feedback.log
 
-[QwFeedbackHandler]
-  name = PosXYFeedback
-  map  = posxy_feedback.map
-  impl = POSXY
-  slope_xu = 0.1
-  slope_xv = 0.1
-  slope_yu = -0.1
-  slope_yv = 0.1
-  patterns = 200
-  log  = ./POSXY_Feedback.log
+![QwFeedbackHandler]
+!  name = PosXYFeedback
+!  map  = posxy_feedback.map
+!  impl = POSXY
+!  slope_xu = 0.1
+!  slope_xv = 0.1
+!  slope_yu = -0.1
+!  slope_yv = 0.1
+!  patterns = 200
+!  log  = ./POSXY_Feedback.log
 
 ![QwFeedbackHandler]
 !  name = HAIAFeedback

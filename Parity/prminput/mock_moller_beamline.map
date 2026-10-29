@@ -151,6 +151,9 @@ end=energycalculator
  xy_pos_x, combobpm,     bpm_target,     x
  xy_pos_y, combobpm,     bpm_target,     y
  e_targ,   comboenergy,  target_energy,  e
+ q_targA,  combobpm,     bpm_target,     ef
+ q_targB,  combobpm,     bpm_target,     ef
+ q_targC,  combobpm,     bpm_target,     ef
 
 
 
