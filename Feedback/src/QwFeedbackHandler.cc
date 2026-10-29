@@ -11,7 +11,7 @@ QwFeedbackHandler::QwFeedbackHandler(TString const& name)
 : VQwDataHandler(name)
 , fMaxPattern(std::numeric_limits<std::size_t>::max())
 , fPatternCounter(0)
-, fFeedback{std::make_unique<QwFeedback>()}
+, fFeedback{}
 {
 	fKeepRunningSum = false;
 }
@@ -20,7 +20,7 @@ QwFeedbackHandler::QwFeedbackHandler(QwFeedbackHandler const& source)
 , fMaxPattern(source.fMaxPattern)
 , fPatternCounter(source.fPatternCounter)
 , fDeviceSet(source.fDeviceSet)
-, fFeedback(std::make_unique<QwFeedback>(*source.fFeedback))
+, fFeedback(source.fFeedback)
 { }
 
 
@@ -31,7 +31,7 @@ void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
 
 	// Instantiate the feedback type first before setting slopes
   	file.PopValue("impl", feedback_type); 
-	auto feedback_type_enum = fFeedback->ConfigureFeedbackType(feedback_type);
+	auto feedback_type_enum = fFeedback.ConfigureFeedbackType(feedback_type);
 	if(feedback_type_enum == QwFeedback::TYPE::UNKNOWN) {
 		THROW_ERROR("Unsupported Feedback Type: " + std::string(feedback_type));
 	}
@@ -43,8 +43,8 @@ void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
 		if(!file.PopValue("slope_ihwp_out", slope_out)) {
 			THROW_ERROR("Missing Required Slope (slope_ihwp_out)!");
 		}
-		fFeedback->SetSlope(IHWP::kIN , slope_in );
-		fFeedback->SetSlope(IHWP::kOUT, slope_out);
+		fFeedback.SetSlope(IHWP::kIN , slope_in );
+		fFeedback.SetSlope(IHWP::kOUT, slope_out);
 	} else {
 		double slope_xu = 0, slope_xv = 0,
 		       slope_yu = 0, slope_yv = 0;
@@ -60,15 +60,15 @@ void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
 		if(!file.PopValue("slope_yv", slope_yv)) {
 			THROW_ERROR("Missing Required Slope (slope_yv)!");
 		}
-		fFeedback->SetSlope(QwPOSXYSlope::POS_TYPE::kXU , slope_xu);
-		fFeedback->SetSlope(QwPOSXYSlope::POS_TYPE::kXV , slope_xv);
-		fFeedback->SetSlope(QwPOSXYSlope::POS_TYPE::kYU , slope_yu);
-		fFeedback->SetSlope(QwPOSXYSlope::POS_TYPE::kYV , slope_yv);
+		fFeedback.SetSlope(QwPOSXYSlope::POS_TYPE::kXU , slope_xu);
+		fFeedback.SetSlope(QwPOSXYSlope::POS_TYPE::kXV , slope_xv);
+		fFeedback.SetSlope(QwPOSXYSlope::POS_TYPE::kYU , slope_yu);
+		fFeedback.SetSlope(QwPOSXYSlope::POS_TYPE::kYV , slope_yv);
 	}
 
   	file.PopValue("patterns",fMaxPattern);
 	file.PopValue("log", logfile);
-	if( !fFeedback->ConfigureLogger(logfile) ) {
+	if( !fFeedback.ConfigureLogger(logfile) ) {
 		QwWarning << '(' << logfile << ") Logfile Not Set for "
 		          << feedback_type << " Feedback!" << QwLog::endl;
 	}
@@ -94,7 +94,7 @@ Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)
 			QwWarning << "Invalid Feedback Config:" << config << '\n';
 			continue;
 		}
-		fFeedback->ConfigureFeedback( config );
+		fFeedback.ConfigureFeedback( config );
 	}
 
 	return 0;
@@ -102,13 +102,13 @@ Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)
 
 Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsystemArrayParity& asym, QwSubsystemArrayParity& diff)
 {
-	for( auto& device : fFeedback->RequestTargetDevices() ) {
+	for( auto& device : fFeedback.RequestTargetDevices() ) {
 		auto const& device_name    = device.fName;
 		auto const& device_type    = device.fQwType;
 		auto const& device_fb_type = device.fFbType;
 		double scale_factor = 1.0;
 		VQwHardwareChannel const* observer{nullptr};
-		QwMessage << fFeedback->RequestFeedbackName() << " is requesting device: " << device_name << '\n';
+		QwMessage << fFeedback.RequestFeedbackName() << " is requesting device: " << device_name << '\n';
 		switch (device_type) {
 			case kHandleTypeYield:
 				// Unsupported
@@ -165,7 +165,7 @@ void QwFeedbackHandler::ProcessData()
 	}
 	if(fPatternCounter >= fMaxPattern) {
 		// Apply correction
-		QwOut << fFeedback->RequestFeedbackName() << " -- Pattern " << fPatternCounter << ":\n";
+		QwOut << fFeedback.RequestFeedbackName() << " -- Pattern " << fPatternCounter << ":\n";
 		QwFeedbackCorrectionPayload payload{};
 		for( auto const& device : fDeviceSet) {
 			device.CalculateAverage();
@@ -175,7 +175,7 @@ void QwFeedbackHandler::ProcessData()
 			QwOut << "\tValueError = " << device.GetValueError() << " [ppm]\n";
 			QwOut << "\tValueWidth = " << device.GetValueWidth() << " [ppm]\n";
 		}
-		fFeedback->ApplyCorrection(payload);
+		fFeedback.ApplyCorrection(payload);
 		fPatternCounter = 0;
 	}
 }
