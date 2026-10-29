@@ -4,16 +4,12 @@
 #include <mutex>
 #include <memory>
 #include <future>
-#include <type_traits>
-#include <utility>
 #include <cadef.h>
-#include <iostream>
 #include <stdexcept>
-#include <optional>
 #include "QwEpicTypeTraits.h"
 #include "QwObserver.h"
 #include "QwPublisher.h"
-#include "QwLog.h"
+#include "QwThreadSafeMap.h"
 
 /**
  *@class EpicChannel
