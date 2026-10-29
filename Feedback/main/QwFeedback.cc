@@ -94,12 +94,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwEventBuffer eventbuffer;
   eventbuffer.ProcessOptions(gQwOptions);
 
-  ///  Create the database connection
-  #ifdef __USE_DATABASE__
-  QwParityDB database(gQwOptions);
-  #endif //__USE_DATABASE__
-
-
   ///  Start loop over all runs
   Int_t run_number = 0;
   while (eventbuffer.OpenNextStream() == CODA_OK) {
@@ -158,17 +152,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwHelicityPattern burstsum(helicitypattern);
     burstsum.DisablePairs();
 
-    //  Initialize the database connection.
-    #ifdef __USE_DATABASE__
-    database.SetupOneRun(eventbuffer);
-    #endif // __USE_DATABASE__
-
-    #ifdef __USE_DATABASE__
-    if (database.AllowsWriteAccess()) {
-      database.FillParameterFiles(detectors);
-    }
-    #endif // __USE_DATABASE__
-
     //  Clear the single-event running sum at the beginning of the runlet
     eventsum.ClearEventData();
     patternsum.ClearEventData();
@@ -182,11 +165,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Load the blinder seed from a random number generator for online mode
     if (eventbuffer.IsOnline() ){
       helicitypattern.UpdateBlinder();//this routine will call update blinder mechanism using a random number
-    }else{
-      //  Load the blinder seed from the database for this runlet.
-#ifdef __USE_DATABASE__
-      helicitypattern.UpdateBlinder(&database);
-#endif // __USE_DATABASE__
     }
 
 
@@ -396,21 +374,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       QwMessage << " ------------ error counters ------------------ " << QwLog::endl;
       ringoutput.PrintErrorCounters();
     }
-
-    //  Read from the database
-    #ifdef __USE_DATABASE__
-    database.SetupOneRun(eventbuffer);
-
-    // Each subsystem has its own Connect() and Disconnect() functions.
-    if (database.AllowsWriteAccess()) {
-      patternsum.FillDB(&database);
-      patternsum.FillErrDB(&database);
-      epicsevent.FillDB(&database);
-      ringoutput.FillDB_MPS(&database, "optics");
-    }
-    #endif // __USE_DATABASE__
-
-    //epicsevent.WriteEPICSStringValues();
 
     //  Close event buffer stream
     eventbuffer.CloseStream();
