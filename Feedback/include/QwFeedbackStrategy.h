@@ -75,9 +75,10 @@ struct QwPosXYFBStrategy
 template <typename Strategy>
 class QwFBStrategy
 {
-public:
 	static constexpr std::string_view fName            = Strategy::fName;
 	static constexpr std::size_t fNumSetpointsExpected = Strategy::fNumSetpointsExpected;
+	std::size_t fNumSetpointsSet{0};
+	std::array<QwFeedbackSetpoint, fNumSetpointsExpected> fSetpoints;
 public:
 	/**
 	 *@brief Add an IOC (setpoint)
@@ -100,9 +101,6 @@ public:
 	 *@brief Get the name of the Feedback Strategy
 	 */
 	constexpr std::string_view GetName() const;
-private:
-	std::size_t fNumSetpointsSet{0};
-	std::array<QwFeedbackSetpoint, fNumSetpointsExpected> fSetpoints;
 };
 
 template <typename Strategy>
