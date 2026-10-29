@@ -141,24 +141,16 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwDataHandlerArray datahandlerarray_evt(gQwOptions,ringoutput,run_label);
     QwDataHandlerArray datahandlerarray_mul(gQwOptions,helicitypattern,run_label);
 
-    ///  Create the burst sum
-    QwHelicityPattern patternsum_per_burst(helicitypattern);
-    patternsum_per_burst.DisablePairs();
-
     ///  Create the running sum
     QwSubsystemArrayParity eventsum(detectors);
     QwHelicityPattern patternsum(helicitypattern);
     patternsum.DisablePairs();
-    QwHelicityPattern burstsum(helicitypattern);
-    burstsum.DisablePairs();
 
     //  Clear the single-event running sum at the beginning of the runlet
     eventsum.ClearEventData();
     patternsum.ClearEventData();
-    burstsum.ClearEventData();
     //  Clear the running sum of the burst values at the beginning of the runlet
     helicitypattern.ClearEventData();
-    patternsum_per_burst.ClearEventData();
 
 
 
@@ -266,30 +258,6 @@ Int_t main(Int_t argc, Char_t* argv[])
               // Process data handlers
               datahandlerarray_mul.ProcessDataHandlerEntry();
 
-              // Fill the pattern into the sum for this burst
-              patternsum_per_burst.AccumulateRunningSum(helicitypattern);
-
-              // Burst mode
-              if (patternsum_per_burst.IsEndOfBurst()) {
-
-                // Calculate average over this burst
-                patternsum_per_burst.CalculateRunningAverage();
-
-                // Fill the burst into the sum over all bursts
-                burstsum.AccumulateRunningSum(patternsum_per_burst);
-
-                if (gQwOptions.GetValue<bool>("print-burstsum")) {
-                  QwMessage << " Running average of this burst" << QwLog::endl;
-                  QwMessage << " =============================" << QwLog::endl;
-                  patternsum_per_burst.PrintValue();
-                }
-
-		helicitypattern.IncrementBurstCounter();
-		datahandlerarray_mul.UpdateBurstCounter(helicitypattern.GetBurstCounter());
-                // Clear the data
-                patternsum_per_burst.ClearEventData();
-              }
-
               // Clear the data
               helicitypattern.ClearEventData();
 
@@ -315,24 +283,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     //  TODO Drain event run
 
-    //  Finalize burst
-    if (patternsum_per_burst.HasBurstData()){
-      // Calculate average over this burst
-      patternsum_per_burst.CalculateRunningAverage();
-
-      // Fill the burst into the sum over all bursts
-      burstsum.AccumulateRunningSum(patternsum_per_burst);
-
-      if (gQwOptions.GetValue<bool>("print-burstsum")) {
-	QwMessage << " Running average of this burst" << QwLog::endl;
-	QwMessage << " =============================" << QwLog::endl;
-	patternsum_per_burst.PrintValue();
-      }
-
-
-      patternsum_per_burst.PrintIndexMapFile(run_number);
-    }
-
     //  Perform actions at the end of the event loop on the
     //  detectors object, which ought to have handles for the
     //  MPS based histograms.
@@ -348,7 +298,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Calculate running averages
     eventsum.CalculateRunningAverage();
     patternsum.CalculateRunningAverage();
-    burstsum.CalculateRunningAverage();
 
     // This will calculate running averages over single helicity events
     if (gQwOptions.GetValue<bool>("print-runningsum")) {
@@ -361,12 +310,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       QwMessage << " Running average of patterns" << QwLog::endl;
       QwMessage << " =========================" << QwLog::endl;
       patternsum.PrintValue();
-    }
-
-    if (gQwOptions.GetValue<bool>("print-burstsum")) {
-      QwMessage << " Running average of bursts" << QwLog::endl;
-      QwMessage << " =========================" << QwLog::endl;
-      burstsum.PrintValue();
     }
 
     //  Print the event cut error summary for each subsystem
