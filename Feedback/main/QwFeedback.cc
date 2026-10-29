@@ -69,7 +69,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.AddOptions()("single-output-file", po::value<bool>()->default_bool_value(false), "Write a single output file");
   gQwOptions.AddOptions()("print-errorcounters", po::value<bool>()->default_bool_value(true), "Print summary of error counters");
-  gQwOptions.AddOptions()("write-promptsummary", po::value<bool>()->default_bool_value(false), "Write PromptSummary");
   gQwOptions.AddOptions()("callgrind-instr-start-event-loop", po::value<bool>()->default_bool_value(false), "Start callgrind instrumentation with main event loop (with --instr-atstart=no)");
   gQwOptions.AddOptions()("callgrind-instr-stop-event-loop", po::value<bool>()->default_bool_value(false), "Stop callgrind instrumentation with main event loop (with --instr-atstart=no)");
 
@@ -108,7 +107,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwParityDB database(gQwOptions);
   #endif //__USE_DATABASE__
 
-  //  QwPromptSummary promptsummary;
 
   ///  Start loop over all runs
   Int_t run_number = 0;
@@ -125,9 +123,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     gQwOptions.Parse(kTRUE);
     eventbuffer.ProcessOptions(gQwOptions);
 
-    //    if (gQwOptions.GetValue<bool>("write-promptsummary")) {
-    QwPromptSummary promptsummary(run_number, eventbuffer.GetSegmentNumber());
-    //    }
     ///  Create an EPICS event
     QwEPICSEvent epicsevent;
     epicsevent.ProcessOptions(gQwOptions);
@@ -676,14 +671,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       ringoutput.PrintErrorCounters();
     }
 
-    if (gQwOptions.GetValue<bool>("write-promptsummary")) {
-      //      runningsum.WritePromptSummary(&promptsummary, "yield");
-      // runningsum.WritePromptSummary(&promptsummary, "asymmetry");
-      //      runningsum.WritePromptSummary(&promptsummary, "difference");
-      datahandlerarray_mul.WritePromptSummary(&promptsummary, "asymmetry");
-      patternsum.WritePromptSummary(&promptsummary);
-      promptsummary.PrintCSV(eventbuffer.GetPhysicsEventNumber(),eventbuffer.GetStartSQLTime(), eventbuffer.GetEndSQLTime());
-    }
     //  Read from the database
     #ifdef __USE_DATABASE__
     database.SetupOneRun(eventbuffer);
