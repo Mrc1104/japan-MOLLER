@@ -1,7 +1,7 @@
 # Name of this project
 project(QwEPICS VERSION 2.0.0 LANGUAGES CXX)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_DIR}/cmake/modules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 #----------------------------------------------------------------------------
 # Sources and headers
