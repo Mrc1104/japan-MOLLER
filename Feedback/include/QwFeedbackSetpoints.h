@@ -116,6 +116,7 @@ std::future<void> QwFeedbackSetpoint::ApplyCorrection(double corr)
 			+ ": fPrev = "        + std::to_string(fPrev)
 			+ ", fCurrent = "     + std::to_string(current)
 			+ ", Correction = "   + std::to_string(fCorr) + '\n';
+	QwMessage << fName << " | " << log_payload;
 	Notify(QwFeedbackLogPayload{QwLogLevel::kMessage, std::move(log_payload)});
 	return fut;
 }

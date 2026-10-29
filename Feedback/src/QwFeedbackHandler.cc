@@ -76,12 +76,10 @@ void QwFeedbackHandler::ParseConfigFile(QwParameterFile& file)
 }
 Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)
 {
-	std::cout << "Opening: " << mapfile<< '\n';
 	// Open the file
 	QwParameterFile map(mapfile);
 
 	while (map.ReadNextLine()) {
-		std::cout << "ReadNextLine()\n";
 		// Throw away comments, whitespace, empty lines
 		map.TrimComment();
 		map.TrimWhitespace();
@@ -96,7 +94,6 @@ Int_t QwFeedbackHandler::LoadChannelMap(std::string const& mapfile)
 			QwWarning << "Invalid Feedback Config:" << config << '\n';
 			continue;
 		}
-		QwOut << config;
 		fFeedback->ConfigureFeedback( config );
 	}
 
@@ -111,7 +108,7 @@ Int_t QwFeedbackHandler::ConnectChannels(QwSubsystemArrayParity& yield, QwSubsys
 		auto const& device_fb_type = device.fFbType;
 		double scale_factor = 1.0;
 		VQwHardwareChannel const* observer{nullptr};
-		QwMessage << "Requesting channel: " << device_name << '\n';
+		QwMessage << fFeedback->RequestFeedbackName() << " is requesting device: " << device_name << '\n';
 		switch (device_type) {
 			case kHandleTypeYield:
 				// Unsupported

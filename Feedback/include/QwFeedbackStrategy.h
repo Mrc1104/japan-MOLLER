@@ -95,6 +95,11 @@ public:
 	 *@param [in] slope value to setpoint unit conversion
 	 */
 	void operator()(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope);
+
+	/**
+	 *@brief Get the name of the Feedback Strategy
+	 */
+	constexpr std::string_view GetName() const;
 private:
 	std::size_t fNumSetpointsSet{0};
 	std::array<QwFeedbackSetpoint, fNumSetpointsExpected> fSetpoints;
@@ -127,6 +132,13 @@ void QwFBStrategy<Strategy>::operator()(QwFeedbackCorrectionPayload const& paylo
 				<< "\nCorrection not applied!" << QwLog::endl;
 	}
 }
+
+template <typename Strategy> constexpr
+std::string_view QwFBStrategy<Strategy>::GetName() const
+{
+	return fName;
+}
+
 
 // Helpful Strategy Aliases
 using QwPitaStrategy  = QwFBStrategy<QwPitaFBStrategy>;

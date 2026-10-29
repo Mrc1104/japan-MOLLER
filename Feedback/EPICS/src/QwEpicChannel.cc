@@ -61,7 +61,6 @@ EpicChannel::EpicChannel(char const* pv_name, ::capri priority)
 EpicChannel::~EpicChannel()
 {
 	if(chan) {
-		QwOut << "Calling dtor for" << ::ca_name(chan) << '\n';
 		th_map.Clear();
 		::ca_clear_channel(chan);
 	}

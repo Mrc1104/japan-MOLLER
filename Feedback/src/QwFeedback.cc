@@ -100,3 +100,7 @@ void QwFeedback::ApplyCorrection(QwFeedbackCorrectionPayload const& payload)
 
 std::vector<Device> const& QwFeedback::RequestTargetDevices() const { return fDevices; }
 
+std::string_view QwFeedback::RequestFeedbackName() const
+{
+	return (fPimpl) ? fPimpl->GetName() : std::string_view{};
+}

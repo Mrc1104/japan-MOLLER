@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <string_view>
 #include "QwFeedbackSetpoints.h"
 #include "QwFeedbackLogger.h"
 #include "QwFeedbackStrategy.h"
@@ -18,6 +19,7 @@ public:
 	virtual void ApplyCorrectionImpl(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope) = 0;
 	virtual std::unique_ptr<VQwFeedbackImpl> Clone() const = 0;
 	virtual bool AddSetpoint(std::string const& setpoints, QwSetpointLimits const&) = 0;
+	virtual std::string_view GetName() const = 0;
 };
 
 /**
@@ -35,6 +37,7 @@ public:
 	void ApplyCorrectionImpl(QwFeedbackCorrectionPayload const& payload, VQwFeedbackSlopes const* slope) override;
 	std::unique_ptr<VQwFeedbackImpl> Clone() const override;
 	bool AddSetpoint(std::string const& setpoint, QwSetpointLimits const&) override;
+	std::string_view GetName() const override;
 };
 
 template<typename FeedbackStrategy>
@@ -61,3 +64,6 @@ std::unique_ptr<VQwFeedbackImpl> QwFeedbackImpl<FeedbackStrategy>::Clone() const
 {
 	return std::make_unique<QwFeedbackImpl>( *this );
 }
+
+template<typename FeedbackStrategy>
+std::string_view QwFeedbackImpl<FeedbackStrategy>::GetName() const { return fFbStrategy.GetName(); }

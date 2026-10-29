@@ -105,6 +105,11 @@ public:
 	std::vector<Device> const& RequestTargetDevices() const;
 
 	/**
+	 *@brief Get the name of the feedback system
+	 */
+	std::string_view RequestFeedbackName() const;
+
+	/**
 	 *@brief Set the value of the slope for a specific index.
 	 *       No op of fSlopes is null
 	 *@tparam IndexType Enumerated Index
