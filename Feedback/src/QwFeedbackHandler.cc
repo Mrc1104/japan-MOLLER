@@ -165,13 +165,13 @@ void QwFeedbackHandler::ProcessData()
 	}
 	if(fPatternCounter >= fMaxPattern) {
 		// Apply correction
-		QwOut << "Pattern " << fPatternCounter << ")\n";
+		QwOut << fFeedback->RequestFeedbackName() << " -- Pattern " << fPatternCounter << ":\n";
 		QwFeedbackCorrectionPayload payload{};
 		for( auto const& device : fDeviceSet) {
 			device.CalculateAverage();
 			payload.Set(device.GetFbType(), device.GetValue());
-			QwOut << '\t'             <<  device.GetName()       <<   '\n';
-			QwOut << "\tValue = "     <<  device.GetValue()      << " [ppm]\n";
+			QwOut << "\tDevice = "     <<  device.GetName()       <<   '\n';
+			QwOut << "\tValue = "      <<  device.GetValue()      << " [ppm]\n";
 			QwOut << "\tValueError = " << device.GetValueError() << " [ppm]\n";
 			QwOut << "\tValueWidth = " << device.GetValueWidth() << " [ppm]\n";
 		}
