@@ -6,24 +6,10 @@
 
 *//*-------------------------------------------------------------------------*/
 
-// System headers
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <new>
-
-// ROOT headers
-#include "Rtypes.h"
-#include "TROOT.h"
-
 // Qweak headers
 #include "QwLog.h"
-#include "QwRootFile.h"
 #include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
-#ifdef __USE_DATABASE__
-#include "QwParityDB.h"
-#endif //__USE_DATABASE__
 #include "QwHistogramHelper.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwHelicityPattern.h"
@@ -31,7 +17,6 @@
 #include "QwEPICSEvent.h"
 #include "QwCombiner.h"
 #include "QwCombinerSubsystem.h"
-#include "QwPromptSummary.h"
 #include "QwCorrelator.h"
 #include "QwCorrelatorNew.h"
 #include "GrandCorrelator.h"
