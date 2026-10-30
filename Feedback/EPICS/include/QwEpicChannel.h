@@ -208,7 +208,7 @@ private:
 	/**
 	 *@class Async Monitor Context
 	 *@brief Encapsulates the Async Monitor logic using the Observer pattern
-	 *@detail Idea is to have a many-to-one pairing for each channel (one) mapped
+	 *@details Idea is to have a many-to-one pairing for each channel (one) mapped
 	 *        to each epics supported type, ::chtype, (many). 
 	 *        A single instantiation of this base class corresponds to a unique
 	 *        ::chtype type (mapped via EpicTypeTraits)
@@ -236,7 +236,7 @@ private:
 	};
 	/*
 	 *@var map a unique PublisherContext (derived) to ::ch_type
-	 *@detail Lifetime of contents is tied to the lifetime of the th_map
+	 *@details Lifetime of contents is tied to the lifetime of the th_map
 	 *        any resources will not be released until th_map is destroyed.
 	 *        see ~EpicChannel()
 	 *        This avoid having to deal with deallocation in an aync context.
