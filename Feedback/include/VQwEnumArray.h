@@ -4,7 +4,7 @@
 /**
  * @class VQwEnumArray
  * @brief Interface for enum indexed arrays 
- * @TODO: Does it make sense to T& Get overloads?
+ * @todo: Does it make sense to have T& Get overloads?
  *        Providing only the accessors that copy reduces the
  *        interface needed to implement but is less efficient
  *        for non-trivial types
