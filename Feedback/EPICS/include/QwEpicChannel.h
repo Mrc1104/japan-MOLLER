@@ -105,7 +105,7 @@ public:
 	 *@param [in] func User supplied callback function. See MonitorCallback for required signature
 	 *@param [in] pArg Pointer to user args (accessible through event_handler_args)
 	 *@return evid Subscrption ID, needed to stop subscription
-	 *@TODO Replace explicit use of ::chtype with EpicsTypeTraits (see QwEpicTypeTraits)
+	 *@todo Replace explicit use of ::chtype with EpicsTypeTraits (see QwEpicTypeTraits)
 	 */
 	[[nodiscard]]
 	::evid StartMonitoring(::chtype dbr_type, MonitorCallback func, void* pArg) noexcept;
