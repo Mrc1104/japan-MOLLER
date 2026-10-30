@@ -120,7 +120,7 @@ public:
 	/**
 	 *@brief Stop monitoring a this channel for a given subscription ID.
 	 *       No op if monitor_id is invalid
-	 *@param [in] evid Subscrption ID
+	 *@param [in] monitor_id Subscrption ID
 	 */
 	void StopMonitoring(::evid monitor_id) noexcept;
 

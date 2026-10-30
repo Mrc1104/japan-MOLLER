@@ -39,7 +39,7 @@ public:
 	 *       creates a new instance if not found
 	 *@param [in] pv_name Process variable
 	 *@param [in] priority level for EPICS dispatch
-	 *@detials Currently the priority level has no effect.
+	 *@details Currently the priority level has no effect.
 	 *         See description for ca_create_channel
 	 *         https://docs.epics-controls.org/projects/base/en/latest/cadef_h.html
 	 *@return  Non-owning observer pointer to the EpicChannel. Will never be NULL.
