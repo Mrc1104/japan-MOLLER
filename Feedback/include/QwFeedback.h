@@ -63,7 +63,7 @@ private:
 	/**
 	 *@brief Instantiations the correct slope and feedback impl based off of the feedback type
 	 *@param [in] type Feedback type
-	 *@detials No Op if feedback impl is already instantiated
+	 *@details No Op if feedback impl is already instantiated
 	 */
 	void ConfigureFeedbackType(TYPE type);
 public:

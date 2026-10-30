@@ -7,7 +7,7 @@
 /**
  * @class QwFeedbackConfig
  * @brief Contains all the Feedback configuration options
- * @usage aposu_feedback.map
+ * @par aposu_feedback.map
  * type=target name=x_targ            descr=DIFFX
  * type=ioc    name=RTPXPORT1Q1calc.A descr=PC_HV1 lower=-1.0 upper=36000
  * type=ioc    name=RTPXPORT1Q4calc.A descr=PC_HV2 lower=-1.0 upper=36000
