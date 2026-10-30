@@ -18,7 +18,7 @@ class QwFeedbackConfig
 {
 public:
 	/**
-	 * @class enum TYPE
+	 * @enum TYPE
 	 * @brief Configuration type
 	 */
 	enum class TYPE	{ kTARGET, kIOC, kUNKNOWN };
