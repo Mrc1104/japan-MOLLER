@@ -112,7 +112,7 @@ void QwEnergyCalculator::ProcessEvent()
 
   for(UInt_t i = 0; i<fProperty.size(); i++){
     if(fProperty[i].Contains("targetbeamangle")){
-      tmp.ArcTan((((QwCombinedBPM<QwMollerADC_Channel>*)fDevice[i])->fSlope[VQwBPM::kXAxis]));
+      tmp.ArcTan( *(((QwCombinedBPM<QwMollerADC_Channel>*)fDevice[i])->GetSlope(VQwBPM::kXAxis)) );
      } else {
       tmp.AssignValueFrom(fDevice[i]->GetPosition(VQwBPM::kXAxis));
      }
@@ -199,7 +199,7 @@ void QwEnergyCalculator::GetProjectedPosition(VQwBPM *device)
    } else {
       //  Calculate contribution to fEnergyChange from the other devices
       if(fProperty[i].Contains("targetbeamangle")) {
-       tmp.ArcTan((((QwCombinedBPM<QwMollerADC_Channel>*)fDevice[i])->fSlope[VQwBPM::kXAxis]));
+       tmp.ArcTan( *(((QwCombinedBPM<QwMollerADC_Channel>*)fDevice[i])->GetSlope(VQwBPM::kXAxis)) );
       } else {
        tmp.AssignValueFrom(fDevice[i]->GetPosition(VQwBPM::kXAxis));
       }
@@ -276,7 +276,7 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
   UInt_t error_code = 0;
   for(UInt_t i = 0; i<fProperty.size(); i++){
     if(fProperty[i].Contains("targetbeamangle")){
-      error_code |= ((QwCombinedBPM<QwMollerADC_Channel>*)fDevice[i])->fSlope[0].GetErrorCode();
+      error_code |= ((QwCombinedBPM<QwMollerADC_Channel>*)fDevice[i])->GetSlope(VQwBPM::kXAxis)->GetErrorCode();
     } else {
       error_code |= fDevice[i]->GetPosition(VQwBPM::kXAxis)->GetErrorCode();
     }
@@ -322,7 +322,7 @@ UInt_t QwEnergyCalculator::UpdateErrorFlag()
   UInt_t error_code = 0;
   for(UInt_t i = 0; i<fProperty.size(); i++){
     if(fProperty[i].Contains("targetbeamangle")){
-      error_code |= ((QwCombinedBPM<QwMollerADC_Channel>*)fDevice[i])->fSlope[0].GetErrorCode();
+      error_code |= ((QwCombinedBPM<QwMollerADC_Channel>*)fDevice[i])->GetSlope(VQwBPM::kXAxis)->GetErrorCode();
     } else {
       error_code |= fDevice[i]->GetPosition(VQwBPM::kXAxis)->GetErrorCode();
     }

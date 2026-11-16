@@ -8,6 +8,7 @@
 
 // System headers
 #include <vector>
+#include <type_traits>
 
 // ROOT headers
 #include <TTree.h>
@@ -38,9 +39,9 @@ class QwParameterFile;
  */
 template<typename T>
 class QwCombinedBPM : public VQwBPM {
-  friend class QwEnergyCalculator;
+	static_assert(std::is_convertible_v<T*, VQwHardwareChannel*>,
+		"QwCombinedBPM template arg. must be derived from VQwHardwareChannel");
 
-  /////
  public:
 
 //-------------------------------------------------------------------------
@@ -89,7 +90,7 @@ class QwCombinedBPM : public VQwBPM {
   void    PrintValue() const override;
   void    PrintInfo() const override;
 
-  const VQwHardwareChannel* GetPosition(EBeamPositionMonitorAxis axis) const override {
+  const T* GetPosition(EBeamPositionMonitorAxis axis) const override {
     if (axis<0 || axis>2){
       TString loc="QwLinearDiodeArray::GetPosition for "
         +this->GetElementName()+" failed for axis value "+Form("%d",axis);
@@ -98,7 +99,7 @@ class QwCombinedBPM : public VQwBPM {
     return &fAbsPos[axis];
   }
 
-  const VQwHardwareChannel* GetSlope(EBeamPositionMonitorAxis axis) const{
+  const T* GetSlope(EBeamPositionMonitorAxis axis) const{
     if (axis<0 || axis>2){
       TString loc="QwLinearDiodeArray::GetPosition for "
         +this->GetElementName()+" failed for axis value "+Form("%d",axis);
@@ -106,7 +107,7 @@ class QwCombinedBPM : public VQwBPM {
     }
     return &fSlope[axis];
   }
-  const VQwHardwareChannel* GetEffectiveCharge() const override {
+  const T* GetEffectiveCharge() const override {
     return &fEffectiveCharge;
   }
 
